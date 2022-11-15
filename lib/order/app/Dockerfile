@@ -16,7 +16,7 @@ ENV PATH="/home/${APP_USER}/.local/bin:${PATH}"
 # COPY ./code/shared/lib.zip $APP_SHARED_DIR
 # RUN unzip lib.zip && mv my-shared-libs/* . && rm -rf lib.zip my-shared-libs
 
-RUN pip install --user --no-cache-dir --upgrade -r $APP_SHARED_DIR/requirements.txt
+# RUN pip install --user --no-cache-dir --upgrade -r $APP_SHARED_DIR/requirements.txt
 
 WORKDIR $APP_DIR
 COPY ./code/requirements.txt ${APP_DIR}/requirements.txt
@@ -25,4 +25,4 @@ RUN pip install --user --no-cache-dir --upgrade -r ${APP_DIR}/requirements.txt
 COPY ./code $APP_DIR
 
 HEALTHCHECK CMD curl --fail http://localhost:8080/orders/health || exit 1
-CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:8080"]
+CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:8080", "--log-level=debug"]
