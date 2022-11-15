@@ -1,8 +1,12 @@
 FROM public.ecr.aws/docker/library/golang:1.19.0-bullseye AS build
 WORKDIR /code
 COPY ./code /code
-RUN go env -w GOPROXY=direct && go mod download
-RUN go env -w GOPROXY=direct && go build -o main main.go
+
+# Enable this if you are seeing timeout errors. (ex dial tcp: lookup proxy.golang.org ... i/o timeout)
+# RUN go env -w GOPROXY=direct
+
+RUN go mod download
+RUN go build -o main main.go
 
 FROM public.ecr.aws/docker/library/golang:1.19.0-bullseye AS runtime
 
