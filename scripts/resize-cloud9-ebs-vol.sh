@@ -15,7 +15,7 @@ VOLUMEID=$(aws ec2 describe-instances \
   --output text)
 
 # Resize the EBS volume.
-aws ec2 modify-volume --volume-id $VOLUMEID --size $SIZE
+aws ec2 modify-volume --volume-id $VOLUMEID --size $SIZE --no-cli-pager
 
 # Wait for the resize to finish.
 while [ \
