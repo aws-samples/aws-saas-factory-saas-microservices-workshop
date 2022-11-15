@@ -48,20 +48,23 @@ for ((u = 1; u <= 4; u++)); do
         --user-pool-id ${POOLID} \
         --username ${USER} \
         --user-attributes Name=email,Value=${USER} ${USER_ATTR},Value="${tenant_id}" ${USER_ATTR2},Value="${tier}" \
-        --no-paginate
+        --no-paginate \
+        --no-cli-pager
 
     aws cognito-idp admin-set-user-password \
         --user-pool-id ${POOLID} \
         --username ${USER} \
         --password ${PASSWORD} \
         --permanent \
-        --no-paginate
+        --no-paginate \
+        --no-cli-pager
 
     aws cognito-idp admin-update-user-attributes \
         --user-pool-id ${POOLID} \
         --username ${USER} \
         --user-attributes Name="email_verified", Value="true" \
-        --no-paginate
+        --no-paginate \
+        --no-cli-pager
 
     HASH=$(python3 ./scripts/secret_hash.py ${USER} ${CLIENTID} ${CLIENTSECRET})
 
