@@ -13,15 +13,22 @@ ENV PATH="/home/${APP_USER}/.local/bin:${PATH}"
 # LAB 3: UNCOMMENT BELOW (dockerfile)
 # WORKDIR $APP_SHARED_DIR
 
-# COPY ./code/shared/lib.zip $APP_SHARED_DIR
-# RUN unzip lib.zip && mv my-shared-libs/* . && rm -rf lib.zip my-shared-libs
+# # switch back to root user temporarily to grab and unzip shared lib files.
+# USER root
+# ENV COMMIT_ID="e0b2979bff525be25ac7f9a11f0066cf078fbb24"
+# ADD https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop/archive/${COMMIT_ID}.zip ${COMMIT_ID}.zip
 
-# RUN pip install --user --no-cache-dir --upgrade -r $APP_SHARED_DIR/requirements.txt
+# RUN unzip ${COMMIT_ID}.zip \
+#     && mv aws-saas-factory-saas-microservices-workshop-${COMMIT_ID}/lib/shared/* . \
+#     && rm -rf ${COMMIT_ID}.zip aws-saas-factory-saas-microservices-workshop-${COMMIT_ID}
+# USER $APP_USER
+
+# RUN pip install --user --no-cache-dir --requirement $APP_SHARED_DIR/requirements.txt
 
 WORKDIR $APP_DIR
 COPY ./code/requirements.txt ${APP_DIR}/requirements.txt
 
-RUN pip install --user --no-cache-dir --upgrade -r ${APP_DIR}/requirements.txt
+RUN pip install --user --no-cache-dir --requirement ${APP_DIR}/requirements.txt
 COPY ./code $APP_DIR
 
 HEALTHCHECK CMD curl --fail http://localhost:8088/fulfillments/health || exit 1
