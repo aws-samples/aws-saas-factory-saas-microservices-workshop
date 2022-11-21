@@ -62,7 +62,7 @@ for ((u = 1; u <= 4; u++)); do
     aws cognito-idp admin-update-user-attributes \
         --user-pool-id ${POOLID} \
         --username ${USER} \
-        --user-attributes Name="email_verified", Value="true" \
+        --user-attributes Name="email_verified",Value="true" \
         --no-paginate \
         --no-cli-pager
 
