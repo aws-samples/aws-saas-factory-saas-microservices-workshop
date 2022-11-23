@@ -5,7 +5,7 @@ echo "HOST: $HOST"
 echo "Hostname: $LB_HOSTNAME"
 echo "JWT_FILE: $JWT_FILE"
 
-echo "Starting tests..."
+echo "Starting..."
 for tenant_id in "tenant-a" "tenant-b" "tenant-c" "tenant-d"; do
     echo "################# Running queries for tenant: ${tenant_id}... #################"
     JWT_TOKEN=$(awk -v tenant_id=$tenant_id '$0~tenant_id {print $3}' ${JWT_FILE})
