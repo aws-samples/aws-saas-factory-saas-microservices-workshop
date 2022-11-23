@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 source scripts/set-environment-variables.sh
 echo "HOST: $HOST"
@@ -7,7 +7,7 @@ echo "JWT_FILE: $JWT_FILE"
 
 echo "Starting tests..."
 for tenant_id in "tenant-a" "tenant-b" "tenant-c" "tenant-d"; do
-    echo "################# Starting tests for tenant: ${tenant_id}... #################"
+    echo "################# Running queries for tenant: ${tenant_id}... #################"
     JWT_TOKEN=$(awk -v tenant_id=$tenant_id '$0~tenant_id {print $3}' ${JWT_FILE})
 
     echo "Creating new product..."
@@ -66,8 +66,8 @@ for tenant_id in "tenant-a" "tenant-b" "tenant-c" "tenant-d"; do
         echo "$RESP"
         exit 1
     fi
-    echo "################# All tests passed for tenant: ${tenant_id}... #################"
+    echo "################# All queries returned successfully for tenant: ${tenant_id}... #################"
 
     sleep 5
 done
-echo "Done! All tests passed!"
+echo "Done!"
