@@ -45,6 +45,7 @@ echo "export AWS_REGION=${AWS_REGION}" | tee -a ~/.bash_profile
 echo "export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" | tee -a ~/.bash_profile
 aws configure set default.region ${AWS_REGION}
 aws configure get default.region
+aws configure set cli_pager ""
 
 echo "Resizing Cloud9 instance EBS Volume"
 sh ./scripts/resize-cloud9-ebs-vol.sh 40
