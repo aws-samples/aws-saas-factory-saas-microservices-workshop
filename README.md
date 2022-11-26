@@ -1,12 +1,12 @@
 # SaaS Factory SaaS Microservices Workshop
 
-The code provided here is intended to accompany the SaaS Microservices Workshop.
+The code provided here is intended to accompany the SaaS Microservices Workshop linked below.
 
 The workshop is a series of hands-on labs through which participants experience the way SaaS influences the inner workings of microservices, and dives deep on techniques that can be used to address multi-tenant design and implementation strategies. The workshop digs into the weeds of the inner workings of SaaS microservices spanning a range of use cases, services, and multi-tenant considerations. It will also show in-depth examples of how a well-built SaaS microservice interacts with the operational aspects of a SaaS environment, and how real-world metrics get instrumented into a microservice. Once complete with this workshop, participants will have a better understanding of the specific challenges multi-tenancy brings to implementing microservices and concrete strategies to overcome them.
 
-## Preview link
+## SaaS Microservices Workshop Link
 
-TODO: Generate link
+https://catalog.workshops.aws/saas-microservices
 
 ## Security
 
