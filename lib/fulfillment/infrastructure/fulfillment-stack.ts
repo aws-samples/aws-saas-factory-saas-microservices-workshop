@@ -7,21 +7,20 @@ import { Construct } from "constructs";
 import { MicroserviceStackProps } from "../../interface/microservice-props";
 
 var path = require("path");
-export class FulfillmentStack extends cdk.NestedStack {
+export class FulfillmentStack extends Construct {
   public readonly fulfillmentServiceDNS: string;
   public readonly fulfillmentServicePort: number;
 
   public readonly fulfillmentDockerImageAsset: DockerImageAsset;
   constructor(scope: Construct, id: string, props?: MicroserviceStackProps) {
-    super(scope, id, props);
+    super(scope, id);
 
-    if (props?.clusterInfo == undefined) {
+    if (props?.cluster == undefined) {
       throw new Error("props.clusterInfo must be defined!");
     }
 
-    const region = props.env?.region;
-    const clusterInfo = props.clusterInfo;
-    const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
+    const cluster = props.cluster;
+    // const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
 
     const tier = props.tier;
     const tenantId = props.tenantId;
@@ -31,16 +30,16 @@ export class FulfillmentStack extends cdk.NestedStack {
       ...(tenantId && { tenantId: tenantId }),
     };
 
-    const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
-      clusterName: clusterInfo.cluster.clusterName,
-      clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
-      kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
-      kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
-      kubectlLayer: clusterInfo.cluster.kubectlLayer,
-      awscliLayer: clusterInfo.cluster.awscliLayer,
-      kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
-      openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
-    });
+    // const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
+    //   clusterName: clusterInfo.cluster.clusterName,
+    //   clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
+    //   kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
+    //   kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
+    //   kubectlLayer: clusterInfo.cluster.kubectlLayer,
+    //   awscliLayer: clusterInfo.cluster.awscliLayer,
+    //   kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
+    //   openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
+    // });
 
     if (props.applicationImageAsset) {
       this.fulfillmentDockerImageAsset = props.applicationImageAsset;
@@ -152,12 +151,12 @@ export class FulfillmentStack extends cdk.NestedStack {
                   },
                   {
                     name: "AWS_DEFAULT_REGION",
-                    value: region,
+                    value: cdk.Stack.of(this).region,
                   },
-                  {
-                    name: "AWS_XRAY_DAEMON_ADDRESS",
-                    value: xrayServiceDNSAndPort,
-                  },
+                  // {
+                  //   name: "AWS_XRAY_DAEMON_ADDRESS",
+                  //   value: xrayServiceDNSAndPort,
+                  // },
                   {
                     name: "POD_NAMESPACE",
                     valueFrom: {

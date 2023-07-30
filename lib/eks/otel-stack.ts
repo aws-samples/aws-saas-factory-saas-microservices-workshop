@@ -4,28 +4,14 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 import { AddOnStackProps } from "../interface/addon-props";
 
-export class OtelAddOnStack extends cdk.NestedStack {
-  constructor(scope: Construct, id: string, props?: AddOnStackProps) {
-    super(scope, id, props);
-
-    if (props?.clusterInfo == undefined) {
-      throw new Error("props.clusterInfo must be defined!");
-    }
-    const clusterInfo = props.clusterInfo;
+export class OtelAddOnStack extends Construct {
+  constructor(scope: Construct, id: string, props: AddOnStackProps) {
+    super(scope, id);
 
     const otelNamespaceName = "otel-system";
     const otelServiceAccountName = "aws-otel-sa";
 
-    const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
-      clusterName: clusterInfo.cluster.clusterName,
-      clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
-      kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
-      kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
-      kubectlLayer: clusterInfo.cluster.kubectlLayer,
-      awscliLayer: clusterInfo.cluster.awscliLayer,
-      kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
-      openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
-    });
+    const cluster = props.cluster;
 
     const otelNamespace = cluster.addManifest("my-otel-namespace", {
       apiVersion: "v1",

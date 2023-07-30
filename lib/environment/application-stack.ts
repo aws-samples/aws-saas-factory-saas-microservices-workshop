@@ -7,6 +7,7 @@ import { ApplicationStackProps } from "../interface/application-props";
 import { OrderStack } from "../order/infrastructure/order-stack";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { Tier } from "../enums/tier";
+import { EksBlueprintStack } from "../eks/eks-blueprint-stack";
 
 export class ApplicationStack extends cdk.Stack {
   public readonly fulfillmentServiceDNS: string;
@@ -42,13 +43,12 @@ export class ApplicationStack extends cdk.Stack {
       }
     );
 
-    const clusterInfo = props.baseStack.eksStack.clusterInfo;
-    const xrayServiceDNSAndPort =
-      props.baseStack.xrayAddOnStack.xrayServiceDNSAndPort;
+    const eksStack = new EksBlueprintStack(this, "EKSStack");
+    const cluster = eksStack.cluster;
+    // const xrayServiceDNSAndPort =
+    //   props.baseStack.xrayAddOnStack.xrayServiceDNSAndPort;
     const istioIngressGateway = props.baseStack.istioStack.istioIngressGateway;
 
-    const region = props.env?.region;
-    const account = props.env?.account;
     const tier = props.tier;
     const tenantId = props.tenantId;
     const sideCarImageAsset = props.sideCarImageAsset;
@@ -57,88 +57,96 @@ export class ApplicationStack extends cdk.Stack {
       throw new Error(`Tier: "${tier}" not supported!`);
     }
 
-    const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
-      clusterName: clusterInfo.cluster.clusterName,
-      clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
-      kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
-      kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
-      kubectlLayer: clusterInfo.cluster.kubectlLayer,
-      awscliLayer: clusterInfo.cluster.awscliLayer,
-      kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
-      openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
-    });
+    // const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
+    //   clusterName: clusterInfo.cluster.clusterName,
+    //   clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
+    //   kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
+    //   kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
+    //   kubectlLayer: clusterInfo.cluster.kubectlLayer,
+    //   awscliLayer: clusterInfo.cluster.awscliLayer,
+    //   kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
+    //   openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
+    // });
 
     // Application environment kubernetes namespace
     this.namespace = tenantId ? `${tenantId}` : `${tier}-pool`;
 
-    const stackNamespace = cluster.addManifest("StackNamespaceManifest", {
-      apiVersion: "v1",
-      kind: "Namespace",
-      metadata: {
-        name: this.namespace,
-        labels: {
-          "istio-injection": "enabled",
-          tier: tier,
-          ...(tenantId && {
-            tenantId: tenantId,
-          }),
+    const stackNamespace = cluster.addManifest(
+      `StackNamespaceManifest`,
+      {
+        apiVersion: "v1",
+        kind: "Namespace",
+        metadata: {
+          name: this.namespace,
+          labels: {
+            "istio-injection": "enabled",
+            tier: tier,
+            ...(tenantId && {
+              tenantId: tenantId,
+            }),
+          },
         },
-      },
-    });
+      }
+    );
 
-    const productStack = new ProductStack(this, "ProductStack", {
-      clusterInfo: clusterInfo,
-      xrayServiceDNSAndPort: xrayServiceDNSAndPort,
-      istioIngressGateway: istioIngressGateway,
-      applicationImageAsset: props.basicStack?.productDockerImageAsset,
-      sideCarImageAsset: sideCarImageAsset,
-      namespace: this.namespace,
-      tier: tier,
-      tenantId: tenantId,
-      env: { account, region },
-    });
+    const productStack = new ProductStack(
+      this,
+      `ProductStack`,
+      {
+        cluster: cluster,
+        // xrayServiceDNSAndPort: xrayServiceDNSAndPort,
+        istioIngressGateway: istioIngressGateway,
+        applicationImageAsset: props.basicStack?.productDockerImageAsset,
+        sideCarImageAsset: sideCarImageAsset,
+        namespace: this.namespace,
+        tier: tier,
+        tenantId: tenantId,
+      }
+    );
     productStack.node.addDependency(stackNamespace);
     this.productServiceDNS = productStack.productServiceDNS;
     this.productServicePort = productStack.productServicePort;
     this.productDockerImageAsset = productStack.productImageAsset;
 
-    const fulfillmentStack = new FulfillmentStack(this, "fulfillmentStack", {
-      clusterInfo: clusterInfo,
-      xrayServiceDNSAndPort: xrayServiceDNSAndPort,
-      istioIngressGateway: istioIngressGateway,
-      applicationImageAsset: props.basicStack?.fulfillmentDockerImageAsset,
-      sideCarImageAsset: sideCarImageAsset,
-      namespace: this.namespace,
-      tier: tier,
-      tenantId: tenantId,
-      env: { account, region },
-    });
-    fulfillmentStack.node.addDependency(stackNamespace);
-    this.fulfillmentServicePort = fulfillmentStack.fulfillmentServicePort;
-    this.fulfillmentDockerImageAsset =
-      fulfillmentStack.fulfillmentDockerImageAsset;
-    this.fulfillmentServiceDNS = fulfillmentStack.fulfillmentServiceDNS;
-    (fulfillmentStack.node.defaultChild as cdk.CfnStack).cfnOptions.condition =
-      deployModeCondition;
+    if (deploymentMode == "all") {
+      const fulfillmentStack = new FulfillmentStack(this, "fulfillmentStack", {
+        cluster: cluster,
+        // xrayServiceDNSAndPort: xrayServiceDNSAndPort,
+        istioIngressGateway: istioIngressGateway,
+        applicationImageAsset: props.basicStack?.fulfillmentDockerImageAsset,
+        sideCarImageAsset: sideCarImageAsset,
+        namespace: this.namespace,
+        tier: tier,
+        tenantId: tenantId,
+      });
+      fulfillmentStack.node.addDependency(stackNamespace);
+      this.fulfillmentServicePort = fulfillmentStack.fulfillmentServicePort;
+      this.fulfillmentDockerImageAsset =
+        fulfillmentStack.fulfillmentDockerImageAsset;
+      this.fulfillmentServiceDNS = fulfillmentStack.fulfillmentServiceDNS;
 
-    const orderStack = new OrderStack(this, "orderStack", {
-      clusterInfo: clusterInfo,
-      xrayServiceDNSAndPort: xrayServiceDNSAndPort,
-      istioIngressGateway: istioIngressGateway,
-      namespace: this.namespace,
-      fulfillmentServiceDNS: fulfillmentStack.fulfillmentServiceDNS,
-      fulfillmentServicePort: fulfillmentStack.fulfillmentServicePort,
-      applicationImageAsset: props.basicStack?.orderDockerImageAsset,
-      sideCarImageAsset: sideCarImageAsset,
-      tier: tier,
-      tenantId: tenantId,
-      env: { account, region },
-    });
-    orderStack.node.addDependency(stackNamespace);
-    this.orderServiceDNS = orderStack.orderServiceDNS;
-    this.orderServicePort = orderStack.orderServicePort;
-    this.orderDockerImageAsset = orderStack.orderDockerImageAsset;
-    (orderStack.node.defaultChild as cdk.CfnStack).cfnOptions.condition =
-      deployModeCondition;
+      // (fulfillmentStack.node.defaultChild as cdk.CfnStack).cfnOptions.condition =
+      //   deployModeCondition;
+
+      const orderStack = new OrderStack(this, "orderStack", {
+        cluster: cluster,
+        // xrayServiceDNSAndPort: xrayServiceDNSAndPort,
+        istioIngressGateway: istioIngressGateway,
+        namespace: this.namespace,
+        fulfillmentServiceDNS: fulfillmentStack.fulfillmentServiceDNS,
+        fulfillmentServicePort: fulfillmentStack.fulfillmentServicePort,
+        applicationImageAsset: props.basicStack?.orderDockerImageAsset,
+        sideCarImageAsset: sideCarImageAsset,
+        tier: tier,
+        tenantId: tenantId,
+      });
+      orderStack.node.addDependency(stackNamespace);
+      this.orderServiceDNS = orderStack.orderServiceDNS;
+      this.orderServicePort = orderStack.orderServicePort;
+      this.orderDockerImageAsset = orderStack.orderDockerImageAsset;
+
+      // (orderStack.node.defaultChild as cdk.CfnStack).cfnOptions.condition =
+      //   deployModeCondition;
+    }
   }
 }

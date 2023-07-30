@@ -3,15 +3,15 @@ import * as eks from "aws-cdk-lib/aws-eks";
 import { Construct } from "constructs";
 import { OrderMicroserviceAdvancedTierStackProps } from "../../interface/order-microservice-advanced-tier-props";
 
-export class OrderAdvancedTierStack extends cdk.NestedStack {
+export class OrderAdvancedTierStack extends Construct {
   constructor(
     scope: Construct,
     id: string,
     props: OrderMicroserviceAdvancedTierStackProps
   ) {
-    super(scope, id, props);
+    super(scope, id);
 
-    const clusterInfo = props.clusterInfo;
+    const cluster = props.cluster;
     const istioIngressGateway = props.istioIngressGateway;
     const orderServiceDNS = props.orderServiceDNS;
     const orderServicePort = props.orderServicePort;
@@ -24,16 +24,16 @@ export class OrderAdvancedTierStack extends cdk.NestedStack {
       ...(tenantId && { tenantId: tenantId }),
     };
 
-    const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
-      clusterName: clusterInfo.cluster.clusterName,
-      clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
-      kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
-      kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
-      kubectlLayer: clusterInfo.cluster.kubectlLayer,
-      awscliLayer: clusterInfo.cluster.awscliLayer,
-      kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
-      openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
-    });
+    // const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
+    //   clusterName: clusterInfo.cluster.clusterName,
+    //   clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
+    //   kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
+    //   kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
+    //   kubectlLayer: clusterInfo.cluster.kubectlLayer,
+    //   awscliLayer: clusterInfo.cluster.awscliLayer,
+    //   kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
+    //   openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
+    // });
 
     cluster.addManifest("order-virtual-service", {
       apiVersion: "networking.istio.io/v1alpha3",

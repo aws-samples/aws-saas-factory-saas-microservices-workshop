@@ -5,6 +5,7 @@ import { ApplicationAdvancedTierStackProps } from "../interface/application-adva
 import { FulfillmentAdvancedTierStack } from "../fulfillment/infrastructure/fulfillment-advanced-tier-stack";
 import { OrderAdvancedTierStack } from "../order/infrastructure/order-advanced-tier-stack";
 import { ProductAdvancedTierStack } from "../product/infrastructure/product-advanced-tier-stack";
+import { EksBlueprintStack } from "../eks/eks-blueprint-stack";
 import { Tier } from "../enums/tier";
 
 export class ApplicationAdvancedTierStack extends cdk.Stack {
@@ -23,9 +24,11 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
     const account = props.env?.account;
     const tier = Tier.Advanced;
     const tenantId = props.tenantId;
-    const clusterInfo = props.baseStack.eksStack.clusterInfo;
-    const xrayServiceDNSAndPort =
-      props.baseStack.xrayAddOnStack.xrayServiceDNSAndPort;
+    const eksStack = new EksBlueprintStack(this, "EKSStack");
+    const cluster = eksStack.cluster;
+
+    // const xrayServiceDNSAndPort =
+    //   props.baseStack.xrayAddOnStack.xrayServiceDNSAndPort;
     const istioIngressGateway = props.baseStack.istioStack.istioIngressGateway;
     const sideCarImageAsset = props.sideCarImageAsset;
 
@@ -39,30 +42,29 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
     const orderServiceDNS = props.basicStack.orderServiceDNS;
     const orderServicePort = props.basicStack.orderServicePort;
 
-    const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
-      clusterName: clusterInfo.cluster.clusterName,
-      clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
-      kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
-      kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
-      kubectlLayer: clusterInfo.cluster.kubectlLayer,
-      awscliLayer: clusterInfo.cluster.awscliLayer,
-      kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
-      openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
-    });
+    // const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
+    //   clusterName: clusterInfo.cluster.clusterName,
+    //   clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
+    //   kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
+    //   kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
+    //   kubectlLayer: clusterInfo.cluster.kubectlLayer,
+    //   awscliLayer: clusterInfo.cluster.awscliLayer,
+    //   kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
+    //   openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
+    // });
 
     const productAdvancedTierStack = new ProductAdvancedTierStack(
       this,
       "productAdvancedTierStack",
       {
-        clusterInfo: clusterInfo,
-        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
+        cluster: cluster,
+        // xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         istioIngressGateway: istioIngressGateway,
         productServiceDNS: productServiceDNS,
         productServicePort: productServicePort,
         namespace: namespace,
         tier: tier,
         tenantId: tenantId,
-        env: { account, region },
       }
     );
 
@@ -85,41 +87,40 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
       }
     );
 
-    const fulfillmentAdvancedTierStack = new FulfillmentAdvancedTierStack(
-      this,
-      "fulfillmentAdvancedTierStack",
-      {
-        clusterInfo: clusterInfo,
-        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
-        istioIngressGateway: istioIngressGateway,
-        fulfillmentServiceDNS: fulfillmentServiceDNS,
-        fulfillmentServiceDNSPort: fulfillmentServicePort,
-        fulfillmentDockerImageAsset: fulfillmentDockerImageAsset,
-        sideCarImageAsset: sideCarImageAsset,
-        namespace: tenantSpecificAdvancedTierNamespaceName,
-        tier: tier,
-        tenantId: tenantId,
-        env: { account, region },
-      }
-    );
-
-    fulfillmentAdvancedTierStack.node.addDependency(
-      tenantSpecificAdvancedTierNamespace
-    );
+    if (fulfillmentDockerImageAsset) {
+      const fulfillmentAdvancedTierStack = new FulfillmentAdvancedTierStack(
+        this,
+        "fulfillmentAdvancedTierStack",
+        {
+          cluster: cluster,
+          // xrayServiceDNSAndPort: xrayServiceDNSAndPort,
+          istioIngressGateway: istioIngressGateway,
+          fulfillmentServiceDNS: fulfillmentServiceDNS,
+          fulfillmentServiceDNSPort: fulfillmentServicePort,
+          fulfillmentDockerImageAsset: fulfillmentDockerImageAsset,
+          sideCarImageAsset: sideCarImageAsset,
+          namespace: tenantSpecificAdvancedTierNamespaceName,
+          tier: tier,
+          tenantId: tenantId,
+        }
+      );
+      fulfillmentAdvancedTierStack.node.addDependency(
+        tenantSpecificAdvancedTierNamespace
+      );
+    }
 
     const orderAdvancedTierStack = new OrderAdvancedTierStack(
       this,
       "orderAdvancedTierStack",
       {
-        clusterInfo: clusterInfo,
-        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
+        cluster: cluster,
+        // xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         istioIngressGateway: istioIngressGateway,
         orderServiceDNS: orderServiceDNS,
         orderServicePort: orderServicePort,
         namespace: namespace,
         tier: tier,
         tenantId: tenantId,
-        env: { account, region },
       }
     );
   }
