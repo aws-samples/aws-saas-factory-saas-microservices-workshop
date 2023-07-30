@@ -10,19 +10,10 @@ export class BaseStack extends cdk.Stack {
   public readonly eksStack: EksBlueprintStack;
   public readonly cognitoStack: CognitoStack;
   public readonly istioStack: IstioStack;
-  public readonly xrayAddOnStack: XrayAddOnStack;
+  // public readonly xrayAddOnStack: XrayAddOnStack;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-
-    const account = props?.env?.account;
-    const region = props?.env?.region;
-
-    const eksStack = new EksBlueprintStack(this, "EKSStack", {
-      env: { account, region },
-    });
-
-    const cognitoStack = new CognitoStack(this, "CognitoStack");
 
     const tlsCertParameterValue = new cdk.CfnParameter(this, "tlsCertIstio", {
       type: "String",
@@ -34,29 +25,30 @@ export class BaseStack extends cdk.Stack {
       minLength: 1,
     }).valueAsString;
 
+    const cognitoStack = new CognitoStack(this, "CognitoStack");
+
+    const eksStack = new EksBlueprintStack(this, "EKSStack");
+
     const istioStack = new IstioStack(this, "IstioStack", {
-      clusterInfo: eksStack.clusterInfo,
+      cluster: eksStack.cluster,
       issuer: cognitoStack.issuer,
       jwksUri: cognitoStack.jwksUri,
       tlsCert: tlsCertParameterValue,
       tlsKey: tlsKeyParameterValue,
     });
 
-    const xrayAddOnStack = new XrayAddOnStack(this, "XrayStack", {
-      clusterInfo: eksStack.clusterInfo,
-    });
+    // const xrayAddOnStack = new XrayAddOnStack(this, "XrayStack", {
+    //   cluster: eksStack.cluster,
+    // });
 
-    xrayAddOnStack.addDependency(eksStack);
-    istioStack.addDependency(eksStack);
-
-    const otelAddonStack = new OtelAddOnStack(this, "OtelStack", {
-      clusterInfo: eksStack.clusterInfo,
-    });
+    // const otelAddonStack = new OtelAddOnStack(this, "OtelStack", {
+    //   cluster: eksStack.cluster,
+    // });
 
     this.eksStack = eksStack;
     this.cognitoStack = cognitoStack;
     this.istioStack = istioStack;
-    this.xrayAddOnStack = xrayAddOnStack;
+    // this.xrayAddOnStack = xrayAddOnStack;
 
     new cdk.CfnOutput(this, "CognitoUserPoolId", {
       value: cognitoStack.userPool.userPoolId,

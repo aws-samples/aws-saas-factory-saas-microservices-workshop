@@ -5,21 +5,20 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 import { FulfillmentMicroserviceAdvancedTierStackProps } from "../../interface/fulfillment-microservice-advanced-tier-props";
 
-export class FulfillmentAdvancedTierStack extends cdk.NestedStack {
+export class FulfillmentAdvancedTierStack extends Construct {
   constructor(
     scope: Construct,
     id: string,
     props: FulfillmentMicroserviceAdvancedTierStackProps
   ) {
-    super(scope, id, props);
+    super(scope, id);
 
-    if (props?.clusterInfo == undefined) {
+    if (props?.cluster == undefined) {
       throw new Error("props.clusterInfo must be defined!");
     }
 
-    const region = props.env?.region;
-    const clusterInfo = props.clusterInfo;
-    const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
+    const cluster = props.cluster;
+    // const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const fulfillmentDockerImageAsset = props.fulfillmentDockerImageAsset;
 
     const tier = props.tier;
@@ -30,16 +29,16 @@ export class FulfillmentAdvancedTierStack extends cdk.NestedStack {
       ...(tenantId && { tenantId: tenantId }),
     };
 
-    const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
-      clusterName: clusterInfo.cluster.clusterName,
-      clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
-      kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
-      kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
-      kubectlLayer: clusterInfo.cluster.kubectlLayer,
-      awscliLayer: clusterInfo.cluster.awscliLayer,
-      kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
-      openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
-    });
+    // const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
+    //   clusterName: clusterInfo.cluster.clusterName,
+    //   clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
+    //   kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
+    //   kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
+    //   kubectlLayer: clusterInfo.cluster.kubectlLayer,
+    //   awscliLayer: clusterInfo.cluster.awscliLayer,
+    //   kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
+    //   openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
+    // });
 
     const queue = new sqs.Queue(this, "Queue", {
       queueName: `SaaS-Microservices-Orders-Fulfilled-${namespace}`,
@@ -47,7 +46,7 @@ export class FulfillmentAdvancedTierStack extends cdk.NestedStack {
     });
 
     const fulfillmentServiceAccount = cluster.addServiceAccount(
-      "FulfillmentServiceAccount",
+      "FulfillmentAdvServiceAccount",
       {
         name: "fulfillment-service-account",
         namespace: namespace,
@@ -66,7 +65,7 @@ export class FulfillmentAdvancedTierStack extends cdk.NestedStack {
     );
 
     const fulfillmentDeploymentAdvanced = cluster.addManifest(
-      "FulfillmentDeployment",
+      "FulfillmentDeploymentAdv",
       {
         apiVersion: "apps/v1",
         kind: "Deployment",
@@ -139,12 +138,12 @@ export class FulfillmentAdvancedTierStack extends cdk.NestedStack {
                     },
                     {
                       name: "AWS_DEFAULT_REGION",
-                      value: region,
+                      value: cdk.Stack.of(this).region,
                     },
-                    {
-                      name: "AWS_XRAY_DAEMON_ADDRESS",
-                      value: xrayServiceDNSAndPort,
-                    },
+                    // {
+                    //   name: "AWS_XRAY_DAEMON_ADDRESS",
+                    //   value: xrayServiceDNSAndPort,
+                    // },
                     {
                       name: "POD_NAMESPACE",
                       valueFrom: {
@@ -174,7 +173,7 @@ export class FulfillmentAdvancedTierStack extends cdk.NestedStack {
     fulfillmentDeploymentAdvanced.node.addDependency(fulfillmentServiceAccount);
 
     const fulfillmentServiceAdvanced = cluster.addManifest(
-      "FulfillmentService",
+      "FulfillmentServiceAdv",
       {
         kind: "Service",
         apiVersion: "v1",
@@ -206,7 +205,7 @@ export class FulfillmentAdvancedTierStack extends cdk.NestedStack {
     // This is because of an Istio limitation described here: https://github.com/istio/istio/issues/22997
     const virtualServicePatch = new eks.KubernetesPatch(
       this,
-      "virtual-svc-patch",
+      "virtual-svc-patch-adv",
       {
         cluster: cluster,
         resourceName: "VirtualService/fulfillment-vs",

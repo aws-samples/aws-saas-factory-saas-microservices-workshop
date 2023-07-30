@@ -3,46 +3,26 @@ import * as eks from "aws-cdk-lib/aws-eks";
 import { Construct } from "constructs";
 import { IstioAddOnStackProps } from "../interface/istio-addon-props";
 
-export class IstioStack extends cdk.NestedStack {
+export class IstioStack extends Construct {
   public readonly istioIngressGateway: string;
 
   constructor(scope: Construct, id: string, props: IstioAddOnStackProps) {
-    super(scope, id, props);
+    super(scope, id);
 
-    const clusterInfo = props.clusterInfo;
+    const cluster = props.cluster;
     const issuer = props.issuer;
     const jwksUri = props.jwksUri;
     const tlsCert = props.tlsCert;
     const tlsKey = props.tlsKey;
 
     const istioHelmRepo = "https://istio-release.storage.googleapis.com/charts";
-    const istioVersion = "1.15";
+    const istioVersion = "1.18.1";
     const istioSystemNamespaceName = "istio-system";
     const istioIngressNamespaceName = "istio-ingress";
     const ingressGatewayName = "gateway";
     const tlsSecretName = "istio-gateway-tls-secret";
 
     this.istioIngressGateway = `${istioIngressNamespaceName}/${ingressGatewayName}`;
-
-    const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
-      clusterName: clusterInfo.cluster.clusterName,
-      clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
-      kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
-      kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
-      kubectlLayer: clusterInfo.cluster.kubectlLayer,
-      awscliLayer: clusterInfo.cluster.awscliLayer,
-      kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
-      openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
-    });
-
-    const istioSystemNamespace = cluster.addManifest(
-      "my-istio-system-namespace",
-      {
-        apiVersion: "v1",
-        kind: "Namespace",
-        metadata: { name: istioSystemNamespaceName },
-      }
-    );
 
     const istioIngressNamespace = cluster.addManifest(
       "my-istio-ingress-namespace",
@@ -55,27 +35,6 @@ export class IstioStack extends cdk.NestedStack {
         },
       }
     );
-
-    const istioBase = cluster.addHelmChart("istio-base", {
-      release: "istio-base",
-      namespace: istioSystemNamespaceName,
-      chart: "base",
-      version: istioVersion,
-      repository: istioHelmRepo,
-    });
-
-    istioBase.node.addDependency(istioSystemNamespace);
-
-    const istiod = cluster.addHelmChart("istiod", {
-      release: "istiod",
-      namespace: istioSystemNamespaceName,
-      chart: "istiod",
-      version: istioVersion,
-      repository: istioHelmRepo,
-    });
-
-    istiod.node.addDependency(istioSystemNamespace);
-    istiod.node.addDependency(istioBase);
 
     const jwtRequestAuthentication = cluster.addManifest("jwt-req-authn", {
       apiVersion: "security.istio.io/v1beta1",
@@ -100,10 +59,6 @@ export class IstioStack extends cdk.NestedStack {
       },
     });
 
-    jwtRequestAuthentication.node.addDependency(istioSystemNamespace);
-    jwtRequestAuthentication.node.addDependency(istioBase);
-    jwtRequestAuthentication.node.addDependency(istiod);
-
     const istioIngress = cluster.addHelmChart("istio-ingress", {
       release: "istio-ingress",
       namespace: istioIngressNamespaceName,
@@ -123,8 +78,6 @@ export class IstioStack extends cdk.NestedStack {
     });
 
     istioIngress.node.addDependency(istioIngressNamespace);
-    istioIngress.node.addDependency(istioBase);
-    istioIngress.node.addDependency(istiod);
 
     const tlsSecret = cluster.addManifest("my-tls-secret", {
       apiVersion: "v1",

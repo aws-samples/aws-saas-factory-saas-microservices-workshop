@@ -22,31 +22,32 @@ const tokenVendorStack = new TokenVendorStack(app, "TokenVendorStack", {
 });
 
 const basicStack = new ApplicationStack(app, "PoolBasicStack", {
+  env: { account, region },
   baseStack: baseStack,
   tier: Tier.Basic,
   sideCarImageAsset: tokenVendorStack.tokenVendorImage,
-  env: { account, region },
 });
 basicStack.addDependency(baseStack);
 
+
 const tenantBstack = new ApplicationAdvancedTierStack(app, "tenantBstack", {
+  env: { account, region },
   baseStack: baseStack,
   basicStack: basicStack,
   namespace: basicStack.namespace,
   sideCarImageAsset: tokenVendorStack.tokenVendorImage,
   tenantId: "tenant-b",
-  env: { account, region },
 });
 tenantBstack.addDependency(baseStack);
 tenantBstack.addDependency(basicStack);
 
 const tenantCstack = new ApplicationStack(app, "tenantCstack", {
+  env: { account, region },
   baseStack: baseStack,
   basicStack: basicStack,
   tenantId: "tenant-c",
   sideCarImageAsset: tokenVendorStack.tokenVendorImage,
   tier: Tier.Premium,
-  env: { account, region },
 });
 tenantCstack.addDependency(baseStack);
 tenantCstack.addDependency(basicStack);

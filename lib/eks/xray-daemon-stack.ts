@@ -8,13 +8,10 @@ import { AddOnStackProps } from "../interface/addon-props";
 export class XrayAddOnStack extends cdk.NestedStack {
   public readonly xrayServiceDNSAndPort: string;
 
-  constructor(scope: Construct, id: string, props?: AddOnStackProps) {
+  constructor(scope: Construct, id: string, props: AddOnStackProps) {
     super(scope, id, props);
 
-    if (props?.clusterInfo == undefined) {
-      throw new Error("props.clusterInfo must be defined!");
-    }
-    const clusterInfo = props.clusterInfo;
+    const cluster = props.cluster;
 
     const xrayPort = 2000;
     const xrayNamespaceName = "xray-system";
@@ -35,17 +32,6 @@ export class XrayAddOnStack extends cdk.NestedStack {
         ruleName: "IgnoreHealthChecks",
         version: 1,
       },
-    });
-
-    const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
-      clusterName: clusterInfo.cluster.clusterName,
-      clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
-      kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
-      kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
-      kubectlLayer: clusterInfo.cluster.kubectlLayer,
-      awscliLayer: clusterInfo.cluster.awscliLayer,
-      kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
-      openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
     });
 
     const xrayNamespace = cluster.addManifest("my-xray-namespace", {
