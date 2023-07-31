@@ -1,5 +1,4 @@
 import * as cdk from "aws-cdk-lib";
-import * as eks from "aws-cdk-lib/aws-eks";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
@@ -20,8 +19,6 @@ export class FulfillmentStack extends Construct {
     }
 
     const cluster = props.cluster;
-    // const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
-
     const tier = props.tier;
     const tenantId = props.tenantId;
     const namespace = props.namespace; // from the ApplicationStack
@@ -29,17 +26,6 @@ export class FulfillmentStack extends Construct {
       tier: tier,
       ...(tenantId && { tenantId: tenantId }),
     };
-
-    // const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
-    //   clusterName: clusterInfo.cluster.clusterName,
-    //   clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
-    //   kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
-    //   kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
-    //   kubectlLayer: clusterInfo.cluster.kubectlLayer,
-    //   awscliLayer: clusterInfo.cluster.awscliLayer,
-    //   kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
-    //   openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
-    // });
 
     if (props.applicationImageAsset) {
       this.fulfillmentDockerImageAsset = props.applicationImageAsset;
@@ -153,10 +139,6 @@ export class FulfillmentStack extends Construct {
                     name: "AWS_DEFAULT_REGION",
                     value: cdk.Stack.of(this).region,
                   },
-                  // {
-                  //   name: "AWS_XRAY_DAEMON_ADDRESS",
-                  //   value: xrayServiceDNSAndPort,
-                  // },
                   {
                     name: "POD_NAMESPACE",
                     valueFrom: {

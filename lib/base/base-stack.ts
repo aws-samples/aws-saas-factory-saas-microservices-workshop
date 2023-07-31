@@ -1,16 +1,13 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { EksBlueprintStack } from "../../lib/eks/eks-blueprint-stack";
-import { CognitoStack } from "../../lib/cognito/cognito-stack";
-import { XrayAddOnStack } from "../../lib/eks/xray-daemon-stack";
-import { IstioStack } from "../../lib/eks/istio-stack";
-import { OtelAddOnStack } from "../eks/otel-stack";
+import { EksCluster } from "../../lib/eks/eks-blueprint-stack";
+import { CognitoResources } from "../../lib/cognito/cognito-stack";
+import { IstioResources } from "../../lib/eks/istio-stack";
 
 export class BaseStack extends cdk.Stack {
-  public readonly eksStack: EksBlueprintStack;
-  public readonly cognitoStack: CognitoStack;
-  public readonly istioStack: IstioStack;
-  // public readonly xrayAddOnStack: XrayAddOnStack;
+  public readonly eksCluster: EksCluster;
+  public readonly cognitoResources: CognitoResources;
+  public readonly istioResources: IstioResources;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -25,36 +22,27 @@ export class BaseStack extends cdk.Stack {
       minLength: 1,
     }).valueAsString;
 
-    const cognitoStack = new CognitoStack(this, "CognitoStack");
+    const cognitoResources = new CognitoResources(this, "CognitoResources");
 
-    const eksStack = new EksBlueprintStack(this, "EKSStack");
+    const eksCluster = new EksCluster(this, "EksCluster");
 
-    const istioStack = new IstioStack(this, "IstioStack", {
-      cluster: eksStack.cluster,
-      issuer: cognitoStack.issuer,
-      jwksUri: cognitoStack.jwksUri,
+    const istioResources = new IstioResources(this, "IstioResources", {
+      cluster: eksCluster.cluster,
+      issuer: cognitoResources.issuer,
+      jwksUri: cognitoResources.jwksUri,
       tlsCert: tlsCertParameterValue,
       tlsKey: tlsKeyParameterValue,
     });
 
-    // const xrayAddOnStack = new XrayAddOnStack(this, "XrayStack", {
-    //   cluster: eksStack.cluster,
-    // });
-
-    // const otelAddonStack = new OtelAddOnStack(this, "OtelStack", {
-    //   cluster: eksStack.cluster,
-    // });
-
-    this.eksStack = eksStack;
-    this.cognitoStack = cognitoStack;
-    this.istioStack = istioStack;
-    // this.xrayAddOnStack = xrayAddOnStack;
+    this.eksCluster = eksCluster;
+    this.cognitoResources = cognitoResources;
+    this.istioResources = istioResources;
 
     new cdk.CfnOutput(this, "CognitoUserPoolId", {
-      value: cognitoStack.userPool.userPoolId,
+      value: cognitoResources.userPool.userPoolId,
     });
     new cdk.CfnOutput(this, "CognitoAppClientId", {
-      value: cognitoStack.userPoolClient.userPoolClientId,
+      value: cognitoResources.userPoolClient.userPoolClientId,
     });
   }
 }

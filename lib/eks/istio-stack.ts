@@ -1,9 +1,7 @@
-import * as cdk from "aws-cdk-lib";
-import * as eks from "aws-cdk-lib/aws-eks";
 import { Construct } from "constructs";
 import { IstioAddOnStackProps } from "../interface/istio-addon-props";
 
-export class IstioStack extends Construct {
+export class IstioResources extends Construct {
   public readonly istioIngressGateway: string;
 
   constructor(scope: Construct, id: string, props: IstioAddOnStackProps) {
@@ -36,7 +34,7 @@ export class IstioStack extends Construct {
       }
     );
 
-    const jwtRequestAuthentication = cluster.addManifest("jwt-req-authn", {
+    cluster.addManifest("jwt-req-authn", {
       apiVersion: "security.istio.io/v1beta1",
       kind: "RequestAuthentication",
       metadata: {

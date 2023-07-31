@@ -1,5 +1,3 @@
-import * as cdk from "aws-cdk-lib";
-import * as eks from "aws-cdk-lib/aws-eks";
 import { Construct } from "constructs";
 import { ProductMicroserviceAdvancedTierStackProps } from "../../interface/product-microservice-advanced-tier-props";
 
@@ -12,23 +10,11 @@ export class ProductAdvancedTierStack extends Construct {
     super(scope, id);
 
     const cluster = props.cluster;
-    // const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const istioIngressGateway = props.istioIngressGateway;
     const productServiceDNS = props.productServiceDNS;
     const productServicePort = props.productServicePort;
     const tenantId = props.tenantId;
     const tier = props.tier;
-
-    // const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
-    //   clusterName: clusterInfo.cluster.clusterName,
-    //   clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
-    //   kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
-    //   kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
-    //   kubectlLayer: clusterInfo.cluster.kubectlLayer,
-    //   awscliLayer: clusterInfo.cluster.awscliLayer,
-    //   kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
-    //   openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
-    // });
 
     const productVirtualService = cluster.addManifest(
       "product-virtual-service",

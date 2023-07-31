@@ -50,43 +50,9 @@ export class extensionStack extends Construct {
       stringValue: clusterInfo.cluster.clusterName,
     });
 
-    new ssm.StringParameter(this, "kubectlRoleNameParameter", {
-      parameterName: `${workshopSSMPrefix}/kubectlRoleNameParameter`,
-      stringValue: clusterInfo.cluster.kubectlRole?.roleName || "N/A",
-    });
-
     new ssm.StringParameter(this, "kubectlRoleArnParameter", {
       parameterName: `${workshopSSMPrefix}/kubectlRoleArn`,
       stringValue: clusterInfo.cluster.kubectlRole?.roleArn || "N/A",
-    });
-
-    new ssm.StringParameter(this, "kubectlLambdaRoleArnParameter", {
-      parameterName: `${workshopSSMPrefix}/kubectlLambdaRoleArnParameter`,
-      stringValue: clusterInfo.cluster.kubectlLambdaRole?.roleArn || "N/A",
-    });
-
-    new ssm.StringParameter(this, "kubectlProviderKubectlRoleArn", {
-      parameterName: `${workshopSSMPrefix}/kubectlProviderKubectlRoleArn`,
-      stringValue: clusterInfo.cluster.kubectlProvider?.roleArn || "N/A",
-    });
-    new ssm.StringParameter(this, "kubectlProviderFunctionArn", {
-      parameterName: `${workshopSSMPrefix}/kubectlProviderFunctionArn`,
-      stringValue: clusterInfo.cluster.kubectlProvider?.serviceToken || "N/A",
-    });
-    new ssm.StringParameter(this, "kubectlProviderHandlerRoleArn", {
-      parameterName: `${workshopSSMPrefix}/kubectlProviderHandlerRoleArn`,
-      stringValue:
-        clusterInfo.cluster.kubectlProvider?.handlerRole.roleArn || "N/A",
-    });
-
-    new ssm.StringParameter(this, "kubectlLayerVersionArnParameter", {
-      parameterName: `${workshopSSMPrefix}/kubectlLayerVersionArn`,
-      stringValue: clusterInfo.cluster.kubectlLayer?.layerVersionArn || "N/A",
-    });
-
-    new ssm.StringParameter(this, "awscliLayerVersionArnParameter", {
-      parameterName: `${workshopSSMPrefix}/awscliLayerVersionArn`,
-      stringValue: clusterInfo.cluster.awscliLayer?.layerVersionArn || "N/A",
     });
 
     new ssm.StringParameter(this, "kubectlSecurityGroupIdParameter", {
@@ -95,27 +61,25 @@ export class extensionStack extends Construct {
         clusterInfo.cluster.kubectlSecurityGroup?.securityGroupId || "N/A",
     });
 
-    new ssm.StringListParameter(this, "kubectlPrivateSubnetIdsParameter", {
-      parameterName: `${workshopSSMPrefix}/kubectlPrivateSubnetIds`,
-      stringListValue: clusterInfo.cluster.kubectlPrivateSubnets?.map(
-        (x) => x.subnetId
-      ) || ["N/A"],
-    });
-
     new ssm.StringParameter(this, "clusterSecurityGroupIdParameter", {
       parameterName: `${workshopSSMPrefix}/clusterSecurityGroupId`,
       stringValue: clusterInfo.cluster.clusterSecurityGroupId,
+    });
+
+    new ssm.StringParameter(this, "kubectlLambdaRoleArnParameter", {
+      parameterName: `${workshopSSMPrefix}/kubectlLambdaRoleArnParameter`,
+      stringValue: clusterInfo.cluster.kubectlLambdaRole?.roleArn || "N/A",
+    });
+
+    new ssm.StringParameter(this, "vpcIdParameter", {
+      parameterName: `${workshopSSMPrefix}/vpcIdParameter`,
+      stringValue: clusterInfo.cluster.vpc.vpcId,
     });
 
     new ssm.StringParameter(this, "openIdConnectProviderArnParameter", {
       parameterName: `${workshopSSMPrefix}/openIdConnectProviderArn`,
       stringValue:
         clusterInfo.cluster.openIdConnectProvider.openIdConnectProviderArn,
-    });
-
-    new ssm.StringParameter(this, "vpcIdParameter", {
-      parameterName: `${workshopSSMPrefix}/vpcIdParameter`,
-      stringValue: clusterInfo.cluster.vpc.vpcId,
     });
   }
 }
@@ -164,7 +128,6 @@ export class EksBlueprintStack extends cdk.Stack {
           },
         }),
         new blueprints.addons.MetricsServerAddOn(),
-        // new blueprints.addons.ContainerInsightsAddOn(),
         new blueprints.addons.AwsLoadBalancerControllerAddOn(),
         new blueprints.addons.CertManagerAddOn(),
         new blueprints.addons.AdotCollectorAddOn(),

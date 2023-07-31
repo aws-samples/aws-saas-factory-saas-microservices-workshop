@@ -1,11 +1,10 @@
 import * as cdk from "aws-cdk-lib";
-import * as eks from "aws-cdk-lib/aws-eks";
 import { Construct } from "constructs";
 import { ApplicationAdvancedTierStackProps } from "../interface/application-advanced-tier-props";
 import { FulfillmentAdvancedTierStack } from "../fulfillment/infrastructure/fulfillment-advanced-tier-stack";
 import { OrderAdvancedTierStack } from "../order/infrastructure/order-advanced-tier-stack";
 import { ProductAdvancedTierStack } from "../product/infrastructure/product-advanced-tier-stack";
-import { EksBlueprintStack } from "../eks/eks-blueprint-stack";
+import { EksCluster } from "../eks/eks-blueprint-stack";
 import { Tier } from "../enums/tier";
 
 export class ApplicationAdvancedTierStack extends cdk.Stack {
@@ -20,16 +19,13 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
       throw new Error("Missing definition for baseStack or basicStack!");
     }
 
-    const region = props.env?.region;
-    const account = props.env?.account;
     const tier = Tier.Advanced;
     const tenantId = props.tenantId;
-    const eksStack = new EksBlueprintStack(this, "EKSStack");
-    const cluster = eksStack.cluster;
+    const eksCluster = new EksCluster(this, "EksCluster");
+    const cluster = eksCluster.cluster;
 
-    // const xrayServiceDNSAndPort =
-    //   props.baseStack.xrayAddOnStack.xrayServiceDNSAndPort;
-    const istioIngressGateway = props.baseStack.istioStack.istioIngressGateway;
+    const istioIngressGateway =
+      props.baseStack.istioResources.istioIngressGateway;
     const sideCarImageAsset = props.sideCarImageAsset;
 
     const namespace = props.basicStack.namespace;
@@ -42,23 +38,11 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
     const orderServiceDNS = props.basicStack.orderServiceDNS;
     const orderServicePort = props.basicStack.orderServicePort;
 
-    // const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
-    //   clusterName: clusterInfo.cluster.clusterName,
-    //   clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
-    //   kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
-    //   kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
-    //   kubectlLayer: clusterInfo.cluster.kubectlLayer,
-    //   awscliLayer: clusterInfo.cluster.awscliLayer,
-    //   kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
-    //   openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
-    // });
-
     const productAdvancedTierStack = new ProductAdvancedTierStack(
       this,
       "productAdvancedTierStack",
       {
         cluster: cluster,
-        // xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         istioIngressGateway: istioIngressGateway,
         productServiceDNS: productServiceDNS,
         productServicePort: productServicePort,
@@ -93,7 +77,6 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
         "fulfillmentAdvancedTierStack",
         {
           cluster: cluster,
-          // xrayServiceDNSAndPort: xrayServiceDNSAndPort,
           istioIngressGateway: istioIngressGateway,
           fulfillmentServiceDNS: fulfillmentServiceDNS,
           fulfillmentServiceDNSPort: fulfillmentServicePort,
@@ -114,7 +97,6 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
       "orderAdvancedTierStack",
       {
         cluster: cluster,
-        // xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         istioIngressGateway: istioIngressGateway,
         orderServiceDNS: orderServiceDNS,
         orderServicePort: orderServicePort,

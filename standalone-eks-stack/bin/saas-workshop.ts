@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
-import { EksBlueprintStack } from "../lib/eks/eks-blueprint-stack-updated";
+import { EksBlueprintStack } from "../lib/eks/eks-blueprint-stack";
 
 const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;

@@ -18,7 +18,6 @@ export class FulfillmentAdvancedTierStack extends Construct {
     }
 
     const cluster = props.cluster;
-    // const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const fulfillmentDockerImageAsset = props.fulfillmentDockerImageAsset;
 
     const tier = props.tier;
@@ -28,17 +27,6 @@ export class FulfillmentAdvancedTierStack extends Construct {
       tier: tier,
       ...(tenantId && { tenantId: tenantId }),
     };
-
-    // const cluster = eks.Cluster.fromClusterAttributes(this, "ImportedCluster", {
-    //   clusterName: clusterInfo.cluster.clusterName,
-    //   clusterSecurityGroupId: clusterInfo.cluster.clusterSecurityGroupId,
-    //   kubectlLambdaRole: clusterInfo.cluster.kubectlLambdaRole,
-    //   kubectlEnvironment: clusterInfo.cluster.kubectlEnvironment,
-    //   kubectlLayer: clusterInfo.cluster.kubectlLayer,
-    //   awscliLayer: clusterInfo.cluster.awscliLayer,
-    //   kubectlRoleArn: clusterInfo.cluster.kubectlRole?.roleArn,
-    //   openIdConnectProvider: clusterInfo.cluster.openIdConnectProvider,
-    // });
 
     const queue = new sqs.Queue(this, "Queue", {
       queueName: `SaaS-Microservices-Orders-Fulfilled-${namespace}`,
@@ -140,10 +128,6 @@ export class FulfillmentAdvancedTierStack extends Construct {
                       name: "AWS_DEFAULT_REGION",
                       value: cdk.Stack.of(this).region,
                     },
-                    // {
-                    //   name: "AWS_XRAY_DAEMON_ADDRESS",
-                    //   value: xrayServiceDNSAndPort,
-                    // },
                     {
                       name: "POD_NAMESPACE",
                       valueFrom: {
