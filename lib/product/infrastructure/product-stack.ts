@@ -1,5 +1,4 @@
 import * as cdk from "aws-cdk-lib";
-import * as eks from "aws-cdk-lib/aws-eks";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
@@ -15,7 +14,6 @@ export class ProductStack extends Construct {
   constructor(scope: Construct, id: string, props: MicroserviceStackProps) {
     super(scope, id);
 
-    // const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const istioIngressGateway = props.istioIngressGateway;
     const xrayServiceName = "ProductService";
 
@@ -77,113 +75,107 @@ export class ProductStack extends Construct {
     );
     // REPLACE END: LAB2 (IAM resources)
 
-    const productDeployment = cluster.addManifest(
-      `ProductDeployment`,
-      {
-        apiVersion: "apps/v1",
-        kind: "Deployment",
-        metadata: {
-          name: "product-app",
-          namespace: namespace,
-          labels: {
-            ...multiTenantLabels,
+    const productDeployment = cluster.addManifest(`ProductDeployment`, {
+      apiVersion: "apps/v1",
+      kind: "Deployment",
+      metadata: {
+        name: "product-app",
+        namespace: namespace,
+        labels: {
+          ...multiTenantLabels,
+        },
+      },
+      spec: {
+        selector: {
+          matchLabels: {
+            app: "product-app",
           },
         },
-        spec: {
-          selector: {
-            matchLabels: {
-              app: "product-app",
-            },
-          },
-          replicas: 1,
-          template: {
-            metadata: {
-              /* // REMOVE THIS LINE: LAB2 (annotation)
+        replicas: 1,
+        template: {
+          metadata: {
+            /* // REMOVE THIS LINE: LAB2 (annotation)
             annotations: {
               "eks.amazonaws.com/skip-containers": "product-app"
             },
             */ // REMOVE THIS LINE: LAB2 (annotation)
-              labels: {
-                app: "product-app",
-                ...multiTenantLabels,
-              },
+            labels: {
+              app: "product-app",
+              ...multiTenantLabels,
             },
-            spec: {
-              serviceAccountName: productServiceAccount.serviceAccountName,
-              containers: [
-                {
-                  name: "product-app",
-                  image: this.productImageAsset.imageUri,
-                  resources: {
-                    requests: {
-                      cpu: "100m",
-                      memory: "250Mi",
-                    },
-                    limits: {
-                      cpu: "150m",
-                      memory: "300Mi",
-                    },
+          },
+          spec: {
+            serviceAccountName: productServiceAccount.serviceAccountName,
+            containers: [
+              {
+                name: "product-app",
+                image: this.productImageAsset.imageUri,
+                resources: {
+                  requests: {
+                    cpu: "100m",
+                    memory: "250Mi",
                   },
-                  livenessProbe: {
-                    httpGet: {
-                      path: "/products/health",
-                      port: 8080,
-                    },
-                    initialDelaySeconds: 5,
-                    timeoutSeconds: 5,
-                    successThreshold: 1,
-                    failureThreshold: 3,
-                    periodSeconds: 10,
+                  limits: {
+                    cpu: "150m",
+                    memory: "300Mi",
                   },
-                  readinessProbe: {
-                    httpGet: {
-                      path: "/products/health",
-                      port: 8080,
-                    },
-                    initialDelaySeconds: 5,
-                    timeoutSeconds: 2,
-                    successThreshold: 1,
-                    failureThreshold: 3,
-                    periodSeconds: 10,
+                },
+                livenessProbe: {
+                  httpGet: {
+                    path: "/products/health",
+                    port: 8080,
                   },
-                  env: [
-                    {
-                      name: "TOKEN_VENDOR_ENDPOINT_PORT",
-                      value: "8081",
-                    },
-                    {
-                      name: "TABLE_NAME",
-                      value: productTable.tableName,
-                    },
-                    {
-                      name: "AWS_DEFAULT_REGION",
-                      value: cdk.Stack.of(this).region,
-                    },
-                    // {
-                    //   name: "AWS_XRAY_DAEMON_ADDRESS",
-                    //   value: xrayServiceDNSAndPort,
-                    // },
-                    {
-                      name: "POD_NAMESPACE",
-                      valueFrom: {
-                        fieldRef: {
-                          fieldPath: "metadata.namespace",
-                        },
+                  initialDelaySeconds: 5,
+                  timeoutSeconds: 5,
+                  successThreshold: 1,
+                  failureThreshold: 3,
+                  periodSeconds: 10,
+                },
+                readinessProbe: {
+                  httpGet: {
+                    path: "/products/health",
+                    port: 8080,
+                  },
+                  initialDelaySeconds: 5,
+                  timeoutSeconds: 2,
+                  successThreshold: 1,
+                  failureThreshold: 3,
+                  periodSeconds: 10,
+                },
+                env: [
+                  {
+                    name: "TOKEN_VENDOR_ENDPOINT_PORT",
+                    value: "8081",
+                  },
+                  {
+                    name: "TABLE_NAME",
+                    value: productTable.tableName,
+                  },
+                  {
+                    name: "AWS_DEFAULT_REGION",
+                    value: cdk.Stack.of(this).region,
+                  },
+                  {
+                    name: "POD_NAMESPACE",
+                    valueFrom: {
+                      fieldRef: {
+                        fieldPath: "metadata.namespace",
                       },
                     },
-                    {
-                      name: "AWS_XRAY_SERVICE_NAME",
-                      value: xrayServiceName,
-                    },
-                  ],
-                  ports: [
-                    {
-                      containerPort: 8080,
-                      name: "product-app",
-                    },
-                  ],
-                },
-                /* // REMOVE THIS LINE: LAB2 (sidecar app)
+                  },
+                  {
+                    name: "AWS_XRAY_SERVICE_NAME",
+                    value: xrayServiceName,
+                  },
+                ],
+                ports: [
+                  {
+                    containerPort: 8080,
+                    name: "product-app",
+                  },
+                ],
+              },
+              /* // REMOVE THIS LINE: LAB2 (sidecar app)
               {
                 name: "sidecar-app",
                 image: props.sideCarImageAsset?.imageUri,
@@ -232,12 +224,8 @@ export class ProductStack extends Construct {
                   },
                   {
                     name: "AWS_DEFAULT_REGION",
-                    value: region,
+                    value: cdk.Stack.of(this).region,
                   },
-                  // {
-                  //   name: "AWS_XRAY_DAEMON_ADDRESS",
-                  //   value: xrayServiceDNSAndPort,
-                  // },
                   {
                     name: "AWS_XRAY_SERVICE_NAME",
                     value: xrayServiceName,
@@ -259,12 +247,11 @@ export class ProductStack extends Construct {
                 ],
               },
               */ // REMOVE THIS LINE: LAB2 (sidecar app)
-              ],
-            },
+            ],
           },
         },
-      }
-    );
+      },
+    });
     productDeployment.node.addDependency(productServiceAccount);
 
     this.productServicePort = 80;

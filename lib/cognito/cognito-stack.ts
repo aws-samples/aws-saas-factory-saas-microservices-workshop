@@ -2,14 +2,14 @@ import * as cdk from "aws-cdk-lib";
 import * as cognito from "aws-cdk-lib/aws-cognito";
 import { Construct } from "constructs";
 
-export class CognitoStack extends Construct {
+export class CognitoResources extends Construct {
   public readonly userPool: cognito.UserPool;
   public readonly userPoolClient: cognito.UserPoolClient;
   public readonly userPoolDomain: cognito.UserPoolDomain;
   public readonly issuer: string;
   public readonly jwksUri: string;
 
-  constructor(scope: Construct, id: string, props?: cdk.NestedStackProps) {
+  constructor(scope: Construct, id: string) {
     super(scope, id);
 
     const userPool = new cognito.UserPool(this, "UserPool", {
@@ -54,7 +54,9 @@ export class CognitoStack extends Construct {
 
     this.userPool = userPool;
     this.userPoolClient = userPoolClient;
-    this.issuer = `https://cognito-idp.${cdk.Stack.of(this).region}.amazonaws.com/${this.userPool.userPoolId}`;
+    this.issuer = `https://cognito-idp.${
+      cdk.Stack.of(this).region
+    }.amazonaws.com/${this.userPool.userPoolId}`;
     this.jwksUri = `${this.issuer}/.well-known/jwks.json`;
   }
 }
