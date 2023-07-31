@@ -4,71 +4,24 @@ import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as logs from "aws-cdk-lib/aws-logs";
-import { ILogGroup } from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 import * as blueprints from "@aws-quickstart/eks-blueprints";
-import {
-  ResourceProvider,
-  ResourceContext,
-  ClusterInfo,
-} from "@aws-quickstart/eks-blueprints";
 import { CapacityType, KubernetesVersion } from "aws-cdk-lib/aws-eks";
 
-class LogGroupResourceProvider implements ResourceProvider<ILogGroup> {
-  provide(context: ResourceContext): ILogGroup {
-    const scope = context.scope;
-    return new logs.LogGroup(scope, "fluent-bit-log-group", {
-      logGroupName: "/saas-workshop/eks/fluent-bit/container-logs",
-      retention: 7,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-    });
-  }
-}
-
-class MyCustomAwsForFluentBitAddOn implements blueprints.ClusterAddOn {
-  deploy(clusterInfo: ClusterInfo): void | Promise<Construct> {
-    const logGroup: ILogGroup = clusterInfo.getRequiredResource("LogGroup");
-    const addon = new blueprints.addons.AwsForFluentBitAddOn({
-      version: "0.1.21",
-      iamPolicies: [
-        new iam.PolicyStatement({
-          actions: ["logs:*"],
-          resources: [
-            `${logGroup.logGroupArn}:*`,
-            `${logGroup.logGroupArn}:*:*`,
-          ],
-        }),
-      ],
-      values: {
-        cloudWatch: {
-          enabled: true,
-          region: cdk.Stack.of(clusterInfo.cluster).region,
-          logGroupName: logGroup.logGroupName,
-        },
-        firehose: {
-          enabled: false,
-        },
-        kinesis: {
-          enabled: false,
-        },
-        elasticsearch: {
-          enabled: false,
-        },
-      },
-    });
-    return addon.deploy(clusterInfo);
-  }
-}
-
-export class extensionStack extends cdk.NestedStack {
+export class extensionStack extends Construct {
   constructor(
     scope: Construct,
     id: string,
-    props: cdk.NestedStackProps,
-    clusterInfo: blueprints.ClusterInfo,
-    createCloud9InstanceParameter: cdk.CfnParameter
+    props: {
+      clusterInfo: blueprints.ClusterInfo;
+      createCloud9InstanceParameter: cdk.CfnParameter;
+    }
   ) {
-    super(scope, id, props);
+    super(scope, id);
+
+    const clusterInfo = props.clusterInfo;
+    const createCloud9InstanceParameter = props.createCloud9InstanceParameter;
+    const workshopSSMPrefix = "/saas-workshop";
 
     const cloud9 = new cdk.CfnResource(this, "cloud9", {
       type: "AWS::Cloud9::EnvironmentEC2",
@@ -93,45 +46,76 @@ export class extensionStack extends cdk.NestedStack {
     );
 
     new ssm.StringParameter(this, "clusterNameParameter", {
-      parameterName: "/saas-workshop/clusterName",
+      parameterName: `${workshopSSMPrefix}/clusterName`,
       stringValue: clusterInfo.cluster.clusterName,
     });
 
+    new ssm.StringParameter(this, "kubectlRoleNameParameter", {
+      parameterName: `${workshopSSMPrefix}/kubectlRoleNameParameter`,
+      stringValue: clusterInfo.cluster.kubectlRole?.roleName || "N/A",
+    });
+
     new ssm.StringParameter(this, "kubectlRoleArnParameter", {
-      parameterName: "/saas-workshop/kubectlRoleArn",
+      parameterName: `${workshopSSMPrefix}/kubectlRoleArn`,
       stringValue: clusterInfo.cluster.kubectlRole?.roleArn || "N/A",
     });
 
+    new ssm.StringParameter(this, "kubectlLambdaRoleArnParameter", {
+      parameterName: `${workshopSSMPrefix}/kubectlLambdaRoleArnParameter`,
+      stringValue: clusterInfo.cluster.kubectlLambdaRole?.roleArn || "N/A",
+    });
+
+    new ssm.StringParameter(this, "kubectlProviderKubectlRoleArn", {
+      parameterName: `${workshopSSMPrefix}/kubectlProviderKubectlRoleArn`,
+      stringValue: clusterInfo.cluster.kubectlProvider?.roleArn || "N/A",
+    });
+    new ssm.StringParameter(this, "kubectlProviderFunctionArn", {
+      parameterName: `${workshopSSMPrefix}/kubectlProviderFunctionArn`,
+      stringValue: clusterInfo.cluster.kubectlProvider?.serviceToken || "N/A",
+    });
+    new ssm.StringParameter(this, "kubectlProviderHandlerRoleArn", {
+      parameterName: `${workshopSSMPrefix}/kubectlProviderHandlerRoleArn`,
+      stringValue:
+        clusterInfo.cluster.kubectlProvider?.handlerRole.roleArn || "N/A",
+    });
+
     new ssm.StringParameter(this, "kubectlLayerVersionArnParameter", {
-      parameterName: "/saas-workshop/kubectlLayerVersionArn",
+      parameterName: `${workshopSSMPrefix}/kubectlLayerVersionArn`,
       stringValue: clusterInfo.cluster.kubectlLayer?.layerVersionArn || "N/A",
     });
 
     new ssm.StringParameter(this, "awscliLayerVersionArnParameter", {
-      parameterName: "/saas-workshop/awscliLayerVersionArn",
+      parameterName: `${workshopSSMPrefix}/awscliLayerVersionArn`,
       stringValue: clusterInfo.cluster.awscliLayer?.layerVersionArn || "N/A",
     });
 
     new ssm.StringParameter(this, "kubectlSecurityGroupIdParameter", {
-      parameterName: "/saas-workshop/kubectlSecurityGroupId",
+      parameterName: `${workshopSSMPrefix}/kubectlSecurityGroupId`,
       stringValue:
         clusterInfo.cluster.kubectlSecurityGroup?.securityGroupId || "N/A",
     });
 
-    new ssm.StringParameter(this, "kubectlPrivateSubnetIdsParameter", {
-      parameterName: "/saas-workshop/kubectlPrivateSubnetIds",
-      stringValue: clusterInfo.cluster.kubectlPrivateSubnets?.join() || "N/A",
+    new ssm.StringListParameter(this, "kubectlPrivateSubnetIdsParameter", {
+      parameterName: `${workshopSSMPrefix}/kubectlPrivateSubnetIds`,
+      stringListValue: clusterInfo.cluster.kubectlPrivateSubnets?.map(
+        (x) => x.subnetId
+      ) || ["N/A"],
     });
 
     new ssm.StringParameter(this, "clusterSecurityGroupIdParameter", {
-      parameterName: "/saas-workshop/clusterSecurityGroupId",
+      parameterName: `${workshopSSMPrefix}/clusterSecurityGroupId`,
       stringValue: clusterInfo.cluster.clusterSecurityGroupId,
     });
 
     new ssm.StringParameter(this, "openIdConnectProviderArnParameter", {
-      parameterName: "/saas-workshop/openIdConnectProviderArn",
+      parameterName: `${workshopSSMPrefix}/openIdConnectProviderArn`,
       stringValue:
         clusterInfo.cluster.openIdConnectProvider.openIdConnectProviderArn,
+    });
+
+    new ssm.StringParameter(this, "vpcIdParameter", {
+      parameterName: `${workshopSSMPrefix}/vpcIdParameter`,
+      stringValue: clusterInfo.cluster.vpc.vpcId,
     });
   }
 }
@@ -145,9 +129,13 @@ export class EksBlueprintStack extends cdk.Stack {
 
     const account = props.env?.account;
     const region = props.env?.region;
+    const fluentBitLogGroup = new logs.LogGroup(this, "fluent-bit-log-group", {
+      logGroupName: "/saas-workshop/eks/fluent-bit/container-logs",
+      retention: 7,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
 
     const blueprint = blueprints.EksBlueprint.builder()
-      .resourceProvider("LogGroup", new LogGroupResourceProvider())
       .account(account)
       .region(region)
       .teams(
@@ -157,13 +145,37 @@ export class EksBlueprintStack extends cdk.Stack {
         })
       )
       .addOns(
+        new blueprints.addons.AwsForFluentBitAddOn({
+          values: {
+            cloudWatch: {
+              enabled: true,
+              region: cdk.Stack.of(this).region,
+              logGroupName: fluentBitLogGroup.logGroupName,
+            },
+            firehose: {
+              enabled: false,
+            },
+            kinesis: {
+              enabled: false,
+            },
+            elasticsearch: {
+              enabled: false,
+            },
+          },
+        }),
         new blueprints.addons.MetricsServerAddOn(),
-        new MyCustomAwsForFluentBitAddOn()
+        // new blueprints.addons.ContainerInsightsAddOn(),
+        new blueprints.addons.AwsLoadBalancerControllerAddOn(),
+        new blueprints.addons.CertManagerAddOn(),
+        new blueprints.addons.AdotCollectorAddOn(),
+        new blueprints.addons.CloudWatchAdotAddOn(),
+        new blueprints.addons.XrayAdotAddOn(),
+        new blueprints.addons.IstioBaseAddOn(),
+        new blueprints.addons.IstioControlPlaneAddOn()
       )
       .clusterProvider(
         new blueprints.MngClusterProvider({
-          nodegroupName: "instance-capacity",
-          version: KubernetesVersion.V1_23,
+          version: KubernetesVersion.V1_27,
           minSize: 2,
           desiredSize: 2,
           maxSize: 4,
@@ -213,12 +225,9 @@ export class EksBlueprintStack extends cdk.Stack {
       }
     );
 
-    new extensionStack(
-      blueprint,
-      "extensionStack",
-      props,
-      blueprint.getClusterInfo(),
-      createCloud9InstanceParameter
-    );
+    new extensionStack(blueprint, "extensionStack", {
+      clusterInfo: blueprint.getClusterInfo(),
+      createCloud9InstanceParameter: createCloud9InstanceParameter,
+    });
   }
 }
