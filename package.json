@@ -1,9 +1,7 @@
 {
   "name": "new-cdk",
   "version": "0.1.0",
-  "bin": {
-    "new-cdk": "bin/new-cdk.js"
-  },
+  "bin": "bin/new-cdk.js",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
