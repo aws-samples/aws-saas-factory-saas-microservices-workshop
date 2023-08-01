@@ -10,20 +10,11 @@ sudo curl --silent --no-progress-meter --location -o /usr/local/bin/kubectl \
 sudo chmod +x /usr/local/bin/kubectl
 kubectl version --short --client
 
-export NVM_DIR=$HOME/.nvm
-source $NVM_DIR/nvm.sh
-
-echo "Installing Node and CDK"
-nvm install 16 2
-nvm use 16
-nvm alias default 16
-npm install -g yarn --force
+corepack enable
+corepack prepare yarn@stable --activate
 
 echo "Updating python3"
-python3 -m pip install --user --upgrade pip
-
-echo "Uninstalling AWS CLI 1.x"
-sudo pip3 uninstall awscli -y
+sudo amazon-linux-extras install -y python3.8
 
 echo "Installing AWS CLI 2.x"
 curl --no-progress-meter "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"

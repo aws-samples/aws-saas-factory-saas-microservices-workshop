@@ -5,7 +5,7 @@
 #
 
 echo "Starting cdk deploy..."
-npm install
+yarn install
 npx cdk bootstrap
 npx --yes cdk deploy eksBlueprintStack/EKSStack \
     --require-approval never \
