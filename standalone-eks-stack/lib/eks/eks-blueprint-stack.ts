@@ -188,6 +188,18 @@ export class EksBlueprintStack extends cdk.Stack {
           )
         )
       );
+
+    const kubectlRole = blueprint.getClusterInfo().cluster.kubectlRole
+    if (kubectlRole) {
+      const role = kubectlRole as iam.Role;
+      role.assumeRolePolicy?.addStatements(new iam.PolicyStatement({
+        actions: ['sts:AssumeRole'],
+        principals: [new iam.AnyPrincipal().withConditions({
+            ArnEquals: {'aws:PrincipalArn': `arn:aws:iam::${this.account}:role/*`}
+        })]
+      }))
+    }
+
     this.stack = blueprint;
     this.clusterInfo = blueprint.getClusterInfo();
 
