@@ -30,7 +30,7 @@ CERT=$(base64 certs/ingressgw_example_com.crt | tr -d '[:space:]')
 KEY=$(base64 certs/ingressgw_example_com.key | tr -d '[:space:]')
 
 echo "Starting cdk deploy..."
-npm install
+yarn install
 npx cdk bootstrap
 npx --yes cdk deploy SaaSMicroserviceBaseStack \
     --require-approval never \
