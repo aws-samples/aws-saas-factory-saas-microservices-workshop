@@ -55,7 +55,6 @@ Resources:
                     - Ref: AWS::AccountId
                     - :log-group:/aws/codebuild/
                     - Ref: InstallWorkshopStackAB9AD9EE
-                    - :*
           - Action:
               - codebuild:CreateReportGroup
               - codebuild:CreateReport
@@ -114,6 +113,15 @@ Resources:
       Path: /
   CodeBuildWaitHandle:
     Type: AWS::CloudFormation::WaitConditionHandle
+  CodeBuildWaitCondition:
+    Type: AWS::CloudFormation::WaitCondition
+    Properties:
+      Count: 1
+      Handle:
+        Ref: CodeBuildWaitHandle
+      Timeout: "10800"
+    DependsOn:
+      - InstallWorkshopStackAB9AD9EE
   InstallWorkshopStackAB9AD9EE:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -122,6 +130,10 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         EnvironmentVariables:
+          - Name: SIGNAL_URL
+            Type: PLAINTEXT
+            Value:
+              Ref: CodeBuildWaitHandle
           - Name: REPO_URL
             Type: PLAINTEXT
             Value:
@@ -151,6 +163,15 @@ Resources:
                   "mkdir workshop && cd workshop",
                   "git clone --single-branch --branch $REPO_BRANCH_NAME $REPO_URL .",
                   "./deploy-workshop-stack.sh"
+                ]
+              },
+              "post_build": {
+                "commands": [
+                  "if [ \"$CODEBUILD_BUILD_SUCCEEDING\" == \"1\" ]; then export STATUS=\"SUCCESS\"; fi",
+                  "if [ \"$CODEBUILD_BUILD_SUCCEEDING\" != \"1\" ]; then export STATUS=\"FAILURE\"; fi",
+                  'export JSON_DATA="{\"Status\" : \"$STATUS\", \"Reason\" : \"Configuration Complete\", \"UniqueId\" : \"ID1234\", \"Data\" : \"Deployment complete.\"}"',
+                  'echo "$JSON_DATA"',
+                  "curl -X PUT --data-binary \"$JSON_DATA\" \"$SIGNAL_URL\""
                 ]
               }
             }
