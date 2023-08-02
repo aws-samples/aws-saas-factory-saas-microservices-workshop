@@ -10,3 +10,11 @@ cdk.context.json
 
 certs
 Sample_JWTs.txt
+
+.yarn/*
+!.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

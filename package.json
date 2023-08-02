@@ -1,13 +1,7 @@
 {
-  "name": "new-cdk",
+  "name": "microservices-saas-workshop",
+  "packageManager": "yarn@3.6.1",
   "version": "0.1.0",
-  "bin": "bin/new-cdk.js",
-  "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
-    "test": "jest",
-    "cdk": "cdk"
-  },
   "devDependencies": {
     "@types/jest": "^29.5.1",
     "@types/node": "20.1.0",
