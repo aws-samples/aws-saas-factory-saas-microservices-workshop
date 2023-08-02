@@ -4431,25 +4431,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"new-cdk@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "new-cdk@workspace:."
-  dependencies:
-    "@aws-quickstart/eks-blueprints": ~1.10.1
-    "@types/jest": ^29.5.1
-    "@types/node": 20.1.0
-    cdk-nag: ^2.18.21
-    constructs: ^10.0.0
-    jest: ^29.5.0
-    source-map-support: ^0.5.21
-    ts-jest: ^29.1.0
-    ts-node: ^10.9.1
-    typescript: ~5.0.4
-  bin:
-    new-cdk: bin/new-cdk.js
-  languageName: unknown
-  linkType: soft
-
 "node-addon-api@npm:^5.0.0":
   version: 5.1.0
   resolution: "node-addon-api@npm:5.1.0"
@@ -5123,6 +5104,23 @@ __metadata:
   checksum: 052bf4d25bbf5f78e06c1d5e67de2e088b06871fa04107ca8d3f0e9d9263326e2942c8bedee3545795fc77d787d443a538345eef74db2f8e35db3558c6f91ff7
   languageName: node
   linkType: hard
+
+"standalone-eks-stack@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "standalone-eks-stack@workspace:."
+  dependencies:
+    "@aws-quickstart/eks-blueprints": ~1.10.1
+    "@types/jest": ^29.5.1
+    "@types/node": 20.1.0
+    cdk-nag: ^2.18.21
+    constructs: ^10.0.0
+    jest: ^29.5.0
+    source-map-support: ^0.5.21
+    ts-jest: ^29.1.0
+    ts-node: ^10.9.1
+    typescript: ~5.0.4
+  languageName: unknown
+  linkType: soft
 
 "string-length@npm:^4.0.1":
   version: 4.0.2

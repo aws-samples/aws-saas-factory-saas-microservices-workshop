@@ -29,7 +29,6 @@ const basicStack = new ApplicationStack(app, "PoolBasicStack", {
 });
 basicStack.addDependency(baseStack);
 
-
 const tenantBstack = new ApplicationAdvancedTierStack(app, "tenantBstack", {
   env: { account, region },
   baseStack: baseStack,
