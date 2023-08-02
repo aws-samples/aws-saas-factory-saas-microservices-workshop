@@ -6,6 +6,7 @@ import { ApplicationStack } from "../lib/environment/application-stack";
 import { BaseStack } from "../lib/base/base-stack";
 import { ApplicationAdvancedTierStack } from "../lib/environment/application-advanced-tier-stack";
 import { Tier } from "../lib/enums/tier";
+import { DestroyPolicySetter } from "../lib/cdk-aspect/destroy-policy-setter";
 import { AwsSolutionsChecks } from "cdk-nag";
 
 const app = new cdk.App();
@@ -53,3 +54,15 @@ tenantCstack.addDependency(basicStack);
 
 // Remove comment to display failed checks.
 // cdk.Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
+
+// Set destroy policies to all stacks.
+const stacks = [
+  baseStack,
+  tokenVendorStack,
+  basicStack,
+  tenantBstack,
+  tenantCstack,
+];
+stacks.forEach((stack) => {
+  cdk.Aspects.of(stack).add(new DestroyPolicySetter());
+});

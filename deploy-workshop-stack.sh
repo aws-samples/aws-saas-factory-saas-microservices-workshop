@@ -1,10 +1,13 @@
 #!/bin/bash -xe
 
+corepack enable
+corepack prepare yarn@stable --activate
+
 echo "Starting cdk deploy..."
 cd standalone-eks-stack
 yarn install
-yarn node cdk bootstrap
-yarn node --yes cdk deploy eksBlueprintStack/EKSStack \
+npx cdk bootstrap
+npx --yes cdk deploy eksBlueprintStack/EKSStack \
     --require-approval never \
     --parameters EksBlueprintStack:createCloud9Instance=true
 
