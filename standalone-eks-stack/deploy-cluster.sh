@@ -5,13 +5,15 @@
 #
 
 echo "Starting cdk deploy..."
-yarn install
-npx cdk bootstrap
-npx --yes cdk deploy eksBlueprintStack/EKSStack \
-    --require-approval never \
-    --parameters EksBlueprintStack:createCloud9Instance=false
 
-echo "Done cdk deploy!"
+# Use the same method that workshop studio uses to deploy standalone stack
+aws cloudformation deploy \
+    --template-file WorkshopStack.yaml \
+    --stack-name workshopStack \
+    --capabilities CAPABILITY_IAM \
+    --parameter-overrides \
+        RepoUrl="https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop.git" \
+        RepoBranchName="update-eks"
 
 echo "Configuring kubeconfig..."
 ../scripts/configure-kubeconfig.sh
