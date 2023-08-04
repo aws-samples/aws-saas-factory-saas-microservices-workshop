@@ -48,13 +48,13 @@ export class ExtensionStack extends Construct {
 
     new ssm.StringParameter(this, "kubectlRoleArnParameter", {
       parameterName: `${workshopSSMPrefix}/kubectlRoleArn`,
-      stringValue: clusterInfo.cluster.kubectlRole?.roleArn || "N/A",
+      stringValue: clusterInfo.cluster.kubectlRole?.roleArn || "EMPTY",
     });
 
     new ssm.StringParameter(this, "kubectlSecurityGroupIdParameter", {
       parameterName: `${workshopSSMPrefix}/kubectlSecurityGroupId`,
       stringValue:
-        clusterInfo.cluster.kubectlSecurityGroup?.securityGroupId || "N/A",
+        clusterInfo.cluster.kubectlSecurityGroup?.securityGroupId || "EMPTY",
     });
 
     new ssm.StringParameter(this, "clusterSecurityGroupIdParameter", {
@@ -64,17 +64,17 @@ export class ExtensionStack extends Construct {
 
     new ssm.StringParameter(this, "kubectlLambdaRoleArnParameter", {
       parameterName: `${workshopSSMPrefix}/kubectlLambdaRoleArnParameter`,
-      stringValue: clusterInfo.cluster.kubectlLambdaRole?.roleArn || "N/A",
+      stringValue: clusterInfo.cluster.kubectlLambdaRole?.roleArn || "EMPTY",
     });
 
     new ssm.StringParameter(this, "kubectlLayerVersionArn", {
       parameterName: `${workshopSSMPrefix}/kubectlLayerVersionArn`,
-      stringValue: clusterInfo.cluster.kubectlLayer?.layerVersionArn || "N/A",
+      stringValue: clusterInfo.cluster.kubectlLayer?.layerVersionArn || "EMPTY",
     });
 
     new ssm.StringParameter(this, "awscliLayerVersionArn", {
       parameterName: `${workshopSSMPrefix}/awscliLayerVersionArn`,
-      stringValue: clusterInfo.cluster.awscliLayer?.layerVersionArn || "N/A",
+      stringValue: clusterInfo.cluster.awscliLayer?.layerVersionArn || "EMPTY",
     });
 
     new ssm.StringParameter(this, "vpcIdParameter", {

@@ -41,35 +41,27 @@ export class EksCluster extends Construct {
         `${workshopSSMPrefix}/kubectlLambdaRoleArnParameter`
       );
 
-    // using valueFromLookup, so we can determine during synth
-    // whether or not to configure a layer for the imported cluster.
     const kubectlLayerVersionArn = ssm.StringParameter.valueFromLookup(
       this,
       `${workshopSSMPrefix}/kubectlLayerVersionArn`
     );
 
-    const kubectlLayer = kubectlLayerVersionArn.includes("N/A")
-      ? undefined
-      : lambda.LayerVersion.fromLayerVersionArn(
-          this,
-          "kubectlLayerImported",
-          kubectlLayerVersionArn
-        );
+    const kubectlLayer = lambda.LayerVersion.fromLayerVersionArn(
+      this,
+      "kubectlLayerImported",
+      kubectlLayerVersionArn
+    );
 
-    // using valueFromLookup, so we can determine during synth
-    // whether or not to configure a layer for the imported cluster.
     const awscliLayerVersionArn = ssm.StringParameter.valueFromLookup(
       this,
       `${workshopSSMPrefix}/awscliLayerVersionArn`
     );
 
-    const awscliLayer = awscliLayerVersionArn.includes("N/A")
-      ? undefined
-      : lambda.LayerVersion.fromLayerVersionArn(
-          this,
-          "awscliLayerImported",
-          awscliLayerVersionArn
-        );
+    const awscliLayer = lambda.LayerVersion.fromLayerVersionArn(
+      this,
+      "awscliLayerImported",
+      awscliLayerVersionArn
+    );
 
     // read ssm value at synth time instead of deployment
     // as we cannot use a "token" when importing VPC using Vpc.fromLookup
@@ -105,8 +97,12 @@ export class EksCluster extends Construct {
       {
         clusterName: clusterName,
         kubectlRoleArn: kubectlRoleArn,
-        ...(kubectlLayer && { kubectlLayer: kubectlLayer }),
-        ...(awscliLayer && { awscliLayer: awscliLayer }),
+        ...(kubectlLayerVersionArn.includes(":layer:") && {
+          kubectlLayer: kubectlLayer,
+        }),
+        ...(awscliLayerVersionArn.includes(":layer:") && {
+          awscliLayer: awscliLayer,
+        }),
         kubectlLambdaRole: kubectlLambdaRole,
         kubectlSecurityGroupId: kubectlSecurityGroupId,
         clusterSecurityGroupId: clusterSecurityGroupId,
