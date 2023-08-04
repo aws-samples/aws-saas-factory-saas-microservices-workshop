@@ -54,7 +54,7 @@ const blueprint = blueprints.EksBlueprint.builder()
   )
   .clusterProvider(
     new blueprints.MngClusterProvider({
-      version: KubernetesVersion.V1_27,
+      version: KubernetesVersion.V1_26,
       minSize: 2,
       desiredSize: 2,
       maxSize: 4,
