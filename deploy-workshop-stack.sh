@@ -15,6 +15,6 @@ yarn install
 npx cdk bootstrap
 npx cdk deploy SaaSWorkshopBootstrap \
     --require-approval never \
-    --parameters EksBlueprintStack:createCloud9Instance="$CREATE_CLOUD9_INSTANCE"
+    --parameters createCloud9Instance="$CREATE_CLOUD9_INSTANCE"
 
 echo "Done cdk deploy!"
