@@ -13,7 +13,7 @@ echo "Starting cdk deploy..."
 cd standalone-eks-stack
 yarn install
 npx cdk bootstrap
-npx --yes cdk deploy eksBlueprintStack/EKSStack \
+npx cdk deploy SaaSWorkshopBootstrap \
     --require-approval never \
     --parameters EksBlueprintStack:createCloud9Instance="$CREATE_CLOUD9_INSTANCE"
 
