@@ -20,6 +20,7 @@ export class FulfillmentStack extends Construct {
 
     const cluster = props.cluster;
     const tier = props.tier;
+    const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const tenantId = props.tenantId;
     const namespace = props.namespace; // from the ApplicationStack
     const multiTenantLabels = {
@@ -138,6 +139,10 @@ export class FulfillmentStack extends Construct {
                   {
                     name: "AWS_DEFAULT_REGION",
                     value: cdk.Stack.of(this).region,
+                  },
+                  {
+                    name: "AWS_XRAY_DAEMON_ADDRESS",
+                    value: xrayServiceDNSAndPort,
                   },
                   {
                     name: "POD_NAMESPACE",

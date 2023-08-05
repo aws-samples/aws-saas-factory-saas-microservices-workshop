@@ -16,6 +16,7 @@ export class ProductStack extends Construct {
 
     const istioIngressGateway = props.istioIngressGateway;
     const xrayServiceName = "ProductService";
+    const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
 
     // REPLACE START: LAB1 (namespace)
     const namespace = "default";
@@ -156,6 +157,10 @@ export class ProductStack extends Construct {
                     value: cdk.Stack.of(this).region,
                   },
                   {
+                    name: "AWS_XRAY_DAEMON_ADDRESS",
+                    value: xrayServiceDNSAndPort,
+                  },
+                  {
                     name: "POD_NAMESPACE",
                     valueFrom: {
                       fieldRef: {
@@ -227,6 +232,10 @@ export class ProductStack extends Construct {
                     value: cdk.Stack.of(this).region,
                   },
                   {
+                    name: "AWS_XRAY_DAEMON_ADDRESS",
+                    value: xrayServiceDNSAndPort,
+                  },
+                  {
                     name: "AWS_XRAY_SERVICE_NAME",
                     value: xrayServiceName,
                   },
@@ -257,57 +266,52 @@ export class ProductStack extends Construct {
     this.productServicePort = 80;
     this.productServiceDNS = `product-service.${namespace}.svc.cluster.local`;
 
-    const productService = cluster.addManifest(
-      `ProductService`,
-      {
-        kind: "Service",
-        apiVersion: "v1",
-        metadata: {
-          name: "product-service",
-          namespace: namespace,
-          labels: {
-            ...multiTenantLabels,
-          },
+    const productService = cluster.addManifest(`ProductService`, {
+      kind: "Service",
+      apiVersion: "v1",
+      metadata: {
+        name: "product-service",
+        namespace: namespace,
+        labels: {
+          ...multiTenantLabels,
         },
-        spec: {
-          selector: {
-            app: "product-app",
-          },
-          ports: [
-            {
-              port: this.productServicePort,
-              targetPort: 8080,
-            },
-          ],
+      },
+      spec: {
+        selector: {
+          app: "product-app",
         },
-      }
-    );
+        ports: [
+          {
+            port: this.productServicePort,
+            targetPort: 8080,
+          },
+        ],
+      },
+    });
     productService.node.addDependency(productDeployment);
 
-    const productVirtualService = cluster.addManifest(
-      `ProductVirtualService`,
-      {
-        apiVersion: "networking.istio.io/v1alpha3",
-        kind: "VirtualService",
-        metadata: {
-          name: "product-vs",
-          namespace: namespace,
-          labels: {
-            ...multiTenantLabels,
-          },
+    const productVirtualService = cluster.addManifest(`ProductVirtualService`, {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "VirtualService",
+      metadata: {
+        name: "product-vs",
+        namespace: namespace,
+        labels: {
+          ...multiTenantLabels,
         },
-        spec: {
-          hosts: ["saas-workshop.example.com"],
-          gateways: [istioIngressGateway],
-          http: [
-            {
-              name: namespace.substring(0, 14),
-              match: [
-                {
-                  uri: {
-                    prefix: "/products",
-                  },
-                  /* // LAB4: REMOVE THIS LINE (routing)
+      },
+      spec: {
+        hosts: ["saas-workshop.example.com"],
+        gateways: [istioIngressGateway],
+        http: [
+          {
+            name: namespace.substring(0, 14),
+            match: [
+              {
+                uri: {
+                  prefix: "/products",
+                },
+                /* // LAB4: REMOVE THIS LINE (routing)
                 headers: {
                   "@request.auth.claims.custom:tenant_tier": {
                     regex: tier,
@@ -319,23 +323,22 @@ export class ProductStack extends Construct {
                   }),
                 },
                 */ // LAB4: REMOVE THIS LINE (routing)
-                },
-              ],
-              route: [
-                {
-                  destination: {
-                    host: this.productServiceDNS,
-                    port: {
-                      number: this.productServicePort,
-                    },
+              },
+            ],
+            route: [
+              {
+                destination: {
+                  host: this.productServiceDNS,
+                  port: {
+                    number: this.productServicePort,
                   },
                 },
-              ],
-            },
-          ],
-        },
-      }
-    );
+              },
+            ],
+          },
+        ],
+      },
+    });
     productVirtualService.node.addDependency(productService);
   }
 }

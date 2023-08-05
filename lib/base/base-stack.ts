@@ -3,11 +3,13 @@ import { Construct } from "constructs";
 import { EksCluster } from "../../lib/eks/eks-blueprint-stack";
 import { CognitoResources } from "../../lib/cognito/cognito-stack";
 import { IstioResources } from "../../lib/eks/istio-stack";
+import { XrayAddOnStack } from "../../lib/eks/xray-daemon-stack";
 
 export class BaseStack extends cdk.Stack {
   public readonly eksCluster: EksCluster;
   public readonly cognitoResources: CognitoResources;
   public readonly istioResources: IstioResources;
+  public readonly xrayAddOnStack: XrayAddOnStack;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -34,9 +36,14 @@ export class BaseStack extends cdk.Stack {
       tlsKey: tlsKeyParameterValue,
     });
 
+    const xrayAddOnStack = new XrayAddOnStack(this, "XrayStack", {
+      cluster: eksCluster.cluster,
+    });
+
     this.eksCluster = eksCluster;
     this.cognitoResources = cognitoResources;
     this.istioResources = istioResources;
+    this.xrayAddOnStack = xrayAddOnStack;
 
     new cdk.CfnOutput(this, "CognitoUserPoolId", {
       value: cognitoResources.userPool.userPoolId,
