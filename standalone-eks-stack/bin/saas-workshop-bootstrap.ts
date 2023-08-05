@@ -4,18 +4,18 @@ import * as cdk from "aws-cdk-lib";
 import * as eks from "aws-cdk-lib/aws-eks";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as iam from "aws-cdk-lib/aws-iam";
-import * as logs from "aws-cdk-lib/aws-logs";
 import * as blueprints from "@aws-quickstart/eks-blueprints";
 import { CapacityType, KubernetesVersion } from "aws-cdk-lib/aws-eks";
 import { ExtensionStack } from "../lib/extension-stack";
 import { DestroyPolicySetter } from "../lib/cdk-aspect/destroy-policy-setter";
-
+import { LogGroupResourceProvider, MyCustomAwsForFluentBitAddOn } from "../lib/fluentbit";
 const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;
 const region = process.env.CDK_DEFAULT_REGION;
-const fluentBitLogGroupName = "/saas-workshop/eks/fluent-bit/container-logs";
+
 
 const blueprint = blueprints.EksBlueprint.builder()
+  .resourceProvider("LogGroup", new LogGroupResourceProvider())
   .account(account)
   .region(region)
   .teams(
@@ -25,30 +25,9 @@ const blueprint = blueprints.EksBlueprint.builder()
     })
   )
   .addOns(
-    new blueprints.addons.AwsForFluentBitAddOn({
-      values: {
-        cloudWatch: {
-          enabled: true,
-          region: region,
-          logGroupName: fluentBitLogGroupName,
-        },
-        firehose: {
-          enabled: false,
-        },
-        kinesis: {
-          enabled: false,
-        },
-        elasticsearch: {
-          enabled: false,
-        },
-      },
-    }),
+    new MyCustomAwsForFluentBitAddOn(),
     new blueprints.addons.MetricsServerAddOn(),
-    new blueprints.addons.AwsLoadBalancerControllerAddOn(),
-    new blueprints.addons.CertManagerAddOn(),
-    new blueprints.addons.AdotCollectorAddOn(),
-    new blueprints.addons.CloudWatchAdotAddOn(),
-    new blueprints.addons.XrayAdotAddOn(),
+    new blueprints.addons.ContainerInsightsAddOn(),
     new blueprints.addons.IstioBaseAddOn(),
     new blueprints.addons.IstioControlPlaneAddOn()
   )
@@ -69,11 +48,6 @@ const blueprint = blueprints.EksBlueprint.builder()
     })
   )
   .build(app, "SaaSWorkshopBootstrap");
-
-new logs.LogGroup(blueprint, "fluent-bit-log-group", {
-  logGroupName: fluentBitLogGroupName,
-  retention: 7,
-});
 
 blueprint
   .getClusterInfo()
