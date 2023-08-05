@@ -37,6 +37,8 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
     const productServicePort = props.basicStack.productServicePort;
     const orderServiceDNS = props.basicStack.orderServiceDNS;
     const orderServicePort = props.basicStack.orderServicePort;
+    const xrayServiceDNSAndPort =
+      props.baseStack.xrayAddOnStack.xrayServiceDNSAndPort;
 
     const productAdvancedTierStack = new ProductAdvancedTierStack(
       this,
@@ -49,6 +51,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
         namespace: namespace,
         tier: tier,
         tenantId: tenantId,
+        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
       }
     );
 
@@ -85,6 +88,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
           namespace: tenantSpecificAdvancedTierNamespaceName,
           tier: tier,
           tenantId: tenantId,
+          xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         }
       );
       fulfillmentAdvancedTierStack.node.addDependency(
@@ -103,6 +107,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
         namespace: namespace,
         tier: tier,
         tenantId: tenantId,
+        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
       }
     );
   }

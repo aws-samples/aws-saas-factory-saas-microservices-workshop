@@ -36,6 +36,8 @@ export class ApplicationStack extends cdk.Stack {
 
     const eksCluster = new EksCluster(this, "EksCluster");
     const cluster = eksCluster.cluster;
+    const xrayServiceDNSAndPort =
+      props.baseStack.xrayAddOnStack.xrayServiceDNSAndPort;
     const istioIngressGateway =
       props.baseStack.istioResources.istioIngressGateway;
 
@@ -73,6 +75,7 @@ export class ApplicationStack extends cdk.Stack {
       namespace: this.namespace,
       tier: tier,
       tenantId: tenantId,
+      xrayServiceDNSAndPort: xrayServiceDNSAndPort,
     });
     productStack.node.addDependency(stackNamespace);
     this.productServiceDNS = productStack.productServiceDNS;
@@ -88,6 +91,7 @@ export class ApplicationStack extends cdk.Stack {
         namespace: this.namespace,
         tier: tier,
         tenantId: tenantId,
+        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
       });
       fulfillmentStack.node.addDependency(stackNamespace);
       this.fulfillmentServicePort = fulfillmentStack.fulfillmentServicePort;
@@ -105,6 +109,7 @@ export class ApplicationStack extends cdk.Stack {
         sideCarImageAsset: sideCarImageAsset,
         tier: tier,
         tenantId: tenantId,
+        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
       });
       orderStack.node.addDependency(stackNamespace);
       this.orderServiceDNS = orderStack.orderServiceDNS;

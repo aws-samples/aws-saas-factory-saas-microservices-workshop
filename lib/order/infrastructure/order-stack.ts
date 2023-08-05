@@ -25,6 +25,7 @@ export class OrderStack extends Construct {
     const cluster = props.cluster;
     const istioIngressGateway = props.istioIngressGateway;
     const fulfillmentServiceDNS = props.fulfillmentServiceDNS;
+    const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
 
     const tier = props.tier;
     const tenantId = props.tenantId;
@@ -175,6 +176,10 @@ export class OrderStack extends Construct {
                     value: cdk.Stack.of(this).region,
                   },
                   {
+                    name: "AWS_XRAY_DAEMON_ADDRESS",
+                    value: xrayServiceDNSAndPort,
+                  },
+                  {
                     name: "FULFILLMENT_ENDPOINT",
                     value: fulfillmentServiceDNS,
                   },
@@ -247,6 +252,10 @@ export class OrderStack extends Construct {
                   {
                     name: "AWS_DEFAULT_REGION",
                     value: cdk.Stack.of(this).region,
+                  },
+                  {
+                    name: "AWS_XRAY_DAEMON_ADDRESS",
+                    value: xrayServiceDNSAndPort,
                   },
                   {
                     name: "POD_NAMESPACE",
