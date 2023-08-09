@@ -19,6 +19,7 @@ export class FulfillmentAdvancedTierStack extends Construct {
 
     const cluster = props.cluster;
     const fulfillmentDockerImageAsset = props.fulfillmentDockerImageAsset;
+    const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
 
     const tier = props.tier;
     const tenantId = props.tenantId;
@@ -40,6 +41,13 @@ export class FulfillmentAdvancedTierStack extends Construct {
         namespace: namespace,
       }
     );
+
+    // ensure that namespace is created before fulfillmentServiceAccount
+    fulfillmentServiceAccount.node.children.forEach((child) => {
+      if (props.namespaceConstruct) {
+        child.node.addDependency(props.namespaceConstruct);
+      }
+    });
 
     fulfillmentServiceAccount.role.attachInlinePolicy(
       new iam.Policy(this, "FulfillmentAccessPolicy", {
@@ -127,6 +135,10 @@ export class FulfillmentAdvancedTierStack extends Construct {
                     {
                       name: "AWS_DEFAULT_REGION",
                       value: cdk.Stack.of(this).region,
+                    },
+                    {
+                      name: "AWS_XRAY_DAEMON_ADDRESS",
+                      value: xrayServiceDNSAndPort,
                     },
                     {
                       name: "POD_NAMESPACE",

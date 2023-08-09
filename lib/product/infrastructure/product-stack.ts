@@ -62,6 +62,12 @@ export class ProductStack extends Construct {
         namespace: namespace,
       }
     );
+    // ensure that namespace is created before productServiceAccount
+    productServiceAccount.node.children.forEach((child) => {
+      if (props.namespaceConstruct) {
+        child.node.addDependency(props.namespaceConstruct);
+      }
+    });
 
     // REPLACE START: LAB2 (IAM resources)
     productServiceAccount.role.attachInlinePolicy(

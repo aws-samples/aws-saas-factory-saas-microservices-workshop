@@ -57,6 +57,13 @@ export class FulfillmentStack extends Construct {
       }
     );
 
+    // ensure that namespace is created before fulfillmentServiceAccount
+    fulfillmentServiceAccount.node.children.forEach((child) => {
+      if (props.namespaceConstruct) {
+        child.node.addDependency(props.namespaceConstruct);
+      }
+    });
+
     fulfillmentServiceAccount.role.attachInlinePolicy(
       new iam.Policy(this, "FulfillmentServiceAccessPolicy", {
         statements: [
