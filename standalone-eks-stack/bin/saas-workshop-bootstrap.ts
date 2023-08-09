@@ -8,11 +8,16 @@ import * as blueprints from "@aws-quickstart/eks-blueprints";
 import { CapacityType, KubernetesVersion } from "aws-cdk-lib/aws-eks";
 import { ExtensionStack } from "../lib/extension-stack";
 import { DestroyPolicySetter } from "../lib/cdk-aspect/destroy-policy-setter";
-import { LogGroupResourceProvider, MyCustomAwsForFluentBitAddOn } from "../lib/fluentbit";
+import {
+  LogGroupResourceProvider,
+  MyCustomAwsForFluentBitAddOn,
+} from "../lib/fluentbit";
+
 const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;
 const region = process.env.CDK_DEFAULT_REGION;
-
+const createCloud9Instance =
+  process.env.CDK_PARAM_CREATE_CLOUD9_INSTANCE || "true";
 
 const blueprint = blueprints.EksBlueprint.builder()
   .resourceProvider("LogGroup", new LogGroupResourceProvider())
@@ -74,19 +79,9 @@ if (kubectlRole) {
   );
 }
 
-const createCloud9InstanceParameter = new cdk.CfnParameter(
-  blueprint,
-  "createCloud9Instance",
-  {
-    type: "String",
-    allowedValues: ["true", "false"],
-    default: "true",
-  }
-);
-
 new ExtensionStack(blueprint, "extensionStack", {
   clusterInfo: blueprint.getClusterInfo(),
-  createCloud9InstanceParameter: createCloud9InstanceParameter,
+  createCloud9Instance: createCloud9Instance,
   workshopSSMPrefix: "/saas-workshop",
 });
 

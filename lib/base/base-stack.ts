@@ -5,24 +5,22 @@ import { CognitoResources } from "../../lib/cognito/cognito-stack";
 import { IstioResources } from "../../lib/eks/istio-stack";
 import { XrayAddOnStack } from "../../lib/eks/xray-daemon-stack";
 
+export interface BaseStackProps extends cdk.StackProps {
+  tlsCertIstio: string;
+  tlsKeyIstio: string;
+}
+
 export class BaseStack extends cdk.Stack {
   public readonly eksCluster: EksCluster;
   public readonly cognitoResources: CognitoResources;
   public readonly istioResources: IstioResources;
   public readonly xrayAddOnStack: XrayAddOnStack;
 
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: BaseStackProps) {
     super(scope, id, props);
 
-    const tlsCertParameterValue = new cdk.CfnParameter(this, "tlsCertIstio", {
-      type: "String",
-      minLength: 1,
-    }).valueAsString;
-
-    const tlsKeyParameterValue = new cdk.CfnParameter(this, "tlsKeyIstio", {
-      type: "String",
-      minLength: 1,
-    }).valueAsString;
+    const tlsCertIstio = props.tlsCertIstio;
+    const tlsKeyIstio = props.tlsKeyIstio;
 
     const cognitoResources = new CognitoResources(this, "CognitoResources");
 
@@ -32,8 +30,8 @@ export class BaseStack extends cdk.Stack {
       cluster: eksCluster.cluster,
       issuer: cognitoResources.issuer,
       jwksUri: cognitoResources.jwksUri,
-      tlsCert: tlsCertParameterValue,
-      tlsKey: tlsKeyParameterValue,
+      tlsCert: tlsCertIstio,
+      tlsKey: tlsKeyIstio,
     });
 
     const xrayAddOnStack = new XrayAddOnStack(this, "XrayStack", {
