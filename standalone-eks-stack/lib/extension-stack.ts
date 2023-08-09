@@ -9,37 +9,28 @@ export class ExtensionStack extends Construct {
     id: string,
     props: {
       clusterInfo: blueprints.ClusterInfo;
-      createCloud9InstanceParameter: cdk.CfnParameter;
+      createCloud9Instance: string;
       workshopSSMPrefix: string;
     }
   ) {
     super(scope, id);
 
     const clusterInfo = props.clusterInfo;
-    const createCloud9InstanceParameter = props.createCloud9InstanceParameter;
+    const createCloud9Instance = props.createCloud9Instance;
     const workshopSSMPrefix = props.workshopSSMPrefix;
 
-    const cloud9 = new cdk.CfnResource(this, "cloud9", {
-      type: "AWS::Cloud9::EnvironmentEC2",
-      properties: {
-        Name: "Workshop-Instance",
-        Description: "Cloud9 Instance for SaaS Microservices Workshop.",
-        InstanceType: "m5.large",
-        ConnectionType: "CONNECT_SSH",
-        ImageId: "amazonlinux-2-x86_64",
-      },
-    });
-
-    cloud9.cfnOptions.condition = new cdk.CfnCondition(
-      this,
-      "cloud9Condition",
-      {
-        expression: cdk.Fn.conditionEquals(
-          createCloud9InstanceParameter.valueAsString,
-          "true"
-        ),
-      }
-    );
+    if (createCloud9Instance == "true") {
+      const cloud9 = new cdk.CfnResource(this, "cloud9", {
+        type: "AWS::Cloud9::EnvironmentEC2",
+        properties: {
+          Name: "Workshop-Instance",
+          Description: "Cloud9 Instance for SaaS Microservices Workshop.",
+          InstanceType: "m5.large",
+          ConnectionType: "CONNECT_SSH",
+          ImageId: "amazonlinux-2-x86_64",
+        },
+      });
+    }
 
     new ssm.StringParameter(this, "clusterNameParameter", {
       parameterName: `${workshopSSMPrefix}/clusterName`,

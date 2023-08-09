@@ -32,11 +32,11 @@ KEY=$(base64 certs/ingressgw_example_com.key | tr -d '[:space:]')
 echo "Starting cdk deploy..."
 yarn install
 npx cdk bootstrap
+export CDK_PARAM_TLS_CERT_ISTIO="$CERT" # cdk stack params
+export CDK_PARAM_TLS_KEY_ISTIO="$KEY" # cdk stack params
 npx --yes cdk deploy SaaSMicroserviceBaseStack \
     --require-approval never \
-    --no-rollback \
-    --parameters SaaS-Microservices-Base-Stack:tlsCertIstio="$CERT" \
-    --parameters SaaS-Microservices-Base-Stack:tlsKeyIstio="$KEY"
+    --no-rollback
 
 echo "Configuring kubeconfig..."
 ./scripts/configure-kubeconfig.sh
