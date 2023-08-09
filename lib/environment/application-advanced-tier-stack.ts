@@ -89,6 +89,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
           tier: tier,
           tenantId: tenantId,
           xrayServiceDNSAndPort: xrayServiceDNSAndPort,
+          namespaceConstruct: tenantSpecificAdvancedTierNamespace,
         }
       );
       fulfillmentAdvancedTierStack.node.addDependency(

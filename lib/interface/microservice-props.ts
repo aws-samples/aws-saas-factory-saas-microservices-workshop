@@ -8,6 +8,7 @@ export interface MicroserviceStackProps {
   applicationImageAsset?: DockerImageAsset;
   sideCarImageAsset?: DockerImageAsset;
   namespace: string;
+  namespaceConstruct?: eks.KubernetesManifest;
   tier: string;
   tenantId?: string;
 }

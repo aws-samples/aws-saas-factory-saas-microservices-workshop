@@ -69,6 +69,13 @@ export class OrderStack extends Construct {
       }
     );
 
+    // ensure that namespace is created before orderServiceAccount
+    orderServiceAccount.node.children.forEach((child) => {
+      if (props.namespaceConstruct) {
+        child.node.addDependency(props.namespaceConstruct);
+      }
+    });
+
     const accessRole = new iam.Role(this, "access-role", {
       assumedBy: orderServiceAccount.role.grantPrincipal,
     });

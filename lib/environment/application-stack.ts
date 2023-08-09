@@ -27,12 +27,7 @@ export class ApplicationStack extends cdk.Stack {
       throw new Error("Missing definition for baseStack!");
     }
 
-    const deploymentMode = new cdk.CfnParameter(this, "mode", {
-      type: "String",
-      minLength: 0,
-      allowedValues: ["", "all", "product"],
-      default: "all",
-    }).valueAsString;
+    const deploymentMode = props.deploymentMode;
 
     const eksCluster = new EksCluster(this, "EksCluster");
     const cluster = eksCluster.cluster;
@@ -76,6 +71,7 @@ export class ApplicationStack extends cdk.Stack {
       tier: tier,
       tenantId: tenantId,
       xrayServiceDNSAndPort: xrayServiceDNSAndPort,
+      namespaceConstruct: stackNamespace,
     });
     productStack.node.addDependency(stackNamespace);
     this.productServiceDNS = productStack.productServiceDNS;
@@ -92,6 +88,7 @@ export class ApplicationStack extends cdk.Stack {
         tier: tier,
         tenantId: tenantId,
         xrayServiceDNSAndPort: xrayServiceDNSAndPort,
+        namespaceConstruct: stackNamespace,
       });
       fulfillmentStack.node.addDependency(stackNamespace);
       this.fulfillmentServicePort = fulfillmentStack.fulfillmentServicePort;
@@ -110,6 +107,7 @@ export class ApplicationStack extends cdk.Stack {
         tier: tier,
         tenantId: tenantId,
         xrayServiceDNSAndPort: xrayServiceDNSAndPort,
+        namespaceConstruct: stackNamespace,
       });
       orderStack.node.addDependency(stackNamespace);
       this.orderServiceDNS = orderStack.orderServiceDNS;
