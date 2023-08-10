@@ -28,12 +28,12 @@ fi
 
 CERT=$(base64 certs/ingressgw_example_com.crt | tr -d '[:space:]')
 KEY=$(base64 certs/ingressgw_example_com.key | tr -d '[:space:]')
+export CDK_PARAM_TLS_CERT_ISTIO="$CERT" # cdk stack params
+export CDK_PARAM_TLS_KEY_ISTIO="$KEY" # cdk stack params
 
 echo "Starting cdk deploy..."
 yarn install
 npx cdk bootstrap
-export CDK_PARAM_TLS_CERT_ISTIO="$CERT" # cdk stack params
-export CDK_PARAM_TLS_KEY_ISTIO="$KEY" # cdk stack params
 npx --yes cdk deploy SaaSMicroserviceBaseStack \
     --require-approval never \
     --no-rollback
