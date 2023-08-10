@@ -2,7 +2,6 @@
 
 # This script is meant to be run as part of the
 # "on-your-own" flow of the saas microservices workshop.
-#
 
 echo "Starting cdk deploy..."
 
@@ -13,7 +12,8 @@ aws cloudformation deploy \
     --capabilities CAPABILITY_IAM \
     --parameter-overrides \
         RepoUrl="https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop.git" \
-        RepoBranchName="update-eks"
+        RepoBranchName="update-eks" \
+        IsWorkshopStudioEnv="no"
 
 echo "Configuring kubeconfig..."
 ../scripts/configure-kubeconfig.sh
