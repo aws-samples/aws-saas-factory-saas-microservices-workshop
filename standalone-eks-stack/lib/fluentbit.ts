@@ -9,8 +9,6 @@ import {
   ResourceContext,
   ClusterInfo,
 } from "@aws-quickstart/eks-blueprints";
-const account = process.env.CDK_DEFAULT_ACCOUNT;
-const region = process.env.CDK_DEFAULT_REGION;
 
 export class LogGroupResourceProvider implements ResourceProvider<ILogGroup> {
   provide(context: ResourceContext): ILogGroup {
@@ -37,10 +35,16 @@ export class MyCustomAwsForFluentBitAddOn implements blueprints.ClusterAddOn {
         }),
       ],
       values: {
-        cloudWatch: {
-          enabled: true,
-          region: cdk.Stack.of(clusterInfo.cluster).region,
-          logGroupName: logGroup.logGroupName,
+        additionalFilters: `
+[FILTER]
+    Name parser
+    Match *
+    Parser json
+    Key_Name message
+    Reserve_Data On
+`,
+        input: {
+          parser: "cri",
         },
         cloudWatchLogs: {
           enabled: true,
@@ -49,6 +53,9 @@ export class MyCustomAwsForFluentBitAddOn implements blueprints.ClusterAddOn {
           logGroupTemplate: logGroup.logGroupName,
           logStreamTemplate:
             "$kubernetes['namespace_name'].$kubernetes['pod_name'].$kubernetes['container_name']",
+        },
+        cloudWatch: {
+          enabled: false,
         },
         firehose: {
           enabled: false,
