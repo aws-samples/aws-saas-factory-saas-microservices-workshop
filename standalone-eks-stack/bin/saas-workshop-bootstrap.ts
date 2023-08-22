@@ -17,7 +17,7 @@ const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;
 const region = process.env.CDK_DEFAULT_REGION;
 const isWorkshopStudioEnv = process.env.IS_WORKSHOP_STUDIO_ENV || "false";
-const ownerArn = process.env.OWNER_ARN;
+const cloud9OwnerArn = process.env.CLOUD9_OWNER_ARN;
 const repositoryUrl =
   "https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop";
 
@@ -40,7 +40,7 @@ const blueprint = blueprints.EksBlueprint.builder()
   )
   .clusterProvider(
     new blueprints.MngClusterProvider({
-      version: KubernetesVersion.V1_26,
+      version: KubernetesVersion.V1_27,
       minSize: 2,
       desiredSize: 2,
       maxSize: 4,
@@ -86,7 +86,7 @@ new ExtensionStack(blueprint, "extensionStack", {
   createCloud9Instance: isWorkshopStudioEnv == "true" ? true : false,
   repositoryUrl: repositoryUrl,
   workshopSSMPrefix: "/saas-workshop",
-  ownerArn: ownerArn,
+  cloud9OwnerArn: cloud9OwnerArn,
 });
 
 cdk.Aspects.of(blueprint).add(new DestroyPolicySetter());
