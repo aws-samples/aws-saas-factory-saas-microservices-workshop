@@ -16,8 +16,10 @@ import {
 const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;
 const region = process.env.CDK_DEFAULT_REGION;
-const createCloud9Instance =
-  process.env.CDK_PARAM_CREATE_CLOUD9_INSTANCE || "true";
+const isWorkshopStudioEnv = process.env.IS_WORKSHOP_STUDIO_ENV || "false";
+const ownerArn = process.env.OWNER_ARN;
+const repositoryUrl =
+  "https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop";
 
 const blueprint = blueprints.EksBlueprint.builder()
   .resourceProvider("LogGroup", new LogGroupResourceProvider())
@@ -81,8 +83,10 @@ if (kubectlRole) {
 
 new ExtensionStack(blueprint, "extensionStack", {
   clusterInfo: blueprint.getClusterInfo(),
-  createCloud9Instance: createCloud9Instance,
+  createCloud9Instance: isWorkshopStudioEnv == "true" ? true : false,
+  repositoryUrl: repositoryUrl,
   workshopSSMPrefix: "/saas-workshop",
+  ownerArn: ownerArn,
 });
 
 cdk.Aspects.of(blueprint).add(new DestroyPolicySetter());
