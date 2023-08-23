@@ -17,7 +17,7 @@ const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;
 const region = process.env.CDK_DEFAULT_REGION;
 const isWorkshopStudioEnv = process.env.IS_WORKSHOP_STUDIO_ENV || "no";
-const participantRoleArn = process.env.PARTICIPANT_ROLE_ARN;
+const participantAssumedRoleArn = process.env.PARTICIPANT_ASSUMED_ROLE_ARN;
 
 const blueprint = blueprints.EksBlueprint.builder()
   .resourceProvider("LogGroup", new LogGroupResourceProvider())
@@ -83,7 +83,7 @@ new ExtensionStack(blueprint, "extensionStack", {
   clusterInfo: blueprint.getClusterInfo(),
   createCloud9Instance: isWorkshopStudioEnv == "yes" ? true : false,
   workshopSSMPrefix: "/saas-workshop",
-  cloud9OwnerArn: participantRoleArn,
+  cloud9OwnerArn: participantAssumedRoleArn,
 });
 
 cdk.Aspects.of(blueprint).add(new DestroyPolicySetter());
