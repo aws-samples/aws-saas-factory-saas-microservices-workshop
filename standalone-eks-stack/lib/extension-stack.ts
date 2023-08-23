@@ -12,7 +12,6 @@ export class ExtensionStack extends Construct {
       createCloud9Instance: boolean;
       workshopSSMPrefix: string;
       cloud9OwnerArn?: string;
-      repositoryUrl: string;
     }
   ) {
     super(scope, id);
@@ -21,7 +20,6 @@ export class ExtensionStack extends Construct {
     const createCloud9Instance = props.createCloud9Instance;
     const workshopSSMPrefix = props.workshopSSMPrefix;
     const cloud9OwnerArn = props.cloud9OwnerArn;
-    const repositoryUrl = props.repositoryUrl;
 
     if (createCloud9Instance) {
       if (!cloud9OwnerArn) {
@@ -37,10 +35,10 @@ export class ExtensionStack extends Construct {
         description: "Cloud9 Instance for SaaS Microservices Workshop.",
         name: "Workshop-Instance",
         ownerArn: cloud9OwnerArn,
-        repositories: [
+        tags: [
           {
-            pathComponent: "aws-saas-factory-saas-microservices-workshop",
-            repositoryUrl: repositoryUrl,
+            key: "WORKSHOP",
+            value: "saas-microservices",
           },
         ],
       });
