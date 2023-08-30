@@ -7,6 +7,7 @@ python3 lab5_updates_logs.py
 
 ### START ./6-Lab5/6-2-creating-tenant-aware-metrics-from-logs/index.en.md #
 cd "$HOME_DIR"
+source ./scripts/set-environment-variables.sh # load env vars such as tls cert and key
 npx cdk deploy --all
 
 kubectl get pods -n basic-pool

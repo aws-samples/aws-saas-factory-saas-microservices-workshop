@@ -7,6 +7,7 @@ python3 lab2_updates_break.py
 
 ### START ./3-Lab2/3-1-app-bug/index.en.md #
 cd "$HOME_DIR"
+source ./scripts/set-environment-variables.sh # load env vars such as tls cert and key
 CDK_PARAM_DEPLOYMENT_MODE="product" npx cdk deploy PoolBasicStack
 
 sleep 10 # wait for pod to update
