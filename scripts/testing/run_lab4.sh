@@ -7,6 +7,7 @@ python3 lab4_updates_ingress.py
 
 ### START ./5-Lab4/5-1-Ingress-routing/5-1-2-Ingress-routing-deploy/index.en.md #
 cd "$HOME_DIR"
+source ./scripts/set-environment-variables.sh # load env vars such as tls cert and key
 npx cdk deploy PoolBasicStack tenantCstack
 
 kubectl -n istio-system get pods
