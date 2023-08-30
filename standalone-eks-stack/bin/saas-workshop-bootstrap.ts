@@ -16,8 +16,8 @@ import {
 const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;
 const region = process.env.CDK_DEFAULT_REGION;
-const createCloud9Instance =
-  process.env.CDK_PARAM_CREATE_CLOUD9_INSTANCE || "true";
+const isWorkshopStudioEnv = process.env.IS_WORKSHOP_STUDIO_ENV || "no";
+const participantAssumedRoleArn = process.env.PARTICIPANT_ASSUMED_ROLE_ARN;
 
 const blueprint = blueprints.EksBlueprint.builder()
   .resourceProvider("LogGroup", new LogGroupResourceProvider())
@@ -38,7 +38,7 @@ const blueprint = blueprints.EksBlueprint.builder()
   )
   .clusterProvider(
     new blueprints.MngClusterProvider({
-      version: KubernetesVersion.V1_26,
+      version: KubernetesVersion.V1_27,
       minSize: 2,
       desiredSize: 2,
       maxSize: 4,
@@ -81,8 +81,9 @@ if (kubectlRole) {
 
 new ExtensionStack(blueprint, "extensionStack", {
   clusterInfo: blueprint.getClusterInfo(),
-  createCloud9Instance: createCloud9Instance,
+  createCloud9Instance: isWorkshopStudioEnv == "yes" ? true : false,
   workshopSSMPrefix: "/saas-workshop",
+  cloud9OwnerArn: participantAssumedRoleArn,
 });
 
 cdk.Aspects.of(blueprint).add(new DestroyPolicySetter());

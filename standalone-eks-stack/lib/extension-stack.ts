@@ -1,5 +1,5 @@
-import * as cdk from "aws-cdk-lib";
 import * as ssm from "aws-cdk-lib/aws-ssm";
+import { aws_cloud9 as cloud9 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as blueprints from "@aws-quickstart/eks-blueprints";
 
@@ -9,8 +9,9 @@ export class ExtensionStack extends Construct {
     id: string,
     props: {
       clusterInfo: blueprints.ClusterInfo;
-      createCloud9Instance: string;
+      createCloud9Instance: boolean;
       workshopSSMPrefix: string;
+      cloud9OwnerArn?: string;
     }
   ) {
     super(scope, id);
@@ -18,17 +19,28 @@ export class ExtensionStack extends Construct {
     const clusterInfo = props.clusterInfo;
     const createCloud9Instance = props.createCloud9Instance;
     const workshopSSMPrefix = props.workshopSSMPrefix;
+    const cloud9OwnerArn = props.cloud9OwnerArn;
 
-    if (createCloud9Instance == "true") {
-      const cloud9 = new cdk.CfnResource(this, "cloud9", {
-        type: "AWS::Cloud9::EnvironmentEC2",
-        properties: {
-          Name: "Workshop-Instance",
-          Description: "Cloud9 Instance for SaaS Microservices Workshop.",
-          InstanceType: "m5.large",
-          ConnectionType: "CONNECT_SSH",
-          ImageId: "amazonlinux-2-x86_64",
-        },
+    if (createCloud9Instance) {
+      if (!cloud9OwnerArn) {
+        console.error(
+          "Missing parameter: 'cloud9OwnerArn'. Cloud9 instance will be created without ownerArn."
+        );
+      }
+
+      new cloud9.CfnEnvironmentEC2(this, "MyCfnEnvironmentEC2", {
+        instanceType: "m5.large",
+        connectionType: "CONNECT_SSH",
+        imageId: "amazonlinux-2-x86_64",
+        description: "Cloud9 Instance for SaaS Microservices Workshop.",
+        name: "Workshop-Instance",
+        ownerArn: cloud9OwnerArn,
+        tags: [
+          {
+            key: "WORKSHOP",
+            value: "saas-microservices",
+          },
+        ],
       });
     }
 
