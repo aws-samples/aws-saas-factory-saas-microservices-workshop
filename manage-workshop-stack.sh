@@ -35,15 +35,17 @@ if [[ "$STACK_OPERATION" == "create" || "$STACK_OPERATION" == "update" ]]; then
         --require-approval never
     echo "Done cdk deploy!"
 
-    # run_ssm_command "cd ~/environment && git clone https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
-    run_ssm_command "cd ~/environment && git clone --single-branch --branch update-eks https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
-    run_ssm_command "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./scripts/setup-cloud9.sh"
-    run_ssm_command "aws cloud9 update-environment --environment-id $C9_PID --managed-credentials-action DISABLE"
-    run_ssm_command "rm -vf ${HOME}/.aws/credentials"
-    run_ssm_command "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./setup.sh"
-    run_ssm_command "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./deploy.sh"
-    run_ssm_command "[ $(needs-restarting -r >/dev/null ) ] || exit 194"
-    run_ssm_command "whoami"
+    if [ "$IS_WORKSHOP_STUDIO_ENV" == "yes" ]; then
+        # run_ssm_command "cd ~/environment && git clone https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
+        run_ssm_command "cd ~/environment && git clone --single-branch --branch update-eks https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
+        run_ssm_command "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./scripts/setup-cloud9.sh"
+        run_ssm_command "aws cloud9 update-environment --environment-id $C9_PID --managed-credentials-action DISABLE"
+        run_ssm_command "rm -vf ${HOME}/.aws/credentials"
+        run_ssm_command "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./setup.sh"
+        run_ssm_command "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./deploy.sh"
+        run_ssm_command "[ $(needs-restarting -r >/dev/null ) ] || exit 194"
+        run_ssm_command "whoami"
+    fi
 elif [[ "$STACK_OPERATION" == "update" ]]; then
     echo "Starting cdk deploy..."
     npx cdk deploy SaaSWorkshopBootstrap \
