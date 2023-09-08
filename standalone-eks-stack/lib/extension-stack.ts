@@ -6,6 +6,7 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import { aws_cloud9 as cloud9 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as blueprints from "@aws-quickstart/eks-blueprints";
+import * as path from "path";
 
 export class ExtensionStack extends Construct {
   constructor(
@@ -62,8 +63,10 @@ export class ExtensionStack extends Construct {
         }
       );
 
+      const cloud9RuleName = "cloud9IAMSetupRule";
       const cloud9Rule = new events.Rule(this, "Cloud9Rule", {
         enabled: true,
+        ruleName: cloud9RuleName,
         eventPattern: {
           source: ["aws.ec2"],
           detailType: ["EC2 Instance State-change Notification"],
@@ -73,57 +76,33 @@ export class ExtensionStack extends Construct {
         },
       });
 
+      const cloud9InstanceIdParameter = new ssm.StringParameter(
+        this,
+        "cloud9InstanceId",
+        {
+          parameterName: `${workshopSSMPrefix}/cloud9InstanceId`,
+          stringValue: "",
+        }
+      );
+
       const cloud9RuleLambda = new lambda.Function(this, "cloud9RuleLambda", {
         runtime: lambda.Runtime.PYTHON_3_11,
         handler: "index.handler",
         environment: {
           CLOUD9_INSTANCE_PROFILE_ARN: cloud9InstanceProfile.instanceProfileArn,
-          CLOUD9_RULE_NAME: cloud9Rule.ruleName,
+          CLOUD9_RULE_NAME: cloud9RuleName,
+          WORKSHOP_SSM_PREFIX: cloud9InstanceIdParameter.parameterName,
         },
-        code: lambda.Code.fromInline(
-          `
-import boto3
-import os
-instance_profile_arn = os.environ['CLOUD9_INSTANCE_PROFILE_ARN']
-ec2 = boto3.client('ec2')
-events = boto3.client('events')
-cloud9_rule_name = os.environ['CLOUD9_RULE'])
-
-def lambda_handler(event, context):
-    print(context)
-    print(event)
-    # get instance id from event
-    instance_id = event['detail']['instance-id']
-
-    # get tags for instance
-    response = ec2.describe_instances(InstanceIds=[instance_id])
-    print(response)
-    instance_tags = response['Reservations'][0]['Instances'][0]['Tags']
-    print(instance_tags)
-
-    # get the tag value for the key 'WORKSHOP'
-    workshop_tag = [tag['Value'] for tag in instance_tags if tag['Key'] == 'WORKSHOP'][0]
-    if workshop_tag == 'saas-microservices':
-        # add cloud9InstanceProfile to ec2 instance
-        ec2.associate_iam_instance_profile(IamInstanceProfile={
-            'Arn': instance_profile_arn
-        }
-        # disable cloud9Rule so that it won't be run for more instances
-        cloud9Rule.disable_rule(Name=cloud9_rule_name)
-    return {
-        'statusCode': 200,
-        'body': 'Success!'
-    }
-`
-        ),
+        role: new iam.Role(this, "cloud9RuleLambdaRole", {
+          assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
+          managedPolicies: [
+            iam.ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"),
+          ],
+        }),
+        code: lambda.Code.fromAsset(path.join(__dirname, "index.py")),
       });
 
       cloud9Rule.addTarget(new events_targets.LambdaFunction(cloud9RuleLambda));
-
-      new ssm.StringParameter(this, "cloud9InstanceProfileName", {
-        parameterName: `${workshopSSMPrefix}/cloud9InstanceProfileName`,
-        stringValue: cloud9InstanceProfile.instanceProfileName,
-      });
     }
 
     new ssm.StringParameter(this, "clusterNameParameter", {
