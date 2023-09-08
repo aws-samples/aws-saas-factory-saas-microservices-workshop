@@ -99,7 +99,7 @@ export class ExtensionStack extends Construct {
             iam.ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"),
           ],
         }),
-        code: lambda.Code.fromAsset(path.join(__dirname, "index.py")),
+        code: lambda.Code.fromAsset(path.join(__dirname, "cloud9LambdaFunction/")),
       });
 
       cloud9Rule.addTarget(new events_targets.LambdaFunction(cloud9RuleLambda));
