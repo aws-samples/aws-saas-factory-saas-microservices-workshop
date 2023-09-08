@@ -1,4 +1,5 @@
 import * as ssm from "aws-cdk-lib/aws-ssm";
+import * as iam from "aws-cdk-lib/aws-iam";
 import { aws_cloud9 as cloud9 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as blueprints from "@aws-quickstart/eks-blueprints";
@@ -41,6 +42,26 @@ export class ExtensionStack extends Construct {
             value: "saas-microservices",
           },
         ],
+      });
+
+      const cloud9Role = new iam.Role(this, "Cloud9Role", {
+        assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
+        managedPolicies: [
+          iam.ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"),
+        ],
+      });
+
+      const cloud9InstanceProfile = new iam.InstanceProfile(
+        this,
+        "Cloud9InstanceProfile",
+        {
+          role: cloud9Role,
+        }
+      );
+
+      new ssm.StringParameter(this, "cloud9InstanceProfileName", {
+        parameterName: `${workshopSSMPrefix}/cloud9InstanceProfileName`,
+        stringValue: cloud9InstanceProfile.instanceProfileName,
       });
     }
 
