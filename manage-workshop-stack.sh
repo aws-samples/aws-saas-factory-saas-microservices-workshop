@@ -19,6 +19,7 @@ run_ssm_command() {
             --query "CommandInvocations[0].CommandPlugins[0].Status")
     done
     [ "$status" == "Failed" ] && (echo "failed executing $1" && exit 1)
+    echo "successfully completed execution!"
 }
 
 STACK_OPERATION=$(echo "$1" | tr '[:upper:]' '[:lower:]')
