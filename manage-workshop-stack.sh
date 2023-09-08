@@ -37,6 +37,7 @@ if [[ "$STACK_OPERATION" == "create" || "$STACK_OPERATION" == "update" ]]; then
     echo "Done cdk deploy!"
 
     if [ "$IS_WORKSHOP_STUDIO_ENV" == "yes" ]; then
+        sleep 60
         # run_ssm_command "cd ~/environment && git clone https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
         run_ssm_command "cd ~/environment && git clone --single-branch --branch update-eks https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
         run_ssm_command "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./scripts/setup-cloud9.sh"
