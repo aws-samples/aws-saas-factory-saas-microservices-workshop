@@ -52,4 +52,5 @@ kubectl completion bash >>~/.bash_completion
 
 cd $CWD
 
-aws sts get-caller-identity --query Arn | grep saas-factory-microservices-workshop-admin -q && echo "IAM role valid. Proceed." || echo "IAM role NOT valid. Do not proceed with creating the EKS Cluster or you won't be able to authenticate. Ensure you assigned the role to your EC2 instance as detailed in the workshop instructions"
+INSTANCE_PROFILE_NAME=$(aws ssm get-parameter --name "/saas-workshop/cloud9InstanceProfileName" --region "$AWS_REGION" --query 'Parameter.Value' --output text)
+aws sts get-caller-identity --query Arn | grep "$INSTANCE_PROFILE_NAME" -q && echo "IAM role valid. Proceed." || echo "IAM role NOT valid. Do not proceed with creating the EKS Cluster or you won't be able to authenticate. Ensure you assigned the role to your EC2 instance as detailed in the workshop instructions"
