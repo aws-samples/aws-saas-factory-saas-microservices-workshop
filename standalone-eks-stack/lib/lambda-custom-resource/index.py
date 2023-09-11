@@ -19,10 +19,7 @@ def on_event(event, context):
 
 
 def on_create(event):
-    physical_id = event["PhysicalResourceId"]
     props = event["ResourceProperties"]
-    print("update resource %s with props %s" % (physical_id, props))
-
     c9_name = props['name']
     new_instance_profile_name = props['instanceProfileName']
     instance_tag_key = props['instanceTagKey']
