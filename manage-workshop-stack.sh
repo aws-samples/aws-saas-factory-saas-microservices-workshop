@@ -11,6 +11,7 @@ run_ssm_command() {
         --document-name "AWS-RunShellScript" \
         --parameters "$parameters" \
         --timeout-seconds 600 \
+        --comment "$(echo \"$SSM_COMMAND\" | cut -c1-100)" \
         --output text \
         --query "Command.CommandId")
 
@@ -28,7 +29,6 @@ run_ssm_command() {
 
 STACK_OPERATION=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 CLOUD9_INSTANCE_ID_PARAMETER_NAME="/saas-workshop/cloud9InstanceId"
-
 corepack enable
 corepack prepare yarn@stable --activate
 cd standalone-eks-stack
@@ -41,35 +41,23 @@ if [[ "$STACK_OPERATION" == "create" || "$STACK_OPERATION" == "update" ]]; then
         --require-approval never
     echo "Done cdk deploy!"
 
-
-    if [ "$IS_WORKSHOP_STUDIO_ENV" == "yes" ]; then
+    if [[ "$IS_WORKSHOP_STUDIO_ENV" == "yes" && "$STACK_OPERATION" == "create" ]]; then
         # get cloud9 instance id from ssm parameter store
-        C9_PID=""
-        while [ -z "$C9_PID" ]; do
-            sleep 30
-            C9_PID=$(aws ssm get-parameter \
-                --name "$CLOUD9_INSTANCE_ID_PARAMETER_NAME" \
-                --output text \
-                --query "Parameter.Value")
-            echo "waiting for cloud9 instance id..."
-        done
+        C9_PID=$(aws ssm get-parameter \
+            --name "$CLOUD9_INSTANCE_ID_PARAMETER_NAME" \
+            --output text \
+            --query "Parameter.Value")
 
+        ## todo: remove this when the workshop is updated to use the main branch
         # run_ssm_command "$C9_PID" "cd ~/environment && git clone https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
         run_ssm_command "$C9_PID" "cd ~/environment && git clone --single-branch --branch update-eks https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
-        run_ssm_command "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./scripts/setup-cloud9.sh"
-        run_ssm_command "$C9_PID" "aws cloud9 update-environment --environment-id $C9_PID --managed-credentials-action DISABLE"
         run_ssm_command "$C9_PID" "rm -vf ${HOME}/.aws/credentials"
         run_ssm_command "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./setup.sh"
         run_ssm_command "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./deploy.sh"
-        run_ssm_command "$C9_PID" "[ $(needs-restarting -r >/dev/null ) ] || exit 194"
-        run_ssm_command "$C9_PID" "whoami"
+        aws ec2 reboot-instances --instance-ids "$C9_PID"
     fi
-elif [[ "$STACK_OPERATION" == "update" ]]; then
-    echo "Starting cdk deploy..."
-    npx cdk deploy SaaSWorkshopBootstrap \
-        --require-approval never
-    echo "Done cdk deploy!"
 elif [ "$STACK_OPERATION" == "delete" ]; then
+    run_ssm_command "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh"
     echo "Starting cdk destroy..."
     npx cdk destroy --all --force
     echo "Done cdk destroy!"
