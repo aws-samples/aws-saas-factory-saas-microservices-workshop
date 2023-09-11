@@ -6,12 +6,13 @@ import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as blueprints from "@aws-quickstart/eks-blueprints";
 import { CapacityType, KubernetesVersion } from "aws-cdk-lib/aws-eks";
-import { ExtensionStack } from "../lib/extension-stack";
+import { Cloud9Resources } from "../lib/cloud9-resources";
 import { DestroyPolicySetter } from "../lib/cdk-aspect/destroy-policy-setter";
 import {
   LogGroupResourceProvider,
   MyCustomAwsForFluentBitAddOn,
 } from "../lib/fluentbit";
+import { SSMResources } from "../lib/ssm-resources";
 
 const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;
@@ -79,11 +80,15 @@ if (kubectlRole) {
   );
 }
 
-new ExtensionStack(blueprint, "extensionStack", {
+new SSMResources(blueprint, "extensionStack", {
   clusterInfo: blueprint.getClusterInfo(),
+  workshopSSMPrefix: "/saas-workshop",
+});
+
+new Cloud9Resources(blueprint, "Cloud9Resources", {
   createCloud9Instance: isWorkshopStudioEnv == "yes" ? true : false,
   workshopSSMPrefix: "/saas-workshop",
-  cloud9OwnerArn: participantAssumedRoleArn,
+  cloud9MemberArn: participantAssumedRoleArn,
 });
 
 cdk.Aspects.of(blueprint).add(new DestroyPolicySetter());
