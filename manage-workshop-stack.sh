@@ -31,6 +31,8 @@ STACK_OPERATION=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 CLOUD9_INSTANCE_ID_PARAMETER_NAME="/saas-workshop/cloud9InstanceId"
 corepack enable
 corepack prepare yarn@stable --activate
+npm install -g aws-cdk@2.91.0
+
 cd standalone-eks-stack
 yarn install
 npx cdk bootstrap
