@@ -29,8 +29,6 @@ export class Cloud9Resources extends Construct {
         console.error(
           "Missing parameter: 'cloud9MemberArn'. Cloud9 instance will be created without member."
         );
-        props.cloud9MemberArn =
-          "arn:aws:sts::846129105937:assumed-role/Admin/syeduh-Isengard"; // todo: remove me when done testing
       }
 
       const cloud9Role = new iam.Role(this, "Cloud9Role", {
@@ -122,7 +120,7 @@ export class Cloud9Resources extends Construct {
         serviceToken: customResourceProvider.serviceToken,
         resourceType: "Custom::cloud9InstanceUpdater",
         properties: {
-          name: `workshop-instance-${this.node.id}`,
+          name: `workshop-instance-${this.node.addr}`,
           instanceProfileName: cloud9InstanceProfile.instanceProfileName,
           instanceTagKey: cloud9TagKey,
           instanceTagValue: cloud9TagValue,
