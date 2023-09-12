@@ -4,7 +4,6 @@ run_ssm_command() {
     C9_PID="$1"
     SSM_COMMAND="$2"
     parameters=$(jq -n --arg cm "runuser -l ec2-user -c \"$SSM_COMMAND\"" '{executionTimeout:["600"], commands: [$cm]}')
-    status=""
     # send ssm command to instance id in C9_PID
     sh_command_id=$(aws ssm send-command \
         --targets "Key=InstanceIds,Values=$C9_PID" \
@@ -15,7 +14,8 @@ run_ssm_command() {
         --output text \
         --query "Command.CommandId")
 
-    while [ "$status" != "Success" ] && [ "$status" != "Failed" ]; do
+    status="InProgress" # seed status var
+    while [ "$status" == "InProgress" ]; do
         sleep 30
         status=$(aws ssm list-command-invocations \
             --command-id "$sh_command_id" \
@@ -23,7 +23,7 @@ run_ssm_command() {
             --output text \
             --query "CommandInvocations[0].CommandPlugins[0].Status")
     done
-    [ "$status" == "Failed" ] && (echo "failed executing $SSM_COMMAND" && exit 1)
+    [ "$status" != "Success" ] && (echo "failed executing $SSM_COMMAND : $status" && exit 1)
     echo "successfully completed execution!"
 }
 
