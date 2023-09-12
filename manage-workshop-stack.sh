@@ -51,7 +51,7 @@ if [[ "$STACK_OPERATION" == "create" || "$STACK_OPERATION" == "update" ]]; then
         ## todo: remove this when the workshop is updated to use the main branch
         # run_ssm_command "$C9_PID" "cd ~/environment && git clone https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
         run_ssm_command "$C9_PID" "cd ~/environment && git clone --single-branch --branch update-eks https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
-        run_ssm_command "$C9_PID" "rm -vf ${HOME}/.aws/credentials"
+        run_ssm_command "$C9_PID" "rm -vf /home/ec2-user/.aws/credentials"
         run_ssm_command "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./setup.sh"
         run_ssm_command "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./deploy.sh"
         aws ec2 reboot-instances --instance-ids "$C9_PID"
