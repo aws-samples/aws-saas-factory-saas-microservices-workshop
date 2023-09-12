@@ -1,9 +1,93 @@
 import boto3
+import json
 import time
 
 ec2_client = boto3.client('ec2')
 ssm_client = boto3.client('ssm')
 cloud9_client = boto3.client('cloud9')
+iam_client = boto3.client('iam')
+
+
+def _create_cloud9_ssm_role(role_name):
+    role_path = '/service-role/'
+    assume_role_policy_document = {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Principal": {
+                    "Service": ["ec2.amazonaws.com", "cloud9.amazonaws.com"]
+                },
+                "Action": "sts:AssumeRole"
+            }
+        ]
+    }
+
+    # The role does not exist, so create it
+    iam_client.create_role(
+        RoleName=role_name,
+        AssumeRolePolicyDocument=json.dumps(assume_role_policy_document),
+        Path=role_path
+    )
+
+
+def _create_cloud9_iam_resources_if_necessary():
+    # Check if the IAM role already exists
+    role_name = 'AWSCloud9SSMAccessRole'
+    try:
+        iam_client.get_role(RoleName=role_name)
+        print(f"{role_name} role already exists")
+    except iam_client.exceptions.NoSuchEntityException:
+        print(f"{role_name} does not exist. Creating...")
+        _create_cloud9_ssm_role(role_name)
+
+    # Define the policy ARN
+    policy_arn = 'arn:aws:iam::aws:policy/AWSCloud9SSMInstanceProfile'
+
+    # Check if the policy is already attached to the IAM role
+    attached_policies = iam_client.list_attached_role_policies(
+        RoleName=role_name)
+    attached_policy_arns = [policy['PolicyArn']
+                            for policy in attached_policies['AttachedPolicies']]
+    if policy_arn not in attached_policy_arns:
+        # The policy is not attached, so attach it
+        iam_client.attach_role_policy(
+            RoleName=role_name,
+            PolicyArn=policy_arn
+        )
+
+    # Define the instance profile name and path
+    instance_profile_name = 'AWSCloud9SSMInstanceProfile'
+    instance_profile_path = '/cloud9/'
+
+    # Check if the instance profile already exists
+    try:
+        iam_client.get_instance_profile(
+            InstanceProfileName=instance_profile_name)
+        print(f"{instance_profile_name} instance profile already exists")
+    except iam_client.exceptions.NoSuchEntityException:
+        print(f"{instance_profile_name} does not exist. Creating...")
+        # The instance profile does not exist, so create it
+        iam_client.create_instance_profile(
+            InstanceProfileName=instance_profile_name,
+            Path=instance_profile_path
+        )
+
+    # Check if the IAM role is already added to the instance profile
+    instance_profile = iam_client.get_instance_profile(
+        InstanceProfileName=instance_profile_name)
+    instance_profile_roles = instance_profile['InstanceProfile']['Roles']
+    instance_profile_role_names = [role['RoleName']
+                                   for role in instance_profile_roles]
+    if role_name not in instance_profile_role_names:
+        print(f"{role_name} is not added to {instance_profile_name}. Adding...")
+        # The IAM role is not added to the instance profile, so add it
+        iam_client.add_role_to_instance_profile(
+            InstanceProfileName=instance_profile_name,
+            RoleName=role_name
+        )
+    else:
+        print(f"{role_name} is already added to {instance_profile_name}")
 
 
 def on_event(event, context):
@@ -27,6 +111,9 @@ def on_create(event):
     ssm_instance_id_parameter_name = props['ssmInstanceIdParameterName']
     ssm_env_id_parameter_name = props['ssmEnvIdParameterName']
     cloud9_member_arn = props.get('cloud9MemberArn')
+
+    # create AWSCloud9SSMAccessRole and resources if necessary
+    _create_cloud9_iam_resources_if_necessary()
 
     create_environment_ec2_response = cloud9_client.create_environment_ec2(
         instanceType="m5.large",
