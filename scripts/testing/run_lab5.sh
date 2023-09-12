@@ -9,6 +9,7 @@ python3 lab5_updates_logs.py
 cd "$HOME_DIR"
 source ./scripts/set-environment-variables.sh # load env vars such as tls cert and key
 npx cdk deploy --all
+sleep 10
 
 kubectl get pods -n basic-pool
 
@@ -37,6 +38,7 @@ python3 lab5_updates_xray.py
 ### START ./6-Lab5/6-3-tracing-with-aws-x-ray/index.en.md #
 cd "$HOME_DIR"
 npx cdk deploy --all
+sleep 10
 
 cd "$HOME_DIR"
 ./scripts/run-queries.sh
