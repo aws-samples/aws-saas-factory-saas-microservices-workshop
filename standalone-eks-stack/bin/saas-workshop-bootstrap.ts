@@ -19,7 +19,7 @@ const account = process.env.CDK_DEFAULT_ACCOUNT;
 const region = process.env.CDK_DEFAULT_REGION;
 const isWorkshopStudioEnv = process.env.IS_WORKSHOP_STUDIO_ENV || "no";
 const participantAssumedRoleArn = process.env.PARTICIPANT_ASSUMED_ROLE_ARN;
-
+const workshopSSMPrefix = "/saas-workshop";
 const blueprint = blueprints.EksBlueprint.builder()
   .resourceProvider("LogGroup", new LogGroupResourceProvider())
   .account(account)
@@ -82,12 +82,12 @@ if (kubectlRole) {
 
 new SSMResources(blueprint, "extensionStack", {
   clusterInfo: blueprint.getClusterInfo(),
-  workshopSSMPrefix: "/saas-workshop",
+  workshopSSMPrefix: workshopSSMPrefix,
 });
 
 new Cloud9Resources(blueprint, "Cloud9Resources", {
   createCloud9Instance: isWorkshopStudioEnv == "yes" ? true : false,
-  workshopSSMPrefix: "/saas-workshop",
+  workshopSSMPrefix: workshopSSMPrefix,
   cloud9MemberArn: participantAssumedRoleArn,
 });
 
