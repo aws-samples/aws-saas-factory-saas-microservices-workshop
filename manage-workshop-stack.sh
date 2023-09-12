@@ -57,6 +57,10 @@ if [[ "$STACK_OPERATION" == "create" || "$STACK_OPERATION" == "update" ]]; then
         aws ec2 reboot-instances --instance-ids "$C9_PID"
     fi
 elif [ "$STACK_OPERATION" == "delete" ]; then
+    C9_PID=$(aws ssm get-parameter \
+        --name "$CLOUD9_INSTANCE_ID_PARAMETER_NAME" \
+        --output text \
+        --query "Parameter.Value")
     run_ssm_command "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh"
     echo "Starting cdk destroy..."
     npx cdk destroy --all --force
