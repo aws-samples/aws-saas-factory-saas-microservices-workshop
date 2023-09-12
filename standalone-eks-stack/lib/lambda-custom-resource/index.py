@@ -105,7 +105,7 @@ def on_create(event):
                 Filters=[
                     {
                         'Name': 'instance-id',
-                                'Values': [instance_id],
+                        'Values': [instance_id],
                     },
                 ],
             )
@@ -151,7 +151,15 @@ def on_delete(event):
         cloud9_client.delete_environment(
             environmentId=physical_id
         )
+        while True:
+            time.sleep(30)
+            describe_environment_status_response = cloud9_client.describe_environment_status(
+                environmentId=physical_id
+            )
+            print(describe_environment_status_response)
+            if describe_environment_status_response.get('status') != 'deleting':
+                break
     except cloud9_client.exceptions.NotFoundException as e:
-        print(e)
+        print(f"caught error: {e}")
         return {"Data": {"status": f"physical_id: {physical_id} not found."}}
     return {"Data": {"status": f"successfully deleted physical_id: {physical_id}"}}
