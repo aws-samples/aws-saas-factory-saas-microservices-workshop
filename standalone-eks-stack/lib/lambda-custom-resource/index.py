@@ -233,11 +233,16 @@ def on_update(event):
 
 def on_delete(event):
     physical_id = event["PhysicalResourceId"]
-    print("delete resource %s" % physical_id)
     try:
         cloud9_client.delete_environment(
             environmentId=physical_id
         )
+        print(f"deleting physical_id: {physical_id}")
+    except cloud9_client.exceptions.NotFoundException as e:
+        print(f"caught error: {e}")
+        return {"Data": {"status": f"physical_id: {physical_id} not found."}}
+
+    try:
         while True:
             time.sleep(30)
             describe_environment_status_response = cloud9_client.describe_environment_status(
@@ -248,5 +253,5 @@ def on_delete(event):
                 break
     except cloud9_client.exceptions.NotFoundException as e:
         print(f"caught error: {e}")
-        return {"Data": {"status": f"physical_id: {physical_id} not found."}}
+        return {"Data": {"status": f"successfully deleted physical_id: {physical_id}"}}
     return {"Data": {"status": f"successfully deleted physical_id: {physical_id}"}}
