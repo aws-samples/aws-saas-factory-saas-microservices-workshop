@@ -94,6 +94,21 @@ export class Cloud9Resources extends Construct {
               resources: ["*"],
             }),
             new iam.PolicyStatement({
+              actions: [
+                "iam:CreateRole",
+                "iam:GetRole",
+                "iam:AttachRolePolicy",
+                "iam:CreateInstanceProfile",
+                "iam:GetInstanceProfile",
+                "iam:AddRoleToInstanceProfile",
+              ],
+              resources: [
+                "arn:aws:iam::aws:policy/AWSCloud9SSMInstanceProfile",
+                "arn:aws:iam:::role/service-role/AWSCloud9SSMAccessRole",
+                "arn:aws:iam:::instance-profile/cloud9/AWSCloud9SSMInstanceProfile",
+              ],
+            }),
+            new iam.PolicyStatement({
               actions: ["iam:PassRole"],
               resources: [
                 cloud9Role.roleArn,
