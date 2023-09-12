@@ -9,6 +9,7 @@ python3 lab4_updates_ingress.py
 cd "$HOME_DIR"
 source ./scripts/set-environment-variables.sh # load env vars such as tls cert and key
 npx cdk deploy PoolBasicStack tenantCstack
+sleep 10
 
 kubectl -n istio-system get pods
 
@@ -91,6 +92,7 @@ python3 lab4_updates_service_to_service.py
 ### START ./5-Lab4/5-2-service-to-service-routing/5-2-2-service-to-service-routing-deploy/index.en.md #
 cd "$HOME_DIR"
 npx cdk deploy PoolBasicStack tenantBstack
+sleep 10
 
 kubectl describe ns tenant-b
 

@@ -6,6 +6,7 @@ HOME_DIR="$1"
 cd "$HOME_DIR"
 source ./scripts/set-environment-variables.sh # load env vars such as tls cert and key
 CDK_PARAM_DEPLOYMENT_MODE="product" npx cdk deploy PoolBasicStack
+sleep 10
 
 aws dynamodb describe-table --table-name "SaaSMicroservices-Products"
 
@@ -52,6 +53,7 @@ python3 lab1_updates.py
 cd "$HOME_DIR"
 ./scripts/clean-single-tenant-product.sh
 CDK_PARAM_DEPLOYMENT_MODE="product" npx cdk deploy PoolBasicStack
+sleep 10
 
 cd "$HOME_DIR"
 cat ./tmp/Sample_JWTs.txt

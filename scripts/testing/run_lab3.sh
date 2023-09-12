@@ -10,6 +10,7 @@ python3 lab3_updates.py
 cd "$HOME_DIR"
 source ./scripts/set-environment-variables.sh # load env vars such as tls cert and key
 CDK_PARAM_DEPLOYMENT_MODE="all" npx cdk deploy PoolBasicStack
+sleep 10
 
 ### END ./4-Lab3/4-1-introducing-library/index.en.md #
 

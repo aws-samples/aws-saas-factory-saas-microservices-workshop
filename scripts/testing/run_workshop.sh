@@ -8,10 +8,7 @@
 
 # rm -vf ${HOME}/.aws/credentials
 
-HOME_DIR="/home/syeduh/microservices-saas-workshop"
-
-./run_prep.sh $HOME_DIR
-read -rp "Prep complete. Press enter to continue..."
+HOME_DIR="/home/ec2-user/environment/aws-saas-factory-saas-microservices-workshop"
 
 ./run_lab1.sh $HOME_DIR
 
