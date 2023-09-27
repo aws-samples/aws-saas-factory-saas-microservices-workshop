@@ -20,8 +20,8 @@ const region = process.env.CDK_DEFAULT_REGION;
 const isWorkshopStudioEnv = process.env.IS_WORKSHOP_STUDIO_ENV || "no";
 const participantAssumedRoleArn = process.env.PARTICIPANT_ASSUMED_ROLE_ARN;
 const workshopSSMPrefix = "/saas-workshop";
-const cloud9ConnectionType = "m5.large";
-const cloud9InstanceType = "CONNECT_SSM";
+const cloud9ConnectionType = "CONNECT_SSM";
+const cloud9InstanceType = "m5.large";
 const cloud9ImageId = "ubuntu-22.04-x86_64";
 
 const blueprint = blueprints.EksBlueprint.builder()
