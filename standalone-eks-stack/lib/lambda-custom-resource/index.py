@@ -257,4 +257,19 @@ def on_delete(event):
     except cloud9_client.exceptions.NotFoundException as e:
         print(f"caught error: {e}")
         return {"Data": {"status": f"successfully deleted physical_id: {physical_id}"}}
+
+    props = event["ResourceProperties"]
+    ssm_instance_id_parameter_name = props['ssmInstanceIdParameterName']
+    ssm_env_id_parameter_name = props['ssmEnvIdParameterName']
+    for ssm_parameter in [ssm_instance_id_parameter_name, ssm_env_id_parameter_name]:
+        try:
+            print(f"deleting ssm_parameter: {ssm_parameter}")
+            delete_parameter_response = ssm_client.delete_parameter(
+                Name=ssm_parameter
+            )
+            print(delete_parameter_response)
+        except ssm_client.exceptions.ParameterNotFound as e:
+            print(f"caught error: {e}")
+            print(f"ssm_parameter: {ssm_parameter} not found.")
+
     return {"Data": {"status": f"successfully deleted physical_id: {physical_id}"}}
