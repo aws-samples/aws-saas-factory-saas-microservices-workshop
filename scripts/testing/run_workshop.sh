@@ -8,7 +8,7 @@
 
 # rm -vf ${HOME}/.aws/credentials
 
-HOME_DIR="/home/ec2-user/environment/aws-saas-factory-saas-microservices-workshop"
+HOME_DIR="${HOME}/environment/aws-saas-factory-saas-microservices-workshop"
 
 ./run_lab1.sh $HOME_DIR
 

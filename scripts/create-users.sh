@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 POOLNAME="saas-microservices-workshop-user-pool"
 CLIENT_NAME="saas-workshop-client"
@@ -66,7 +66,7 @@ for ((u = 1; u <= 4; u++)); do
         --no-paginate \
         --no-cli-pager
 
-    HASH=$(python3.8 ./scripts/secret_hash.py ${USER} ${CLIENTID} ${CLIENTSECRET})
+    HASH=$(python3 ./scripts/secret_hash.py ${USER} ${CLIENTID} ${CLIENTSECRET})
 
     JWT_TOKEN=$(
         aws cognito-idp initiate-auth \

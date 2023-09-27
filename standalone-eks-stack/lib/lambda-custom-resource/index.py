@@ -110,15 +110,18 @@ def on_create(event):
     instance_tag_value = props['instanceTagValue']
     ssm_instance_id_parameter_name = props['ssmInstanceIdParameterName']
     ssm_env_id_parameter_name = props['ssmEnvIdParameterName']
-    cloud9_member_arn = props.get('cloud9MemberArn')
+    member_arn = props.get('memberArn')
+    connection_type = props.get('connectionType')
+    instance_type = props.get('instanceType')
+    image_id = props.get('imageId')
 
     # create AWSCloud9SSMAccessRole and resources if necessary
     _create_cloud9_iam_resources_if_necessary()
 
     create_environment_ec2_response = cloud9_client.create_environment_ec2(
-        instanceType="m5.large",
-        connectionType="CONNECT_SSM",
-        imageId="amazonlinux-2-x86_64",
+        instanceType=instance_type,
+        connectionType=connection_type,
+        imageId=image_id,
         description="Cloud9 Instance for SaaS Microservices Workshop.",
         name=c9_name,
         automaticStopTimeMinutes=120,
@@ -140,15 +143,15 @@ def on_create(event):
         Overwrite=True,
     )
 
-    if (cloud9_member_arn):
+    if (member_arn):
         cloud9_response = cloud9_client.create_environment_membership(
             environmentId=cloud9_environment_id,
-            userArn=cloud9_member_arn,
+            userArn=member_arn,
             permissions='read-write'
         )
         print(cloud9_response)
     else:
-        print("$CLOUD9_MEMBER_ARN not set. Skipping add cloud9 member.")
+        print("memberArn not set. Skipping add cloud9 member.")
 
     while True:
         time.sleep(30)
