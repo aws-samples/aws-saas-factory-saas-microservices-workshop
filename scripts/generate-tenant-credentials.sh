@@ -1,3 +1,5 @@
+#!/bin/bash -xe
+
 POOLNAME="saas-microservices-workshop-user-pool"
 CLIENT_NAME="saas-workshop-client"
 JWT_FILE="./tmp/Sample_JWTs.txt"
@@ -45,7 +47,7 @@ for ((u = 1; u <= 4; u++)); do
         --password ${PASSWORD} \
         --permanent
 
-    HASH=$(python3.8 ./scripts/secret_hash.py ${USER} ${CLIENTID} ${CLIENTSECRET})
+    HASH=$(python3 ./scripts/secret_hash.py ${USER} ${CLIENTID} ${CLIENTSECRET})
 
     JWT_TOKEN=$(
         aws cognito-idp initiate-auth \

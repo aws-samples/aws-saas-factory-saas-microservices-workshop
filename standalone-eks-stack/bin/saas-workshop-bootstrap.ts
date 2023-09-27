@@ -20,6 +20,10 @@ const region = process.env.CDK_DEFAULT_REGION;
 const isWorkshopStudioEnv = process.env.IS_WORKSHOP_STUDIO_ENV || "no";
 const participantAssumedRoleArn = process.env.PARTICIPANT_ASSUMED_ROLE_ARN;
 const workshopSSMPrefix = "/saas-workshop";
+const cloud9ConnectionType = "m5.large";
+const cloud9InstanceType = "CONNECT_SSM";
+const cloud9ImageId = "ubuntu-22.04-x86_64";
+
 const blueprint = blueprints.EksBlueprint.builder()
   .resourceProvider("LogGroup", new LogGroupResourceProvider())
   .account(account)
@@ -89,6 +93,10 @@ new Cloud9Resources(blueprint, "Cloud9Resources", {
   createCloud9Instance: isWorkshopStudioEnv == "yes" ? true : false,
   workshopSSMPrefix: workshopSSMPrefix,
   cloud9MemberArn: participantAssumedRoleArn,
+  cloud9ConnectionType: cloud9ConnectionType,
+  cloud9InstanceType: cloud9InstanceType,
+  cloud9ImageId: cloud9ImageId,
 });
 
 cdk.Aspects.of(blueprint).add(new DestroyPolicySetter());
+cdk.Tags.of(blueprint).add("SaaSMicroservicesWorkshop", "BootstrapResources");

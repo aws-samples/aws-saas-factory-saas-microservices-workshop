@@ -14,12 +14,18 @@ export class Cloud9Resources extends Construct {
       createCloud9Instance: boolean;
       workshopSSMPrefix: string;
       cloud9MemberArn?: string;
+      cloud9ConnectionType: string;
+      cloud9InstanceType: string;
+      cloud9ImageId: string;
     }
   ) {
     super(scope, id);
 
     const createCloud9Instance = props.createCloud9Instance;
     const workshopSSMPrefix = props.workshopSSMPrefix;
+    const cloud9ConnectionType = props.cloud9ConnectionType;
+    const cloud9InstanceType = props.cloud9InstanceType;
+    const cloud9ImageId = props.cloud9ImageId;
 
     if (createCloud9Instance) {
       const cloud9TagKey = "WORKSHOP";
@@ -58,16 +64,6 @@ export class Cloud9Resources extends Construct {
             path.join(__dirname, "lambda-custom-resource/")
           ),
           timeout: cdk.Duration.minutes(14), // 15 min is the max
-          environment: {
-            INSTANCE_PROFILE_NAME: cloud9InstanceProfile.instanceProfileName,
-            INSTANCE_TAG_KEY: cloud9TagKey,
-            INSTANCE_TAG_VALUE: cloud9TagValue,
-            SSM_INSTANCE_ID_PARAMETER_NAME: cloud9InstanceIdSSMParameterName,
-            SSM_ENV_ID_PARAMETER_NAME: cloud9InstanceEnvIdSSMParameterName,
-            ...(props.cloud9MemberArn && {
-              CLOUD9_MEMBER_ARN: props.cloud9MemberArn,
-            }),
-          },
           initialPolicy: [
             new iam.PolicyStatement({
               actions: [
@@ -133,6 +129,7 @@ export class Cloud9Resources extends Construct {
           logRetention: logs.RetentionDays.ONE_DAY,
         }
       );
+
       new cdk.CustomResource(this, "Cloud9InstanceUpdaterCustomResource", {
         serviceToken: customResourceProvider.serviceToken,
         resourceType: "Custom::cloud9InstanceUpdater",
@@ -143,8 +140,11 @@ export class Cloud9Resources extends Construct {
           instanceTagValue: cloud9TagValue,
           ssmInstanceIdParameterName: cloud9InstanceIdSSMParameterName,
           ssmEnvIdParameterName: cloud9InstanceEnvIdSSMParameterName,
+          connectionType: cloud9ConnectionType,
+          instanceType: cloud9InstanceType,
+          imageId: cloud9ImageId,
           ...(props.cloud9MemberArn && {
-            cloud9MemberArn: props.cloud9MemberArn,
+            memberArn: props.cloud9MemberArn,
           }),
         },
       });

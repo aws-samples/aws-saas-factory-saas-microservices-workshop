@@ -1,9 +1,10 @@
 #!/bin/bash -xe
 
 run_ssm_command() {
-    C9_PID="$1"
-    SSM_COMMAND="$2"
-    parameters=$(jq -n --arg cm "runuser -l ec2-user -c \"$SSM_COMMAND\"" '{executionTimeout:["600"], commands: [$cm]}')
+    TARGET_USER="$1"
+    C9_PID="$2"
+    SSM_COMMAND="$3"
+    parameters=$(jq -n --arg cm "runuser -l \"$TARGET_USER\" -c \"$SSM_COMMAND\"" '{executionTimeout:["600"], commands: [$cm]}')
     # send ssm command to instance id in C9_PID
     sh_command_id=$(aws ssm send-command \
         --targets "Key=InstanceIds,Values=$C9_PID" \
@@ -29,6 +30,8 @@ run_ssm_command() {
 
 STACK_OPERATION=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 CLOUD9_INSTANCE_ID_PARAMETER_NAME="/saas-workshop/cloud9InstanceId"
+# TARGET_USER="ec2-user"
+TARGET_USER="ubuntu"
 corepack enable
 corepack prepare yarn@stable --activate
 npm install -g aws-cdk@2.91.0
@@ -51,11 +54,11 @@ if [[ "$STACK_OPERATION" == "create" || "$STACK_OPERATION" == "update" ]]; then
             --query "Parameter.Value")
 
         ## todo: remove this when the workshop is updated to use the main branch
-        # run_ssm_command "$C9_PID" "cd ~/environment && git clone https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
-        run_ssm_command "$C9_PID" "cd ~/environment && git clone --single-branch --branch update-eks https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
-        run_ssm_command "$C9_PID" "rm -vf /home/ec2-user/.aws/credentials"
-        run_ssm_command "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./setup.sh"
-        run_ssm_command "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./deploy.sh"
+        # run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment && git clone https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
+        run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment && git clone --single-branch --branch update-eks https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
+        run_ssm_command "$TARGET_USER" "$C9_PID" "rm -vf ~/.aws/credentials"
+        run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./setup.sh"
+        run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./deploy.sh"
         aws ec2 reboot-instances --instance-ids "$C9_PID"
     fi
 elif [ "$STACK_OPERATION" == "delete" ]; then
@@ -63,7 +66,7 @@ elif [ "$STACK_OPERATION" == "delete" ]; then
         --name "$CLOUD9_INSTANCE_ID_PARAMETER_NAME" \
         --output text \
         --query "Parameter.Value")
-    run_ssm_command "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh"
+    run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh"
     echo "Starting cdk destroy..."
     npx cdk destroy --all --force
     echo "Done cdk destroy!"
