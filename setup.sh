@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: MIT-0
 CWD=$(pwd)
 
+source ~/.bash_profile
+
 echo "Installing kubectl"
 sudo curl --silent --no-progress-meter --location -o /usr/local/bin/kubectl \
   https://s3.us-west-2.amazonaws.com/amazon-eks/1.27.5/2023-09-14/bin/linux/amd64/kubectl
