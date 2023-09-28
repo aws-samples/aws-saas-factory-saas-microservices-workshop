@@ -235,6 +235,20 @@ def on_update(event):
 
 
 def on_delete(event):
+    props = event["ResourceProperties"]
+    ssm_instance_id_parameter_name = props['ssmInstanceIdParameterName']
+    ssm_env_id_parameter_name = props['ssmEnvIdParameterName']
+    for ssm_parameter in [ssm_instance_id_parameter_name, ssm_env_id_parameter_name]:
+        try:
+            print(f"deleting ssm_parameter: {ssm_parameter}")
+            delete_parameter_response = ssm_client.delete_parameter(
+                Name=ssm_parameter
+            )
+            print(delete_parameter_response)
+        except ssm_client.exceptions.ParameterNotFound as e:
+            print(f"caught error: {e}")
+            print(f"ssm_parameter: {ssm_parameter} not found.")
+
     physical_id = event["PhysicalResourceId"]
     try:
         cloud9_client.delete_environment(
@@ -256,20 +270,5 @@ def on_delete(event):
                 break
     except cloud9_client.exceptions.NotFoundException as e:
         print(f"caught error: {e}")
-        return {"Data": {"status": f"successfully deleted physical_id: {physical_id}"}}
-
-    props = event["ResourceProperties"]
-    ssm_instance_id_parameter_name = props['ssmInstanceIdParameterName']
-    ssm_env_id_parameter_name = props['ssmEnvIdParameterName']
-    for ssm_parameter in [ssm_instance_id_parameter_name, ssm_env_id_parameter_name]:
-        try:
-            print(f"deleting ssm_parameter: {ssm_parameter}")
-            delete_parameter_response = ssm_client.delete_parameter(
-                Name=ssm_parameter
-            )
-            print(delete_parameter_response)
-        except ssm_client.exceptions.ParameterNotFound as e:
-            print(f"caught error: {e}")
-            print(f"ssm_parameter: {ssm_parameter} not found.")
-
+        print(f"environmentId: {physical_id} not found.")
     return {"Data": {"status": f"successfully deleted physical_id: {physical_id}"}}
