@@ -1,5 +1,6 @@
 import * as cr from "aws-cdk-lib/custom-resources";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as aws_lambda from "aws-cdk-lib/aws-lambda";
 import * as cdk from "aws-cdk-lib";
@@ -54,6 +55,13 @@ export class Cloud9Resources extends Construct {
 
       const cloud9InstanceIdSSMParameterName = `${workshopSSMPrefix}/cloud9InstanceId`;
       const cloud9InstanceEnvIdSSMParameterName = `${workshopSSMPrefix}/cloud9EnvironmentId`;
+      const cloud9InstanceProfileName = `${workshopSSMPrefix}/cloud9InstanceProfileName`;
+
+      new ssm.StringParameter(this, "cloud9InstanceProfileNameSSMParameter", {
+        parameterName: cloud9InstanceProfileName,
+        stringValue: cloud9InstanceProfile.instanceProfileName,
+      });
+
       const onEventLambdaCloud9InstanceUpdater = new aws_lambda.Function(
         this,
         "onEventLambdaCloud9InstanceUpdater",
@@ -85,6 +93,7 @@ export class Cloud9Resources extends Construct {
               actions: [
                 "ec2:DescribeInstances",
                 "ssm:PutParameter",
+                "ssm:DeleteParameter",
                 "iam:GetRole",
                 "iam:GetInstanceProfile",
                 "ec2:DescribeIamInstanceProfileAssociations",
