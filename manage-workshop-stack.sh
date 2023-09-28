@@ -30,6 +30,9 @@ run_ssm_command() {
 
 STACK_OPERATION=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 CLOUD9_INSTANCE_ID_PARAMETER_NAME="/saas-workshop/cloud9InstanceId"
+GIT_REPO="https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
+GIT_BRANCH="v2"
+
 # TARGET_USER="ec2-user"
 TARGET_USER="ubuntu"
 corepack enable
@@ -54,8 +57,7 @@ if [[ "$STACK_OPERATION" == "create" || "$STACK_OPERATION" == "update" ]]; then
             --query "Parameter.Value")
 
         ## todo: remove this when the workshop is updated to use the main branch
-        # run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment && git clone https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
-        run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment && git clone --single-branch --branch update-eks https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
+        run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment && git clone --single-branch --branch $GIT_BRANCH $GIT_REPO"
         run_ssm_command "$TARGET_USER" "$C9_PID" "rm -vf ~/.aws/credentials"
         run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./setup.sh"
         run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./deploy.sh"
