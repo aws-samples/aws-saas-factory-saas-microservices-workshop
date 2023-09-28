@@ -8,6 +8,13 @@
 
 # rm -vf ${HOME}/.aws/credentials
 
+cat > ~/.cdk.json << EOF
+{
+  "requireApproval": "never",
+  "rollback": false
+}
+EOF
+
 HOME_DIR="${HOME}/environment/aws-saas-factory-saas-microservices-workshop"
 
 ./run_lab1.sh $HOME_DIR
