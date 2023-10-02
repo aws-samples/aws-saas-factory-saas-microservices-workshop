@@ -10,8 +10,7 @@
 
 cat > ~/.cdk.json << EOF
 {
-  "requireApproval": "never",
-  "rollback": false
+  "requireApproval": "never"
 }
 EOF
 

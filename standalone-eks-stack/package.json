@@ -11,7 +11,7 @@
     "typescript": "~5.0.4"
   },
   "dependencies": {
-    "@aws-quickstart/eks-blueprints": "~1.11.0",
+    "@aws-quickstart/eks-blueprints": "~1.11.3",
     "constructs": "^10.0.0",
     "source-map-support": "^0.5.21"
   }

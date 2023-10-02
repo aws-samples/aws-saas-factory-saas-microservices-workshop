@@ -153,9 +153,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-quickstart/eks-blueprints@npm:~1.11.0":
-  version: 1.11.0
-  resolution: "@aws-quickstart/eks-blueprints@npm:1.11.0"
+"@aws-quickstart/eks-blueprints@npm:~1.11.3":
+  version: 1.11.3
+  resolution: "@aws-quickstart/eks-blueprints@npm:1.11.3"
   dependencies:
     "@aws-cdk/lambda-layer-kubectl-v23": ^2.0.7
     "@aws-cdk/lambda-layer-kubectl-v24": ^2.0.202
@@ -189,7 +189,7 @@ __metadata:
       optional: true
     "@aws-cdk/lambda-layer-kubectl-v24":
       optional: true
-  checksum: e91c26a7795e437bca0e0378fda3a47083443634b004347f2ab4bcc0d9bee0048ea2b117f59db311fa6b843a2800a0997c44afe7f8be927765a9325a52e7a8fd
+  checksum: 8f585f449008342e0f7679fc31a2352323cf364c2a8371bcbb1ad3c7573da31f7b5bb344ce38fc76caeb4e9156b59c92dcd4339a9235419885c23349caf20167
   languageName: node
   linkType: hard
 
@@ -5188,7 +5188,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "standalone-eks-stack@workspace:."
   dependencies:
-    "@aws-quickstart/eks-blueprints": ~1.11.0
+    "@aws-quickstart/eks-blueprints": ~1.11.3
     "@types/jest": ^29.5.1
     "@types/node": 20.1.0
     constructs: ^10.0.0
