@@ -8,10 +8,6 @@ import * as blueprints from "@aws-quickstart/eks-blueprints";
 import { CapacityType, KubernetesVersion } from "aws-cdk-lib/aws-eks";
 import { Cloud9Resources } from "../lib/cloud9-resources";
 import { DestroyPolicySetter } from "../lib/cdk-aspect/destroy-policy-setter";
-import {
-  LogGroupResourceProvider,
-  MyCustomAwsForFluentBitAddOn,
-} from "../lib/fluentbit";
 import { SSMResources } from "../lib/ssm-resources";
 
 const app = new cdk.App();
@@ -24,10 +20,10 @@ const cloud9ConnectionType = "CONNECT_SSM";
 const cloud9InstanceType = "m5.large";
 const cloud9ImageId = "ubuntu-22.04-x86_64";
 
-const blueprint = blueprints.EksBlueprint.builder()
-  .resourceProvider("LogGroup", new LogGroupResourceProvider())
+const blueprint = blueprints.ObservabilityBuilder.builder()
   .account(account)
   .region(region)
+  .enableNativePatternAddOns()
   .teams(
     new blueprints.PlatformTeam({
       name: "admins",
@@ -35,9 +31,10 @@ const blueprint = blueprints.EksBlueprint.builder()
     })
   )
   .addOns(
-    new MyCustomAwsForFluentBitAddOn(),
-    new blueprints.addons.MetricsServerAddOn(),
-    new blueprints.addons.ContainerInsightsAddOn(),
+    new blueprints.addons.CloudWatchLogsAddon({
+      logGroupPrefix: `/aws/eks/SaaSWorkshop`,
+      logRetentionDays: 7,
+    }),
     new blueprints.addons.IstioBaseAddOn(),
     new blueprints.addons.IstioControlPlaneAddOn()
   )

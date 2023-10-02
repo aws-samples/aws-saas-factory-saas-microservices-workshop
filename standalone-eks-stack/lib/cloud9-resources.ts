@@ -55,12 +55,18 @@ export class Cloud9Resources extends Construct {
 
       const cloud9InstanceIdSSMParameterName = `${workshopSSMPrefix}/cloud9InstanceId`;
       const cloud9InstanceEnvIdSSMParameterName = `${workshopSSMPrefix}/cloud9EnvironmentId`;
-      const cloud9InstanceProfileName = `${workshopSSMPrefix}/cloud9InstanceProfileName`;
+      // const cloud9InstanceProfileName = `${workshopSSMPrefix}/cloud9InstanceProfileName`;
+      const cloud9InstanceRoleName = `${workshopSSMPrefix}/cloud9InstanceRoleName`;
 
-      new ssm.StringParameter(this, "cloud9InstanceProfileNameSSMParameter", {
-        parameterName: cloud9InstanceProfileName,
-        stringValue: cloud9InstanceProfile.instanceProfileName,
+      new ssm.StringParameter(this, "cloud9InstanceRoleNameSSMParameter", {
+        parameterName: cloud9InstanceRoleName,
+        stringValue: cloud9Role.roleName,
       });
+
+      // new ssm.StringParameter(this, "cloud9InstanceProfileNameSSMParameter", {
+      //   parameterName: cloud9InstanceProfileName,
+      //   stringValue: cloud9InstanceProfile.instanceProfileName,
+      // });
 
       const onEventLambdaCloud9InstanceUpdater = new aws_lambda.Function(
         this,

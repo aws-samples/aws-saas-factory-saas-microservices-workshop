@@ -41,7 +41,7 @@ npm install -g aws-cdk@2.91.0
 
 cd standalone-eks-stack
 yarn install
-npx cdk bootstrap
+npx -y cdk bootstrap
 
 if [[ "$STACK_OPERATION" == "create" || "$STACK_OPERATION" == "update" ]]; then
     echo "Starting cdk deploy..."
