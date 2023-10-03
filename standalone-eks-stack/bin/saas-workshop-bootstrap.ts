@@ -9,6 +9,7 @@ import { CapacityType, KubernetesVersion } from "aws-cdk-lib/aws-eks";
 import { Cloud9Resources } from "../lib/cloud9-resources";
 import { DestroyPolicySetter } from "../lib/cdk-aspect/destroy-policy-setter";
 import { SSMResources } from "../lib/ssm-resources";
+import { AwsCloudWatchMetricsAddOn } from "../lib/aws-cloudwatch-metrics-addon";
 
 const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;
@@ -30,10 +31,7 @@ const blueprint = blueprints.EksBlueprint.builder()
     })
   )
   .addOns(
-    new blueprints.addons.CloudWatchLogsAddon({
-      logGroupPrefix: `/aws/eks/SaaSWorkshop`,
-      logRetentionDays: 7,
-    }),
+    new AwsCloudWatchMetricsAddOn(),
     new blueprints.addons.IstioBaseAddOn(),
     new blueprints.addons.IstioControlPlaneAddOn()
   )
