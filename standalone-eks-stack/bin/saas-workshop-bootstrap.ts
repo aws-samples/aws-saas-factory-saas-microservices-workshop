@@ -20,10 +20,9 @@ const cloud9ConnectionType = "CONNECT_SSM";
 const cloud9InstanceType = "m5.large";
 const cloud9ImageId = "ubuntu-22.04-x86_64";
 
-const blueprint = blueprints.ObservabilityBuilder.builder()
+const blueprint = blueprints.EksBlueprint.builder()
   .account(account)
   .region(region)
-  .enableNativePatternAddOns()
   .teams(
     new blueprints.PlatformTeam({
       name: "admins",
@@ -41,10 +40,11 @@ const blueprint = blueprints.ObservabilityBuilder.builder()
   .clusterProvider(
     new blueprints.MngClusterProvider({
       version: KubernetesVersion.V1_27,
-      minSize: 2,
-      desiredSize: 2,
+      minSize: 1,
+      desiredSize: 1,
       maxSize: 4,
-      nodeGroupCapacityType: CapacityType.ON_DEMAND,
+      nodeGroupCapacityType: CapacityType.SPOT,
+      // nodeGroupCapacityType: CapacityType.ON_DEMAND,
       amiType: eks.NodegroupAmiType.AL2_X86_64, // Switching to Bottlerocket breaks Fluentbit's ability to parse log messages as json with its current config!
       instanceTypes: [
         new ec2.InstanceType("m6i.xlarge"),
