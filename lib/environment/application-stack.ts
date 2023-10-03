@@ -33,6 +33,8 @@ export class ApplicationStack extends cdk.Stack {
     const cluster = eksCluster.cluster;
     const xrayServiceDNSAndPort =
       props.baseStack.xrayAddOnStack.xrayServiceDNSAndPort;
+    const cloudwatchAgentEndpoint =
+      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentEndpoint;
     const istioIngressGateway =
       props.baseStack.istioResources.istioIngressGateway;
 
@@ -71,6 +73,7 @@ export class ApplicationStack extends cdk.Stack {
       tier: tier,
       tenantId: tenantId,
       xrayServiceDNSAndPort: xrayServiceDNSAndPort,
+      cloudwatchAgentEndpoint: cloudwatchAgentEndpoint,
       namespaceConstruct: stackNamespace,
     });
     productStack.node.addDependency(stackNamespace);

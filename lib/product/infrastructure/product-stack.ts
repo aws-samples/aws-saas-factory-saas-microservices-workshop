@@ -17,6 +17,7 @@ export class ProductStack extends Construct {
     const istioIngressGateway = props.istioIngressGateway;
     const xrayServiceName = "ProductService";
     const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
+    const cloudwatchAgentEndpoint = props.cloudwatchAgentEndpoint;
 
     // REPLACE START: LAB1 (namespace)
     const namespace = "default";
@@ -165,6 +166,10 @@ export class ProductStack extends Construct {
                   {
                     name: "AWS_XRAY_DAEMON_ADDRESS",
                     value: xrayServiceDNSAndPort,
+                  },
+                  {
+                    name: "AWS_EMF_AGENT_ENDPOINT",
+                    value: cloudwatchAgentEndpoint,
                   },
                   {
                     name: "POD_NAMESPACE",

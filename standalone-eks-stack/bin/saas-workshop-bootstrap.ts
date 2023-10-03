@@ -31,7 +31,7 @@ const blueprint = blueprints.EksBlueprint.builder()
     })
   )
   .addOns(
-    new AwsCloudWatchMetricsAddOn(),
+    // new AwsCloudWatchMetricsAddOn(),
     new blueprints.addons.IstioBaseAddOn(),
     new blueprints.addons.IstioControlPlaneAddOn()
   )
