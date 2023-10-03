@@ -4,6 +4,7 @@ import { EksCluster } from "../../lib/eks/eks-blueprint-stack";
 import { CognitoResources } from "../../lib/cognito/cognito-stack";
 import { IstioResources } from "../../lib/eks/istio-stack";
 import { XrayAddOnStack } from "../../lib/eks/xray-daemon-stack";
+import { CloudwatchAgentAddOnStack } from "../eks/cloudwatch-agent";
 
 export interface BaseStackProps extends cdk.StackProps {
   tlsCertIstio: string;
@@ -15,6 +16,7 @@ export class BaseStack extends cdk.Stack {
   public readonly cognitoResources: CognitoResources;
   public readonly istioResources: IstioResources;
   public readonly xrayAddOnStack: XrayAddOnStack;
+  public readonly cloudwatchAgentAddOnStack: CloudwatchAgentAddOnStack;
 
   constructor(scope: Construct, id: string, props: BaseStackProps) {
     super(scope, id, props);
@@ -38,10 +40,19 @@ export class BaseStack extends cdk.Stack {
       cluster: eksCluster.cluster,
     });
 
+    const cloudwatchAgentAddOnStack = new CloudwatchAgentAddOnStack(
+      this,
+      "CloudwatchAgentStack",
+      {
+        cluster: eksCluster.cluster,
+      }
+    );
+
     this.eksCluster = eksCluster;
     this.cognitoResources = cognitoResources;
     this.istioResources = istioResources;
     this.xrayAddOnStack = xrayAddOnStack;
+    this.cloudwatchAgentAddOnStack = cloudwatchAgentAddOnStack;
 
     new cdk.CfnOutput(this, "CognitoUserPoolId", {
       value: cognitoResources.userPool.userPoolId,
