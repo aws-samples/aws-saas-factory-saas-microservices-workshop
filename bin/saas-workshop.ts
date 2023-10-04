@@ -7,6 +7,7 @@ import { BaseStack } from "../lib/base/base-stack";
 import { ApplicationAdvancedTierStack } from "../lib/environment/application-advanced-tier-stack";
 import { Tier } from "../lib/enums/tier";
 import { DestroyPolicySetter } from "../lib/cdk-aspect/destroy-policy-setter";
+import { SharedStack } from "../lib/shared/infrastructure/shared-stack";
 
 const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;
@@ -31,6 +32,8 @@ const baseStack = new BaseStack(app, "SaaSMicroserviceBaseStack", {
 const tokenVendorStack = new TokenVendorStack(app, "TokenVendorStack", {
   env: { account, region },
 });
+
+new SharedStack(app, "SharedStack");
 
 const basicStack = new ApplicationStack(app, "PoolBasicStack", {
   env: { account, region },

@@ -11,13 +11,18 @@ from flask import Flask, request
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core import patch_all
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
+from aws_xray_sdk.core.sampling.local.sampler import LocalSampler
 patch_all()
 app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
 table_name = os.environ["TABLE_NAME"]
 xray_service_name = os.environ["AWS_XRAY_SERVICE_NAME"] + \
     "-" + os.environ["POD_NAMESPACE"]
-xray_recorder.configure(service=xray_service_name)
+xray_recorder.configure(
+    sampling_rules=os.path.abspath("xray_sample_rules.json"),
+    service=xray_service_name,
+    sampler=LocalSampler()
+)
 XRayMiddleware(app, xray_recorder)
 
 # PASTE: LAB1(tenant context)

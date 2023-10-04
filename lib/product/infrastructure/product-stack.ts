@@ -47,6 +47,10 @@ export class ProductStack extends Construct {
         "ProductAppContainerImage",
         {
           directory: path.join(__dirname, "../app"),
+          buildArgs: {
+            BASE_IMAGE:
+              "public.ecr.aws/docker/library/python:3.9.14-slim-bullseye",
+          },
         }
       );
       new cdk.CfnOutput(this, "productImage", {
