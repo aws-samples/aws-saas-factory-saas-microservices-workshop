@@ -4,7 +4,8 @@ import { Construct } from "constructs";
 import { AddOnStackProps } from "../interface/addon-props";
 
 export class CloudwatchAgentAddOnStack extends Construct {
-  public readonly cloudwatchAgentEndpoint: string;
+  public readonly cloudwatchAgentLogEndpoint: string;
+  public readonly cloudwatchAgentXrayEndpoint: string;
   public readonly cloudwatchAgentLogGroup: logs.LogGroup;
 
   constructor(scope: Construct, id: string, props: AddOnStackProps) {
@@ -13,12 +14,14 @@ export class CloudwatchAgentAddOnStack extends Construct {
     const cluster = props.cluster;
 
     const cloudwatchAgentPort = 25888;
-    const xrayPort = 2000;
     const cloudwatchAgentProtocol = "TCP";
+    const xrayPort = 2000;
+    const xrayProtocol = "UDP";
     const cloudwatchAgentNamespaceName = "amazon-cloudwatch";
     const cloudwatchAgentServiceName = "cloudwatch-agent-service";
     const cloudwatchAgentConfigMapName = "cw-agent-config-map";
-    this.cloudwatchAgentEndpoint = `http://${cloudwatchAgentServiceName}.${cloudwatchAgentNamespaceName}:${cloudwatchAgentPort}`;
+    this.cloudwatchAgentLogEndpoint = `http://${cloudwatchAgentServiceName}.${cloudwatchAgentNamespaceName}:${cloudwatchAgentPort}`;
+    this.cloudwatchAgentXrayEndpoint = `${cloudwatchAgentServiceName}.${cloudwatchAgentNamespaceName}:${xrayPort}`;
 
     this.cloudwatchAgentLogGroup = new logs.LogGroup(
       this,
@@ -43,11 +46,90 @@ export class CloudwatchAgentAddOnStack extends Construct {
       namespace: cloudwatchAgentNamespaceName,
     });
 
-    const cloudwatchAgentDaemonAccess =
-      iam.ManagedPolicy.fromAwsManagedPolicyName("CloudWatchAgentServerPolicy");
-    sa.role.addManagedPolicy(cloudwatchAgentDaemonAccess);
+    sa.role.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName("CloudWatchAgentServerPolicy")
+    );
+    sa.role.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName("AWSXRayDaemonWriteAccess")
+    );
 
     sa.node.addDependency(cloudwatchAgentNamespace);
+
+    const cloudwatchAgentClusterRole = cluster.addManifest(
+      "cloudwatch-agent-cluster-role",
+      {
+        kind: "ClusterRole",
+        apiVersion: "rbac.authorization.k8s.io/v1",
+        metadata: {
+          name: "cloudwatch-agent-role",
+        },
+        rules: [
+          {
+            apiGroups: [""],
+            resources: ["pods", "nodes", "endpoints"],
+            verbs: ["list", "watch"],
+          },
+          {
+            apiGroups: ["apps"],
+            resources: ["replicasets", "daemonsets", "deployments"],
+            verbs: ["list", "watch"],
+          },
+          {
+            apiGroups: ["batch"],
+            resources: ["jobs"],
+            verbs: ["list", "watch"],
+          },
+          {
+            apiGroups: [""],
+            resources: ["nodes/proxy"],
+            verbs: ["get"],
+          },
+          {
+            apiGroups: [""],
+            resources: ["nodes/stats", "configmaps", "events"],
+            verbs: ["create"],
+          },
+          {
+            apiGroups: [""],
+            resources: ["configmaps"],
+            resourceNames: ["cwagent-clusterleader"],
+            verbs: ["get", "update"],
+          },
+          {
+            nonResourceURLs: ["/metrics"],
+            verbs: ["get", "list", "watch"],
+          },
+        ],
+      }
+    );
+
+    cloudwatchAgentClusterRole.node.addDependency(sa);
+    const cloudwatchAgentClusterRoleBinding = cluster.addManifest(
+      "cloudwatch-agent-cluster-role-binding",
+      {
+        kind: "ClusterRoleBinding",
+        apiVersion: "rbac.authorization.k8s.io/v1",
+        metadata: {
+          name: "cloudwatch-agent-role-binding",
+        },
+        subjects: [
+          {
+            kind: "ServiceAccount",
+            name: serviceAccountName,
+            namespace: cloudwatchAgentNamespaceName,
+          },
+        ],
+        roleRef: {
+          kind: "ClusterRole",
+          name: "cloudwatch-agent-role",
+          apiGroup: "rbac.authorization.k8s.io",
+        },
+      }
+    );
+
+    cloudwatchAgentClusterRoleBinding.node.addDependency(
+      cloudwatchAgentClusterRole
+    );
 
     const cloudwatchAgentAppName = "cloudwatch-agent-daemon";
     const cloudwatchAgentService = cluster.addManifest(
@@ -66,9 +148,14 @@ export class CloudwatchAgentAddOnStack extends Construct {
           clusterIP: "None",
           ports: [
             {
-              name: "incoming",
+              name: "logs",
               port: cloudwatchAgentPort,
               protocol: cloudwatchAgentProtocol,
+            },
+            {
+              name: "xray",
+              port: xrayPort,
+              protocol: xrayProtocol,
             },
           ],
         },
@@ -128,7 +215,8 @@ export class CloudwatchAgentAddOnStack extends Construct {
                     },
                   },
                 ],
-                image: "amazon/cloudwatch-agent:1.247350.0b251780",
+                image:
+                  "public.ecr.aws/cloudwatch-agent/cloudwatch-agent:1.300028.1b210",
                 imagePullPolicy: "Always",
                 name: "aws-cloudwatch-metrics",
                 resources: {
@@ -260,15 +348,15 @@ export class CloudwatchAgentAddOnStack extends Construct {
             },
             force_flush_interval: 5,
           },
-        }),
-        traces_collected: {
-          xray: {
-            bind_address: `0.0.0.0:${xrayPort}`,
-            tcp_proxy: {
+          traces_collected: {
+            xray: {
               bind_address: `0.0.0.0:${xrayPort}`,
+              tcp_proxy: {
+                bind_address: `0.0.0.0:${xrayPort}`,
+              },
             },
           },
-        },
+        }),
       },
       kind: "ConfigMap",
       metadata: {

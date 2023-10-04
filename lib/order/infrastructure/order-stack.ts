@@ -26,7 +26,7 @@ export class OrderStack extends Construct {
     const istioIngressGateway = props.istioIngressGateway;
     const fulfillmentServiceDNS = props.fulfillmentServiceDNS;
     const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
-    const cloudwatchAgentEndpoint = props.cloudwatchAgentEndpoint;
+    const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
 
     const tier = props.tier;
@@ -190,7 +190,7 @@ export class OrderStack extends Construct {
                   },
                   {
                     name: "AWS_EMF_AGENT_ENDPOINT",
-                    value: cloudwatchAgentEndpoint,
+                    value: cloudwatchAgentLogEndpoint,
                   },
                   {
                     name: "AWS_EMF_LOG_GROUP_NAME",
@@ -284,7 +284,7 @@ export class OrderStack extends Construct {
                   },
                   {
                     name: "AWS_EMF_AGENT_ENDPOINT",
-                    value: cloudwatchAgentEndpoint,
+                    value: cloudwatchAgentLogEndpoint,
                   },
                   {
                     name: "AWS_EMF_LOG_GROUP_NAME",

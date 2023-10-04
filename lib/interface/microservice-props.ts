@@ -5,7 +5,7 @@ import { LogGroup } from "aws-cdk-lib/aws-logs";
 export interface MicroserviceStackProps {
   cluster: eks.ICluster;
   xrayServiceDNSAndPort: string;
-  cloudwatchAgentEndpoint: string;
+  cloudwatchAgentLogEndpoint: string;
   cloudwatchAgentLogGroupName: string;
   istioIngressGateway: string;
   applicationImageAsset?: DockerImageAsset;

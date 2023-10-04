@@ -38,9 +38,9 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
     const orderServiceDNS = props.basicStack.orderServiceDNS;
     const orderServicePort = props.basicStack.orderServicePort;
     const xrayServiceDNSAndPort =
-      props.baseStack.xrayAddOnStack.xrayServiceDNSAndPort;
-    const cloudwatchAgentEndpoint =
-      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentEndpoint;
+      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentXrayEndpoint;
+    const cloudwatchAgentLogEndpoint =
+      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName =
       props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogGroup
         .logGroupName;
@@ -57,7 +57,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
         tier: tier,
         tenantId: tenantId,
         xrayServiceDNSAndPort: xrayServiceDNSAndPort,
-        cloudwatchAgentEndpoint: cloudwatchAgentEndpoint,
+        cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       }
     );
@@ -97,7 +97,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
           tenantId: tenantId,
           xrayServiceDNSAndPort: xrayServiceDNSAndPort,
           namespaceConstruct: tenantSpecificAdvancedTierNamespace,
-          cloudwatchAgentEndpoint: cloudwatchAgentEndpoint,
+          cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
           cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         }
       );
@@ -118,7 +118,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
         tier: tier,
         tenantId: tenantId,
         xrayServiceDNSAndPort: xrayServiceDNSAndPort,
-        cloudwatchAgentEndpoint: cloudwatchAgentEndpoint,
+        cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       }
     );

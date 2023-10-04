@@ -21,7 +21,7 @@ export class FulfillmentStack extends Construct {
     const cluster = props.cluster;
     const tier = props.tier;
     const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
-    const cloudwatchAgentEndpoint = props.cloudwatchAgentEndpoint;
+    const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
     const tenantId = props.tenantId;
     const namespace = props.namespace; // from the ApplicationStack
@@ -155,7 +155,7 @@ export class FulfillmentStack extends Construct {
                   },
                   {
                     name: "AWS_EMF_AGENT_ENDPOINT",
-                    value: cloudwatchAgentEndpoint,
+                    value: cloudwatchAgentLogEndpoint,
                   },
                   {
                     name: "AWS_EMF_LOG_GROUP_NAME",
