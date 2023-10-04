@@ -17,7 +17,7 @@ export class ProductStack extends Construct {
     const istioIngressGateway = props.istioIngressGateway;
     const xrayServiceName = "ProductService";
     const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
-    const cloudwatchAgentEndpoint = props.cloudwatchAgentEndpoint;
+    const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
 
     // REPLACE START: LAB1 (namespace)
@@ -170,7 +170,7 @@ export class ProductStack extends Construct {
                   },
                   {
                     name: "AWS_EMF_AGENT_ENDPOINT",
-                    value: cloudwatchAgentEndpoint,
+                    value: cloudwatchAgentLogEndpoint,
                   },
                   {
                     name: "AWS_EMF_LOG_GROUP_NAME",
@@ -261,7 +261,7 @@ export class ProductStack extends Construct {
                   },
                   {
                     name: "AWS_EMF_AGENT_ENDPOINT",
-                    value: cloudwatchAgentEndpoint,
+                    value: cloudwatchAgentLogEndpoint,
                   },
                   {
                     name: "AWS_EMF_LOG_GROUP_NAME",

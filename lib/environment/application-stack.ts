@@ -32,9 +32,9 @@ export class ApplicationStack extends cdk.Stack {
     const eksCluster = new EksCluster(this, "EksCluster");
     const cluster = eksCluster.cluster;
     const xrayServiceDNSAndPort =
-      props.baseStack.xrayAddOnStack.xrayServiceDNSAndPort;
-    const cloudwatchAgentEndpoint =
-      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentEndpoint;
+      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentXrayEndpoint;
+    const cloudwatchAgentLogEndpoint =
+      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName =
       props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogGroup
         .logGroupName;
@@ -76,7 +76,7 @@ export class ApplicationStack extends cdk.Stack {
       tier: tier,
       tenantId: tenantId,
       xrayServiceDNSAndPort: xrayServiceDNSAndPort,
-      cloudwatchAgentEndpoint: cloudwatchAgentEndpoint,
+      cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
       cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       namespaceConstruct: stackNamespace,
     });
@@ -95,7 +95,7 @@ export class ApplicationStack extends cdk.Stack {
         tier: tier,
         tenantId: tenantId,
         xrayServiceDNSAndPort: xrayServiceDNSAndPort,
-        cloudwatchAgentEndpoint: cloudwatchAgentEndpoint,
+        cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
       });
@@ -116,7 +116,7 @@ export class ApplicationStack extends cdk.Stack {
         tier: tier,
         tenantId: tenantId,
         xrayServiceDNSAndPort: xrayServiceDNSAndPort,
-        cloudwatchAgentEndpoint: cloudwatchAgentEndpoint,
+        cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
       });
