@@ -24,7 +24,8 @@ PATH=/usr/local/bin:$PATH
 rm -rf aws awscliv2.zip
 
 echo "Installing helper tools"
-sudo apt install -y jq gettext bash-completion moreutils
+sudo apt-get update
+sudo apt-get install -y jq gettext bash-completion moreutils
 
 export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 10")
