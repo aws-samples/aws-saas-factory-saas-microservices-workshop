@@ -1,7 +1,5 @@
 #!/bin/bash -xe
 
-source ~/.bash_profile
-
 if [ ! -d "certs" ]; then
     # Directory for generated certs
     mkdir -p certs
