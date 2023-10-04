@@ -11,11 +11,11 @@ export class CloudwatchAgentAddOnStack extends Construct {
     const cluster = props.cluster;
 
     const cloudwatchAgentPort = 25888;
-    const cloudwatchAgentProtocol = "UDP";
+    const cloudwatchAgentProtocol = "TCP";
     const cloudwatchAgentNamespaceName = "amazon-cloudwatch";
-    const cloudwatchAgentServiceName = "cloudwatchagent-service";
+    const cloudwatchAgentServiceName = "cloudwatch-agent-service";
     const cloudwatchAgentConfigMapName = "cw-agent-config-map";
-    this.cloudwatchAgentEndpoint = `${cloudwatchAgentProtocol}://${cloudwatchAgentServiceName}.${cloudwatchAgentNamespaceName}:${cloudwatchAgentPort}`;
+    this.cloudwatchAgentEndpoint = `http://${cloudwatchAgentServiceName}.${cloudwatchAgentNamespaceName}:${cloudwatchAgentPort}`;
     const cloudwatchAgentNamespace = cluster.addManifest(
       "my-cloudwatchagent-namespace",
       {
@@ -25,8 +25,8 @@ export class CloudwatchAgentAddOnStack extends Construct {
       }
     );
 
-    const serviceAccountName = "cloudwatchagent-svc-account";
-    const sa = cluster.addServiceAccount("my-cloudwatchagent-svc-account", {
+    const serviceAccountName = "cloudwatch-agent-svc-account";
+    const sa = cluster.addServiceAccount("cloudwatch-agent-svc-account", {
       name: serviceAccountName,
       namespace: cloudwatchAgentNamespaceName,
     });
@@ -37,8 +37,9 @@ export class CloudwatchAgentAddOnStack extends Construct {
 
     sa.node.addDependency(cloudwatchAgentNamespace);
 
+    const cloudwatchAgentAppName = "cloudwatch-agent-daemon";
     const cloudwatchAgentService = cluster.addManifest(
-      "my-cloudwatchagent-service",
+      "my-cloudwatch-agent-service",
       {
         apiVersion: "v1",
         kind: "Service",
@@ -48,7 +49,7 @@ export class CloudwatchAgentAddOnStack extends Construct {
         },
         spec: {
           selector: {
-            app: "cloudwatchagent-daemon",
+            app: cloudwatchAgentAppName,
           },
           clusterIP: "None",
           ports: [
@@ -68,19 +69,19 @@ export class CloudwatchAgentAddOnStack extends Construct {
       apiVersion: "apps/v1",
       kind: "DaemonSet",
       metadata: {
-        name: "cloudwatch-agent-daemon",
+        name: "cloudwatch-agent-daemon-config",
         namespace: cloudwatchAgentNamespaceName,
       },
       spec: {
         selector: {
           matchLabels: {
-            app: "cloudwatch-agent-daemon",
+            app: cloudwatchAgentAppName,
           },
         },
         template: {
           metadata: {
             labels: {
-              app: "cloudwatch-agent-daemon",
+              app: cloudwatchAgentAppName,
             },
           },
           spec: {
