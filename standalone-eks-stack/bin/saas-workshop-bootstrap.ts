@@ -38,8 +38,8 @@ const blueprint = blueprints.EksBlueprint.builder()
   .clusterProvider(
     new blueprints.MngClusterProvider({
       version: KubernetesVersion.V1_27,
-      minSize: 1,
-      desiredSize: 1,
+      minSize: 2,
+      desiredSize: 2,
       maxSize: 4,
       nodeGroupCapacityType: CapacityType.SPOT,
       // nodeGroupCapacityType: CapacityType.ON_DEMAND,
