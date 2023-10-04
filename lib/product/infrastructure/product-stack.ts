@@ -18,6 +18,7 @@ export class ProductStack extends Construct {
     const xrayServiceName = "ProductService";
     const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const cloudwatchAgentEndpoint = props.cloudwatchAgentEndpoint;
+    const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
 
     // REPLACE START: LAB1 (namespace)
     const namespace = "default";
@@ -172,6 +173,18 @@ export class ProductStack extends Construct {
                     value: cloudwatchAgentEndpoint,
                   },
                   {
+                    name: "AWS_EMF_LOG_GROUP_NAME",
+                    value: cloudwatchAgentLogGroupName,
+                  },
+                  {
+                    name: "AWS_EMF_LOG_STREAM_NAME",
+                    valueFrom: {
+                      fieldRef: {
+                        fieldPath: "metadata.name",
+                      },
+                    },
+                  },
+                  {
                     name: "POD_NAMESPACE",
                     valueFrom: {
                       fieldRef: {
@@ -245,6 +258,22 @@ export class ProductStack extends Construct {
                   {
                     name: "AWS_XRAY_DAEMON_ADDRESS",
                     value: xrayServiceDNSAndPort,
+                  },
+                  {
+                    name: "AWS_EMF_AGENT_ENDPOINT",
+                    value: cloudwatchAgentEndpoint,
+                  },
+                  {
+                    name: "AWS_EMF_LOG_GROUP_NAME",
+                    value: cloudwatchAgentLogGroupName,
+                  },
+                  {
+                    name: "AWS_EMF_LOG_STREAM_NAME",
+                    valueFrom: {
+                      fieldRef: {
+                        fieldPath: "metadata.name",
+                      },
+                    },
                   },
                   {
                     name: "AWS_XRAY_SERVICE_NAME",

@@ -26,6 +26,8 @@ export class OrderStack extends Construct {
     const istioIngressGateway = props.istioIngressGateway;
     const fulfillmentServiceDNS = props.fulfillmentServiceDNS;
     const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
+    const cloudwatchAgentEndpoint = props.cloudwatchAgentEndpoint;
+    const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
 
     const tier = props.tier;
     const tenantId = props.tenantId;
@@ -187,6 +189,22 @@ export class OrderStack extends Construct {
                     value: xrayServiceDNSAndPort,
                   },
                   {
+                    name: "AWS_EMF_AGENT_ENDPOINT",
+                    value: cloudwatchAgentEndpoint,
+                  },
+                  {
+                    name: "AWS_EMF_LOG_GROUP_NAME",
+                    value: cloudwatchAgentLogGroupName,
+                  },
+                  {
+                    name: "AWS_EMF_LOG_STREAM_NAME",
+                    valueFrom: {
+                      fieldRef: {
+                        fieldPath: "metadata.name",
+                      },
+                    },
+                  },
+                  {
                     name: "FULFILLMENT_ENDPOINT",
                     value: fulfillmentServiceDNS,
                   },
@@ -263,6 +281,22 @@ export class OrderStack extends Construct {
                   {
                     name: "AWS_XRAY_DAEMON_ADDRESS",
                     value: xrayServiceDNSAndPort,
+                  },
+                  {
+                    name: "AWS_EMF_AGENT_ENDPOINT",
+                    value: cloudwatchAgentEndpoint,
+                  },
+                  {
+                    name: "AWS_EMF_LOG_GROUP_NAME",
+                    value: cloudwatchAgentLogGroupName,
+                  },
+                  {
+                    name: "AWS_EMF_LOG_STREAM_NAME",
+                    valueFrom: {
+                      fieldRef: {
+                        fieldPath: "metadata.name",
+                      },
+                    },
                   },
                   {
                     name: "POD_NAMESPACE",

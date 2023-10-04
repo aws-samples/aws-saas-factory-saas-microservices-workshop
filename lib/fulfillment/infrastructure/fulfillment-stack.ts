@@ -21,6 +21,8 @@ export class FulfillmentStack extends Construct {
     const cluster = props.cluster;
     const tier = props.tier;
     const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
+    const cloudwatchAgentEndpoint = props.cloudwatchAgentEndpoint;
+    const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
     const tenantId = props.tenantId;
     const namespace = props.namespace; // from the ApplicationStack
     const multiTenantLabels = {
@@ -150,6 +152,22 @@ export class FulfillmentStack extends Construct {
                   {
                     name: "AWS_XRAY_DAEMON_ADDRESS",
                     value: xrayServiceDNSAndPort,
+                  },
+                  {
+                    name: "AWS_EMF_AGENT_ENDPOINT",
+                    value: cloudwatchAgentEndpoint,
+                  },
+                  {
+                    name: "AWS_EMF_LOG_GROUP_NAME",
+                    value: cloudwatchAgentLogGroupName,
+                  },
+                  {
+                    name: "AWS_EMF_LOG_STREAM_NAME",
+                    valueFrom: {
+                      fieldRef: {
+                        fieldPath: "metadata.name",
+                      },
+                    },
                   },
                   {
                     name: "POD_NAMESPACE",

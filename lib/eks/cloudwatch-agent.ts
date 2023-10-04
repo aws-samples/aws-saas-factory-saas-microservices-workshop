@@ -1,9 +1,11 @@
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as logs from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 import { AddOnStackProps } from "../interface/addon-props";
 
 export class CloudwatchAgentAddOnStack extends Construct {
   public readonly cloudwatchAgentEndpoint: string;
+  public readonly cloudwatchAgentLogGroup: logs.LogGroup;
 
   constructor(scope: Construct, id: string, props: AddOnStackProps) {
     super(scope, id);
@@ -11,11 +13,21 @@ export class CloudwatchAgentAddOnStack extends Construct {
     const cluster = props.cluster;
 
     const cloudwatchAgentPort = 25888;
+    const xrayPort = 2000;
     const cloudwatchAgentProtocol = "TCP";
     const cloudwatchAgentNamespaceName = "amazon-cloudwatch";
     const cloudwatchAgentServiceName = "cloudwatch-agent-service";
     const cloudwatchAgentConfigMapName = "cw-agent-config-map";
     this.cloudwatchAgentEndpoint = `http://${cloudwatchAgentServiceName}.${cloudwatchAgentNamespaceName}:${cloudwatchAgentPort}`;
+
+    this.cloudwatchAgentLogGroup = new logs.LogGroup(
+      this,
+      "cloudwatch-agent-log-group",
+      {
+        retention: logs.RetentionDays.ONE_WEEK,
+      }
+    );
+
     const cloudwatchAgentNamespace = cluster.addManifest(
       "my-cloudwatchagent-namespace",
       {
@@ -238,6 +250,10 @@ export class CloudwatchAgentAddOnStack extends Construct {
           agent: { debug: true },
           logs: {
             metrics_collected: {
+              kubernetes: {
+                cluster_name: cluster.clusterName,
+                metrics_collection_interval: 60,
+              },
               emf: {
                 service_address: `${cloudwatchAgentProtocol.toLowerCase()}://0.0.0.0:${cloudwatchAgentPort}`,
               },
@@ -245,6 +261,14 @@ export class CloudwatchAgentAddOnStack extends Construct {
             force_flush_interval: 5,
           },
         }),
+        traces_collected: {
+          xray: {
+            bind_address: `0.0.0.0:${xrayPort}`,
+            tcp_proxy: {
+              bind_address: `0.0.0.0:${xrayPort}`,
+            },
+          },
+        },
       },
       kind: "ConfigMap",
       metadata: {
