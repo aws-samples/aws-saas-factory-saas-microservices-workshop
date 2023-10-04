@@ -1,5 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { Construct } from "constructs";
@@ -19,6 +20,10 @@ export class ProductStack extends Construct {
     const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
+    const baseImageSSMParameterName = "";
+    const baseImage = baseImageSSMParameterName
+      ? ssm.StringParameter.valueFromLookup(this, baseImageSSMParameterName)
+      : "public.ecr.aws/docker/library/python:3.9.14-slim-bullseye";
 
     // REPLACE START: LAB1 (namespace)
     const namespace = "default";
@@ -48,8 +53,7 @@ export class ProductStack extends Construct {
         {
           directory: path.join(__dirname, "../app"),
           buildArgs: {
-            BASE_IMAGE:
-              "public.ecr.aws/docker/library/python:3.9.14-slim-bullseye",
+            BASE_IMAGE: baseImage,
           },
         }
       );

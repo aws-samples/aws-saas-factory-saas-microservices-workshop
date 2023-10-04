@@ -9,7 +9,7 @@ import { CapacityType, KubernetesVersion } from "aws-cdk-lib/aws-eks";
 import { Cloud9Resources } from "../lib/cloud9-resources";
 import { DestroyPolicySetter } from "../lib/cdk-aspect/destroy-policy-setter";
 import { SSMResources } from "../lib/ssm-resources";
-import { AwsCloudWatchMetricsAddOn } from "../lib/aws-cloudwatch-metrics-addon";
+import { SharedStack } from "../lib/shared/infrastructure/shared-stack";
 
 const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;
@@ -79,9 +79,12 @@ if (kubectlRole) {
   );
 }
 
+const sharedImageAsset = new SharedStack(blueprint, "SharedStack");
+
 new SSMResources(blueprint, "extensionStack", {
   clusterInfo: blueprint.getClusterInfo(),
   workshopSSMPrefix: workshopSSMPrefix,
+  sharedImageAsset: sharedImageAsset.sharedImageAsset,
 });
 
 new Cloud9Resources(blueprint, "Cloud9Resources", {

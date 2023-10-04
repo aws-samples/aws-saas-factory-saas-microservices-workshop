@@ -1,4 +1,5 @@
 import * as ssm from "aws-cdk-lib/aws-ssm";
+import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { Construct } from "constructs";
 import * as blueprints from "@aws-quickstart/eks-blueprints";
 
@@ -10,12 +11,14 @@ export class SSMResources extends Construct {
     props: {
       clusterInfo: blueprints.ClusterInfo;
       workshopSSMPrefix: string;
+      sharedImageAsset: DockerImageAsset;
     }
   ) {
     super(scope, id);
 
     const clusterInfo = props.clusterInfo;
     const workshopSSMPrefix = props.workshopSSMPrefix;
+    const sharedImageAsset = props.sharedImageAsset;
 
     new ssm.StringParameter(this, "clusterNameParameter", {
       parameterName: `${workshopSSMPrefix}/clusterName`,
@@ -62,6 +65,11 @@ export class SSMResources extends Construct {
       parameterName: `${workshopSSMPrefix}/openIdConnectProviderArn`,
       stringValue:
         clusterInfo.cluster.openIdConnectProvider.openIdConnectProviderArn,
+    });
+
+    new ssm.StringParameter(this, "sharedImage", {
+      parameterName: `${workshopSSMPrefix}/sharedImageUri`,
+      stringValue: sharedImageAsset.imageUri,
     });
   }
 }
