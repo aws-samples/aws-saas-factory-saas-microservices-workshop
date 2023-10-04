@@ -16,7 +16,6 @@ export class CloudwatchAgentAddOnStack extends Construct {
     const cloudwatchAgentPort = 25888;
     const cloudwatchAgentProtocol = "TCP";
     const xrayPort = 2000;
-    const xrayProtocol = "UDP";
     const cloudwatchAgentNamespaceName = "amazon-cloudwatch";
     const cloudwatchAgentServiceName = "cloudwatch-agent-service";
     const cloudwatchAgentConfigMapName = "cw-agent-config-map";
@@ -71,7 +70,12 @@ export class CloudwatchAgentAddOnStack extends Construct {
           },
           {
             apiGroups: ["apps"],
-            resources: ["replicasets", "daemonsets", "deployments"],
+            resources: [
+              "replicasets",
+              "daemonsets",
+              "deployments",
+              "statefulsets",
+            ],
             verbs: ["list", "watch"],
           },
           {
@@ -153,9 +157,14 @@ export class CloudwatchAgentAddOnStack extends Construct {
               protocol: cloudwatchAgentProtocol,
             },
             {
-              name: "xray",
+              name: "xrayudp",
               port: xrayPort,
-              protocol: xrayProtocol,
+              protocol: "UDP",
+            },
+            {
+              name: "xraytcp",
+              port: xrayPort,
+              protocol: "TCP",
             },
           ],
         },
@@ -338,21 +347,19 @@ export class CloudwatchAgentAddOnStack extends Construct {
           agent: { debug: true },
           logs: {
             metrics_collected: {
-              kubernetes: {
-                cluster_name: cluster.clusterName,
-                metrics_collection_interval: 60,
-              },
               emf: {
                 service_address: `${cloudwatchAgentProtocol.toLowerCase()}://0.0.0.0:${cloudwatchAgentPort}`,
               },
             },
             force_flush_interval: 5,
           },
-          traces_collected: {
-            xray: {
-              bind_address: `0.0.0.0:${xrayPort}`,
-              tcp_proxy: {
+          traces: {
+            traces_collected: {
+              xray: {
                 bind_address: `0.0.0.0:${xrayPort}`,
+                tcp_proxy: {
+                  bind_address: `0.0.0.0:${xrayPort}`,
+                },
               },
             },
           },

@@ -1,7 +1,5 @@
 #!/bin/bash -xe
 
-source ~/.bash_profile
-
 echo "Destroying stacks..."
 yarn install
 npx cdk bootstrap
