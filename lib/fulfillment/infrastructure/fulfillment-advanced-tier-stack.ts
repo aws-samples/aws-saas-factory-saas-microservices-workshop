@@ -20,6 +20,8 @@ export class FulfillmentAdvancedTierStack extends Construct {
     const cluster = props.cluster;
     const fulfillmentDockerImageAsset = props.fulfillmentDockerImageAsset;
     const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
+    const cloudwatchAgentEndpoint = props.cloudwatchAgentEndpoint;
+    const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
 
     const tier = props.tier;
     const tenantId = props.tenantId;
@@ -139,6 +141,22 @@ export class FulfillmentAdvancedTierStack extends Construct {
                     {
                       name: "AWS_XRAY_DAEMON_ADDRESS",
                       value: xrayServiceDNSAndPort,
+                    },
+                    {
+                      name: "AWS_EMF_AGENT_ENDPOINT",
+                      value: cloudwatchAgentEndpoint,
+                    },
+                    {
+                      name: "AWS_EMF_LOG_GROUP_NAME",
+                      value: cloudwatchAgentLogGroupName,
+                    },
+                    {
+                      name: "AWS_EMF_LOG_STREAM_NAME",
+                      valueFrom: {
+                        fieldRef: {
+                          fieldPath: "metadata.name",
+                        },
+                      },
                     },
                     {
                       name: "POD_NAMESPACE",

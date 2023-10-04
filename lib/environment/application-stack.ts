@@ -35,6 +35,9 @@ export class ApplicationStack extends cdk.Stack {
       props.baseStack.xrayAddOnStack.xrayServiceDNSAndPort;
     const cloudwatchAgentEndpoint =
       props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentEndpoint;
+    const cloudwatchAgentLogGroupName =
+      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogGroup
+        .logGroupName;
     const istioIngressGateway =
       props.baseStack.istioResources.istioIngressGateway;
 
@@ -74,6 +77,7 @@ export class ApplicationStack extends cdk.Stack {
       tenantId: tenantId,
       xrayServiceDNSAndPort: xrayServiceDNSAndPort,
       cloudwatchAgentEndpoint: cloudwatchAgentEndpoint,
+      cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       namespaceConstruct: stackNamespace,
     });
     productStack.node.addDependency(stackNamespace);
@@ -91,6 +95,8 @@ export class ApplicationStack extends cdk.Stack {
         tier: tier,
         tenantId: tenantId,
         xrayServiceDNSAndPort: xrayServiceDNSAndPort,
+        cloudwatchAgentEndpoint: cloudwatchAgentEndpoint,
+        cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
       });
       fulfillmentStack.node.addDependency(stackNamespace);
@@ -110,6 +116,8 @@ export class ApplicationStack extends cdk.Stack {
         tier: tier,
         tenantId: tenantId,
         xrayServiceDNSAndPort: xrayServiceDNSAndPort,
+        cloudwatchAgentEndpoint: cloudwatchAgentEndpoint,
+        cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
       });
       orderStack.node.addDependency(stackNamespace);
