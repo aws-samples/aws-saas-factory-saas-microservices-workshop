@@ -12,6 +12,9 @@ from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core import patch_all
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 from aws_xray_sdk.core.sampling.local.sampler import LocalSampler
+from aws_embedded_metrics import metric_scope
+from aws_embedded_metrics.storage_resolution import StorageResolution
+
 patch_all()
 app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
@@ -25,11 +28,20 @@ xray_recorder.configure(
 )
 XRayMiddleware(app, xray_recorder)
 
+
+@metric_scope
+def track_metric(tenant, metric_name, metrics):
+    metrics.put_dimensions({"tenant": tenant})
+    metric.put_dimensions({"ServiceName": xray_service_name})
+    metrics.put_metric(metric_name, 1, "Count", StorageResolution.STANDARD)
+
+
 # PASTE: LAB1(tenant context)
 
 
 # REPLACE START: LAB2 (get client)
 def get_boto3_client(service):
+    track_metric("unknown", "health-check")
     return boto3.client(service)
 # REPLACE END: LAB2 (get client)
 
