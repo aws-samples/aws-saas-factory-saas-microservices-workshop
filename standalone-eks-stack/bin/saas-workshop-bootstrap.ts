@@ -88,7 +88,7 @@ new SSMResources(blueprint, "extensionStack", {
 });
 
 new Cloud9Resources(blueprint, "Cloud9Resources", {
-  createCloud9Instance: isWorkshopStudioEnv == "yes" ? true : false,
+  createCloud9Instance: true,
   workshopSSMPrefix: workshopSSMPrefix,
   cloud9MemberArn: participantAssumedRoleArn,
   cloud9ConnectionType: cloud9ConnectionType,
