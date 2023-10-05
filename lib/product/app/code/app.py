@@ -34,7 +34,7 @@ def track_metric(tenant, metric_name, metrics):
     metrics.put_dimensions({"tenant": tenant})
     metric.put_dimensions({"ServiceName": xray_service_name})
     metrics.put_metric(metric_name, 1, "Count", StorageResolution.STANDARD)
-
+    metrics.flush()
 
 # PASTE: LAB1(tenant context)
 
