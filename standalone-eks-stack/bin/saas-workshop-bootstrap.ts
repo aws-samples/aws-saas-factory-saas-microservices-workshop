@@ -31,7 +31,6 @@ const blueprint = blueprints.EksBlueprint.builder()
     })
   )
   .addOns(
-    // new AwsCloudWatchMetricsAddOn(),
     new blueprints.addons.IstioBaseAddOn(),
     new blueprints.addons.IstioControlPlaneAddOn()
   )
@@ -43,7 +42,7 @@ const blueprint = blueprints.EksBlueprint.builder()
       maxSize: 4,
       nodeGroupCapacityType: CapacityType.SPOT,
       // nodeGroupCapacityType: CapacityType.ON_DEMAND,
-      amiType: eks.NodegroupAmiType.AL2_X86_64, // Switching to Bottlerocket breaks Fluentbit's ability to parse log messages as json with its current config!
+      amiType: eks.NodegroupAmiType.BOTTLEROCKET_X86_64,
       instanceTypes: [
         new ec2.InstanceType("m6i.xlarge"),
         new ec2.InstanceType("r6i.xlarge"),
@@ -81,7 +80,7 @@ if (kubectlRole) {
 
 const sharedImageAsset = new SharedStack(blueprint, "SharedStack");
 
-new SSMResources(blueprint, "extensionStack", {
+new SSMResources(blueprint, "SSMResources", {
   clusterInfo: blueprint.getClusterInfo(),
   workshopSSMPrefix: workshopSSMPrefix,
   sharedImageAsset: sharedImageAsset.sharedImageAsset,
