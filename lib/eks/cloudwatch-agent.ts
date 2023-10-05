@@ -347,6 +347,10 @@ export class CloudwatchAgentAddOnStack extends Construct {
           agent: { debug: true },
           logs: {
             metrics_collected: {
+              kubernetes: {
+                cluster_name: cluster.clusterName,
+                metrics_collection_interval: 60,
+              },
               emf: {
                 service_address: `${cloudwatchAgentProtocol.toLowerCase()}://0.0.0.0:${cloudwatchAgentPort}`,
               },
