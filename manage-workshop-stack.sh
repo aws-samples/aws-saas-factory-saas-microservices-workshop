@@ -30,8 +30,8 @@ run_ssm_command() {
 
 STACK_OPERATION=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 CLOUD9_INSTANCE_ID_PARAMETER_NAME="/saas-workshop/cloud9InstanceId"
-GIT_REPO="https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop"
-GIT_BRANCH="v2"
+GIT_REPO=$REPO_URL
+GIT_BRANCH=$REPO_BRANCH_NAME
 
 # TARGET_USER="ec2-user"
 TARGET_USER="ubuntu"
@@ -49,7 +49,7 @@ if [[ "$STACK_OPERATION" == "create" || "$STACK_OPERATION" == "update" ]]; then
         --require-approval never
     echo "Done cdk deploy!"
 
-    if [[ "$IS_WORKSHOP_STUDIO_ENV" == "yes" && "$STACK_OPERATION" == "create" ]]; then
+    if [[ "$STACK_OPERATION" == "create" ]]; then
         # get cloud9 instance id from ssm parameter store
         C9_PID=$(aws ssm get-parameter \
             --name "$CLOUD9_INSTANCE_ID_PARAMETER_NAME" \
