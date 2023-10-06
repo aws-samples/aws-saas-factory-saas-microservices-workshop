@@ -15,16 +15,16 @@ run_ssm_command() {
         --output text \
         --query "Command.CommandId")
 
-    status="InProgress" # seed status var
-    while [ "$status" == "InProgress" ]; do
+    command_status="InProgress" # seed status var
+    while [ "$command_status" == "InProgress" ]; do
         sleep 30
-        status=$(aws ssm list-command-invocations \
+        command_invocation=$(aws ssm get-command-invocation \
             --command-id "$sh_command_id" \
-            --details \
-            --output text \
-            --query "CommandInvocations[0].CommandPlugins[0].Status")
+            --instance-id "$C9_PID")
+        echo -E "$command_invocation" | jq # for debugging purposes
+        command_status=$(echo -E "$command_invocation" | jq -r '.Status')
     done
-    [ "$status" != "Success" ] && (echo "failed executing $SSM_COMMAND : $status" && exit 1)
+    [ "$command_status" != "Success" ] && (echo "failed executing $SSM_COMMAND : $command_status" && exit 1)
     echo "successfully completed execution!"
 }
 
@@ -56,7 +56,6 @@ if [[ "$STACK_OPERATION" == "create" || "$STACK_OPERATION" == "update" ]]; then
             --output text \
             --query "Parameter.Value")
 
-        ## todo: remove this when the workshop is updated to use the main branch
         run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment && git clone --single-branch --branch $GIT_BRANCH $GIT_REPO"
         run_ssm_command "$TARGET_USER" "$C9_PID" "rm -vf ~/.aws/credentials"
         run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./setup.sh"
