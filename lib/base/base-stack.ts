@@ -3,7 +3,6 @@ import { Construct } from "constructs";
 import { EksCluster } from "../../lib/eks/eks-blueprint-stack";
 import { CognitoResources } from "../../lib/cognito/cognito-stack";
 import { IstioResources } from "../../lib/eks/istio-stack";
-import { XrayAddOnStack } from "../../lib/eks/xray-daemon-stack";
 import { CloudwatchAgentAddOnStack } from "../eks/cloudwatch-agent";
 
 export interface BaseStackProps extends cdk.StackProps {
@@ -15,7 +14,6 @@ export class BaseStack extends cdk.Stack {
   public readonly eksCluster: EksCluster;
   public readonly cognitoResources: CognitoResources;
   public readonly istioResources: IstioResources;
-  public readonly xrayAddOnStack: XrayAddOnStack;
   public readonly cloudwatchAgentAddOnStack: CloudwatchAgentAddOnStack;
 
   constructor(scope: Construct, id: string, props: BaseStackProps) {
@@ -36,10 +34,6 @@ export class BaseStack extends cdk.Stack {
       tlsKey: tlsKeyIstio,
     });
 
-    const xrayAddOnStack = new XrayAddOnStack(this, "XrayStack", {
-      cluster: eksCluster.cluster,
-    });
-
     const cloudwatchAgentAddOnStack = new CloudwatchAgentAddOnStack(
       this,
       "CloudwatchAgentStack",
@@ -51,7 +45,6 @@ export class BaseStack extends cdk.Stack {
     this.eksCluster = eksCluster;
     this.cognitoResources = cognitoResources;
     this.istioResources = istioResources;
-    this.xrayAddOnStack = xrayAddOnStack;
     this.cloudwatchAgentAddOnStack = cloudwatchAgentAddOnStack;
 
     new cdk.CfnOutput(this, "CognitoUserPoolId", {

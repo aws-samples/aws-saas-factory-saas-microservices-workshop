@@ -30,10 +30,11 @@ XRayMiddleware(app, xray_recorder)
 
 
 @metric_scope
-def track_metric(tenant, metric_name, metrics):
+def track_metric(tenant, metric_name, count, metrics):
     metrics.put_dimensions({"tenant": tenant})
-    metric.put_dimensions({"ServiceName": xray_service_name})
-    metrics.put_metric(metric_name, 1, "Count", StorageResolution.STANDARD)
+    metrics.put_dimensions({"ServiceName": xray_service_name})
+    metrics.put_dimensions({"ServiceType": "app-service"})
+    metrics.put_metric(metric_name, count, "Count", StorageResolution.STANDARD)
     metrics.flush()
 
 # PASTE: LAB1(tenant context)
@@ -41,7 +42,6 @@ def track_metric(tenant, metric_name, metrics):
 
 # REPLACE START: LAB2 (get client)
 def get_boto3_client(service):
-    track_metric("unknown", "health-check")
     return boto3.client(service)
 # REPLACE END: LAB2 (get client)
 
