@@ -78,12 +78,12 @@ if (kubectlRole) {
   );
 }
 
-const sharedImageAsset = new SharedStack(blueprint, "SharedStack");
+const sharedStack = new SharedStack(blueprint, "SharedStack");
 
 new SSMResources(blueprint, "SSMResources", {
   clusterInfo: blueprint.getClusterInfo(),
   workshopSSMPrefix: workshopSSMPrefix,
-  sharedImageAsset: sharedImageAsset.sharedImageAsset,
+  sharedImageAsset: sharedStack.sharedImageAsset,
 });
 
 new Cloud9Resources(blueprint, "Cloud9Resources", {
