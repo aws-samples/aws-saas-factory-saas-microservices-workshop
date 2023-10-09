@@ -36,7 +36,7 @@ GIT_BRANCH=$REPO_BRANCH_NAME
 # TARGET_USER="ec2-user"
 TARGET_USER="ubuntu"
 corepack enable
-corepack prepare yarn@stable --activate
+corepack prepare yarn@3.6.4 --activate
 npm install -g aws-cdk@2.91.0
 
 cd standalone-eks-stack
