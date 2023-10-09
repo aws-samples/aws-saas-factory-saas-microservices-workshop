@@ -14,8 +14,3 @@ aws cloudformation deploy \
         RepoUrl="https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop.git" \
         RepoBranchName="v2" \
         IsWorkshopStudioEnv="no"
-
-echo "Configuring kubeconfig..."
-../scripts/configure-kubeconfig.sh
-
-echo "Done!"
