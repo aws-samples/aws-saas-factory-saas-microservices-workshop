@@ -11,7 +11,7 @@ sudo chmod +x /usr/local/bin/kubectl
 kubectl version --short --client
 
 corepack enable
-corepack prepare yarn@stable --activate
+corepack prepare yarn@3.6.4 --activate
 
 echo "Installing AWS CLI 2.x"
 curl --no-progress-meter "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
