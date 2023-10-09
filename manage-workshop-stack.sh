@@ -54,7 +54,7 @@ if [[ "$STACK_OPERATION" == "create" || "$STACK_OPERATION" == "update" ]]; then
         C9_PID=$(aws ssm get-parameter \
             --name "$CLOUD9_INSTANCE_ID_PARAMETER_NAME" \
             --output text \
-            --query "Parameter.Value")
+            --query "Parameter.Value") 
 
         run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment && git clone --single-branch --branch $GIT_BRANCH $GIT_REPO"
         run_ssm_command "$TARGET_USER" "$C9_PID" "rm -vf ~/.aws/credentials"
@@ -66,8 +66,12 @@ elif [ "$STACK_OPERATION" == "delete" ]; then
     C9_PID=$(aws ssm get-parameter \
         --name "$CLOUD9_INSTANCE_ID_PARAMETER_NAME" \
         --output text \
-        --query "Parameter.Value")
-    run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh"
+        --query "Parameter.Value" 2>/dev/null) #suppress error if C9 has not been created
+
+    if [ -z "$C9_PID" ]; then
+        run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh"
+    fi
+    
     echo "Starting cdk destroy..."
     npx cdk destroy --all --force
     echo "Done cdk destroy!"
