@@ -68,7 +68,7 @@ elif [ "$STACK_OPERATION" == "delete" ]; then
         --output text \
         --query "Parameter.Value" 2>/dev/null) #suppress error if C9 has not been created
 
-    if [ -z "$C9_PID" ]; then
+    if [ -n "$C9_PID" ]; then
         run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh"
     fi
     
