@@ -6,6 +6,7 @@ import { OrderAdvancedTierStack } from "../order/infrastructure/order-advanced-t
 import { ProductAdvancedTierStack } from "../product/infrastructure/product-advanced-tier-stack";
 import { EksCluster } from "../eks/eks-blueprint-stack";
 import { Tier } from "../enums/tier";
+import { InvoiceStack } from "../invoice/infrastructure/invoice-stack";
 
 export class ApplicationAdvancedTierStack extends cdk.Stack {
   constructor(
@@ -81,30 +82,28 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
       }
     );
 
-    if (fulfillmentDockerImageAsset) {
-      const fulfillmentAdvancedTierStack = new FulfillmentAdvancedTierStack(
-        this,
-        "fulfillmentAdvancedTierStack",
-        {
-          cluster: cluster,
-          istioIngressGateway: istioIngressGateway,
-          fulfillmentServiceDNS: fulfillmentServiceDNS,
-          fulfillmentServiceDNSPort: fulfillmentServicePort,
-          fulfillmentDockerImageAsset: fulfillmentDockerImageAsset,
-          sideCarImageAsset: sideCarImageAsset,
-          namespace: tenantSpecificAdvancedTierNamespaceName,
-          tier: tier,
-          tenantId: tenantId,
-          xrayServiceDNSAndPort: xrayServiceDNSAndPort,
-          namespaceConstruct: tenantSpecificAdvancedTierNamespace,
-          cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
-          cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
-        }
-      );
-      fulfillmentAdvancedTierStack.node.addDependency(
-        tenantSpecificAdvancedTierNamespace
-      );
-    }
+    const fulfillmentAdvancedTierStack = new FulfillmentAdvancedTierStack(
+      this,
+      "fulfillmentAdvancedTierStack",
+      {
+        cluster: cluster,
+        istioIngressGateway: istioIngressGateway,
+        fulfillmentServiceDNS: fulfillmentServiceDNS,
+        fulfillmentServiceDNSPort: fulfillmentServicePort,
+        fulfillmentDockerImageAsset: fulfillmentDockerImageAsset,
+        sideCarImageAsset: sideCarImageAsset,
+        namespace: tenantSpecificAdvancedTierNamespaceName,
+        tier: tier,
+        tenantId: tenantId,
+        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
+        namespaceConstruct: tenantSpecificAdvancedTierNamespace,
+        cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
+        cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
+      }
+    );
+    fulfillmentAdvancedTierStack.node.addDependency(
+      tenantSpecificAdvancedTierNamespace
+    );
 
     const orderAdvancedTierStack = new OrderAdvancedTierStack(
       this,
@@ -122,5 +121,22 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       }
     );
+
+    const invoiceStack = new InvoiceStack(this, "invoiceAdvancedTierStack", {
+      cluster: cluster,
+      istioIngressGateway: istioIngressGateway,
+      namespace: tenantSpecificAdvancedTierNamespaceName,
+      fulfillmentQueue: fulfillmentAdvancedTierStack.fulfillmentQueue,
+      productServiceDNS: productServiceDNS,
+      applicationImageAsset: props.basicStack?.invoiceImageAsset,
+      sideCarImageAsset: sideCarImageAsset,
+      tier: tier,
+      tenantId: tenantId,
+      xrayServiceDNSAndPort: xrayServiceDNSAndPort,
+      cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
+      cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
+      namespaceConstruct: tenantSpecificAdvancedTierNamespace,
+    });
+    invoiceStack.node.addDependency(fulfillmentAdvancedTierStack);
   }
 }
