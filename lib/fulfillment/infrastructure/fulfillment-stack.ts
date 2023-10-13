@@ -9,6 +9,7 @@ var path = require("path");
 export class FulfillmentStack extends Construct {
   public readonly fulfillmentServiceDNS: string;
   public readonly fulfillmentServicePort: number;
+  public readonly fulfillmentQueue: sqs.Queue;
 
   public readonly fulfillmentDockerImageAsset: DockerImageAsset;
   constructor(scope: Construct, id: string, props?: MicroserviceStackProps) {
@@ -46,7 +47,7 @@ export class FulfillmentStack extends Construct {
       this.fulfillmentDockerImageAsset = image;
     }
 
-    const queue = new sqs.Queue(this, "Queue", {
+    this.fulfillmentQueue = new sqs.Queue(this, "Queue", {
       queueName: `SaaS-Microservices-Orders-Fulfilled-${namespace}`,
       retentionPeriod: cdk.Duration.days(1),
     });
@@ -71,7 +72,7 @@ export class FulfillmentStack extends Construct {
         statements: [
           new iam.PolicyStatement({
             actions: ["sqs:SendMessage"],
-            resources: [queue.queueArn],
+            resources: [this.fulfillmentQueue.queueArn],
           }),
         ],
       })
@@ -143,7 +144,7 @@ export class FulfillmentStack extends Construct {
                 env: [
                   {
                     name: "QUEUE_URL",
-                    value: queue.queueUrl,
+                    value: this.fulfillmentQueue.queueUrl,
                   },
                   {
                     name: "AWS_DEFAULT_REGION",
