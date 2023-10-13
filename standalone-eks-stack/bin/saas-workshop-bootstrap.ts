@@ -10,6 +10,10 @@ import { Cloud9Resources } from "../lib/cloud9-resources";
 import { DestroyPolicySetter } from "../lib/cdk-aspect/destroy-policy-setter";
 import { SSMResources } from "../lib/ssm-resources";
 import { SharedStack } from "../lib/shared/infrastructure/shared-stack";
+import {
+  LogGroupResourceProvider,
+  MyCustomAwsForFluentBitAddOn,
+} from "../lib/fluentbit";
 
 const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;
@@ -22,6 +26,7 @@ const cloud9InstanceType = "m5.large";
 const cloud9ImageId = "ubuntu-22.04-x86_64";
 
 const blueprint = blueprints.EksBlueprint.builder()
+  .resourceProvider("LogGroup", new LogGroupResourceProvider())
   .account(account)
   .region(region)
   .teams(
@@ -31,6 +36,14 @@ const blueprint = blueprints.EksBlueprint.builder()
     })
   )
   .addOns(
+    new MyCustomAwsForFluentBitAddOn(),
+    new blueprints.addons.KedaAddOn({
+      podSecurityContextFsGroup: 1001,
+      securityContextRunAsGroup: 1001,
+      securityContextRunAsUser: 1001,
+      irsaRoles: ["AmazonSQSReadOnlyAccess"],
+      // irsaRoles: ["CloudWatchFullAccess", "AmazonSQSFullAccess"],
+    }),
     new blueprints.addons.IstioBaseAddOn(),
     new blueprints.addons.IstioControlPlaneAddOn()
   )
