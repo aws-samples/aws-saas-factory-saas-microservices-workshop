@@ -71,7 +71,10 @@ def postOrderFulfillment(order_id):
                     'DataType': 'String'
                 }
             },
-            MessageBody=str(request.get_json()))
+            MessageBody=json.dumps({
+                "order": request.get_json(),
+                "authorization": authorization
+            })
 
         app.logger.debug("Fulfillment complete: " + str(order_id) +
                          ", tenant:" + str(tenantContext.tenant_id))
