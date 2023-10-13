@@ -75,6 +75,7 @@ def postOrderFulfillment(order_id):
                 "order": request.get_json(),
                 "authorization": authorization
             })
+        )
 
         app.logger.debug("Fulfillment complete: " + str(order_id) +
                          ", tenant:" + str(tenantContext.tenant_id))
