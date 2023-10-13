@@ -18,13 +18,13 @@ export class CloudwatchAgentAddOnStack extends Construct {
     const xrayPort = 2000;
     const cloudwatchAgentNamespaceName = "amazon-cloudwatch";
     const cloudwatchAgentServiceName = "cloudwatch-agent-service";
-    const cloudwatchAgentConfigMapName = "cw-agent-config-map";
+    const cloudwatchAgentConfigMapName = "cloudwatch-agent-config-map";
     this.cloudwatchAgentLogEndpoint = `http://${cloudwatchAgentServiceName}.${cloudwatchAgentNamespaceName}:${cloudwatchAgentPort}`;
     this.cloudwatchAgentXrayEndpoint = `${cloudwatchAgentServiceName}.${cloudwatchAgentNamespaceName}:${xrayPort}`;
 
     this.cloudwatchAgentLogGroup = new logs.LogGroup(
       this,
-      "cloudwatch-agent-log-group",
+      "cloudwatch-agent-log-groupp", // todo: fix me!!!
       {
         retention: logs.RetentionDays.ONE_WEEK,
       }
@@ -173,7 +173,47 @@ export class CloudwatchAgentAddOnStack extends Construct {
 
     cloudwatchAgentService.node.addDependency(cloudwatchAgentNamespace);
 
-    const daemon = cluster.addManifest("test", {
+    const cloudwatchAgentConfigMap = cluster.addManifest(
+      "cloudwatchAgentConfigMap",
+      {
+        apiVersion: "v1",
+        data: {
+          "cwagentconfig.json": JSON.stringify({
+            agent: { debug: true },
+            logs: {
+              metrics_collected: {
+                kubernetes: {
+                  cluster_name: cluster.clusterName,
+                  metrics_collection_interval: 60,
+                },
+                emf: {
+                  service_address: `${cloudwatchAgentProtocol.toLowerCase()}://0.0.0.0:${cloudwatchAgentPort}`,
+                },
+              },
+              force_flush_interval: 5,
+            },
+            traces: {
+              traces_collected: {
+                xray: {
+                  bind_address: `0.0.0.0:${xrayPort}`,
+                  tcp_proxy: {
+                    bind_address: `0.0.0.0:${xrayPort}`,
+                  },
+                },
+              },
+            },
+          }),
+        },
+        kind: "ConfigMap",
+        metadata: {
+          name: cloudwatchAgentConfigMapName,
+          namespace: cloudwatchAgentNamespaceName,
+        },
+      }
+    );
+    cloudwatchAgentConfigMap.node.addDependency(cloudwatchAgentService);
+
+    const cloudwatchDaemonSet = cluster.addManifest("CloudwatchDaemonSet", {
       apiVersion: "apps/v1",
       kind: "DaemonSet",
       metadata: {
@@ -340,43 +380,7 @@ export class CloudwatchAgentAddOnStack extends Construct {
       },
     });
 
-    const cloudwatchAgentDaemon = cluster.addManifest("configmap", {
-      apiVersion: "v1",
-      data: {
-        "cwagentconfig.json": JSON.stringify({
-          agent: { debug: true },
-          logs: {
-            metrics_collected: {
-              kubernetes: {
-                cluster_name: cluster.clusterName,
-                metrics_collection_interval: 60,
-              },
-              emf: {
-                service_address: `${cloudwatchAgentProtocol.toLowerCase()}://0.0.0.0:${cloudwatchAgentPort}`,
-              },
-            },
-            force_flush_interval: 5,
-          },
-          traces: {
-            traces_collected: {
-              xray: {
-                bind_address: `0.0.0.0:${xrayPort}`,
-                tcp_proxy: {
-                  bind_address: `0.0.0.0:${xrayPort}`,
-                },
-              },
-            },
-          },
-        }),
-      },
-      kind: "ConfigMap",
-      metadata: {
-        name: cloudwatchAgentConfigMapName,
-        namespace: cloudwatchAgentNamespaceName,
-      },
-    });
-
-    cloudwatchAgentDaemon.node.addDependency(cloudwatchAgentNamespace);
-    cloudwatchAgentDaemon.node.addDependency(cloudwatchAgentService);
+    cloudwatchDaemonSet.node.addDependency(sa);
+    cloudwatchDaemonSet.node.addDependency(cloudwatchAgentConfigMap);
   }
 }
