@@ -7,6 +7,7 @@ import { OrderStack } from "../order/infrastructure/order-stack";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { Tier } from "../enums/tier";
 import { EksCluster } from "../eks/eks-blueprint-stack";
+import { InvoiceStack } from "../invoice/infrastructure/invoice-stack";
 
 export class ApplicationStack extends cdk.Stack {
   public readonly fulfillmentServiceDNS: string;
@@ -18,6 +19,7 @@ export class ApplicationStack extends cdk.Stack {
   public readonly fulfillmentDockerImageAsset: DockerImageAsset;
   public readonly productDockerImageAsset: DockerImageAsset;
   public readonly orderDockerImageAsset: DockerImageAsset;
+  public readonly invoiceImageAsset: DockerImageAsset;
   public readonly namespace: string;
 
   constructor(scope: Construct, id: string, props: ApplicationStackProps) {
@@ -121,9 +123,29 @@ export class ApplicationStack extends cdk.Stack {
         namespaceConstruct: stackNamespace,
       });
       orderStack.node.addDependency(stackNamespace);
+      orderStack.node.addDependency(fulfillmentStack);
       this.orderServiceDNS = orderStack.orderServiceDNS;
       this.orderServicePort = orderStack.orderServicePort;
       this.orderDockerImageAsset = orderStack.orderDockerImageAsset;
+
+      const invoiceStack = new InvoiceStack(this, "invoiceStack", {
+        cluster: cluster,
+        istioIngressGateway: istioIngressGateway,
+        namespace: this.namespace,
+        fulfillmentQueue: fulfillmentStack.fulfillmentQueue,
+        productServiceDNS: productStack.productServiceDNS,
+        applicationImageAsset: props.basicStack?.invoiceImageAsset,
+        sideCarImageAsset: sideCarImageAsset,
+        tier: tier,
+        tenantId: tenantId,
+        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
+        cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
+        cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
+        namespaceConstruct: stackNamespace,
+      });
+      invoiceStack.node.addDependency(stackNamespace);
+      invoiceStack.node.addDependency(fulfillmentStack);
+      this.invoiceImageAsset = invoiceStack.invoiceImageAsset;
     }
   }
 }
