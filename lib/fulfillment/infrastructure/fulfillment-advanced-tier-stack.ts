@@ -6,6 +6,7 @@ import { Construct } from "constructs";
 import { FulfillmentMicroserviceAdvancedTierStackProps } from "../../interface/fulfillment-microservice-advanced-tier-props";
 
 export class FulfillmentAdvancedTierStack extends Construct {
+  public readonly fulfillmentQueue: sqs.Queue;
   constructor(
     scope: Construct,
     id: string,
@@ -31,7 +32,7 @@ export class FulfillmentAdvancedTierStack extends Construct {
       ...(tenantId && { tenantId: tenantId }),
     };
 
-    const queue = new sqs.Queue(this, "Queue", {
+    this.fulfillmentQueue = new sqs.Queue(this, "Queue", {
       queueName: `SaaS-Microservices-Orders-Fulfilled-${namespace}`,
       retentionPeriod: cdk.Duration.days(1),
     });
@@ -56,7 +57,7 @@ export class FulfillmentAdvancedTierStack extends Construct {
         statements: [
           new iam.PolicyStatement({
             actions: ["sqs:SendMessage"],
-            resources: [queue.queueArn],
+            resources: [this.fulfillmentQueue.queueArn],
           }),
         ],
       })
@@ -132,7 +133,7 @@ export class FulfillmentAdvancedTierStack extends Construct {
                   env: [
                     {
                       name: "QUEUE_URL",
-                      value: queue.queueUrl,
+                      value: this.fulfillmentQueue.queueUrl,
                     },
                     {
                       name: "AWS_DEFAULT_REGION",
