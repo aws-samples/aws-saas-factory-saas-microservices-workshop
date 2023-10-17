@@ -14,6 +14,7 @@ const region = process.env.CDK_DEFAULT_REGION;
 const deploymentMode = process.env.CDK_PARAM_DEPLOYMENT_MODE || "all";
 const tlsCertIstio = process.env.CDK_PARAM_TLS_CERT_ISTIO;
 const tlsKeyIstio = process.env.CDK_PARAM_TLS_KEY_ISTIO;
+const workshopSSMPrefix = "/saas-workshop";
 
 if (!tlsCertIstio || !tlsKeyIstio) {
   throw new Error(
@@ -26,6 +27,7 @@ const baseStack = new BaseStack(app, "SaaSMicroserviceBaseStack", {
   stackName: "SaaS-Microservices-Base-Stack",
   tlsCertIstio: tlsCertIstio,
   tlsKeyIstio: tlsKeyIstio,
+  workshopSSMPrefix: workshopSSMPrefix,
 });
 
 const tokenVendorStack = new TokenVendorStack(app, "TokenVendorStack", {
@@ -38,8 +40,9 @@ const basicStack = new ApplicationStack(app, "PoolBasicStack", {
   tier: Tier.Basic,
   sideCarImageAsset: tokenVendorStack.tokenVendorImage,
   deploymentMode: deploymentMode,
+  workshopSSMPrefix: workshopSSMPrefix,
 });
-basicStack.addDependency(baseStack);
+basicStack.node.addDependency(baseStack);
 
 const tenantBstack = new ApplicationAdvancedTierStack(app, "tenantBstack", {
   env: { account, region },
@@ -49,9 +52,21 @@ const tenantBstack = new ApplicationAdvancedTierStack(app, "tenantBstack", {
   sideCarImageAsset: tokenVendorStack.tokenVendorImage,
   deploymentMode: deploymentMode,
   tenantId: "tenant-b",
+  workshopSSMPrefix: workshopSSMPrefix,
 });
-tenantBstack.addDependency(baseStack);
-tenantBstack.addDependency(basicStack);
+tenantBstack.node.addDependency(basicStack);
+
+const tenantEstack = new ApplicationAdvancedTierStack(app, "tenantEstack", {
+  env: { account, region },
+  baseStack: baseStack,
+  basicStack: basicStack,
+  namespace: basicStack.namespace,
+  sideCarImageAsset: tokenVendorStack.tokenVendorImage,
+  deploymentMode: deploymentMode,
+  tenantId: "tenant-e",
+  workshopSSMPrefix: workshopSSMPrefix,
+});
+tenantEstack.node.addDependency(basicStack);
 
 const tenantCstack = new ApplicationStack(app, "tenantCstack", {
   env: { account, region },
@@ -61,9 +76,9 @@ const tenantCstack = new ApplicationStack(app, "tenantCstack", {
   sideCarImageAsset: tokenVendorStack.tokenVendorImage,
   deploymentMode: deploymentMode,
   tier: Tier.Premium,
+  workshopSSMPrefix: workshopSSMPrefix,
 });
-tenantCstack.addDependency(baseStack);
-tenantCstack.addDependency(basicStack);
+tenantCstack.node.addDependency(basicStack);
 
 // Set destroy policies to all stacks.
 const stacks = [
@@ -72,6 +87,7 @@ const stacks = [
   basicStack,
   tenantBstack,
   tenantCstack,
+  tenantEstack,
 ];
 stacks.forEach((stack) => {
   cdk.Aspects.of(stack).add(new DestroyPolicySetter());
