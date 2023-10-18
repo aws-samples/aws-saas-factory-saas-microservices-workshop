@@ -1,11 +1,11 @@
-ARG BASE_IMAGE
+ARG BASE_IMAGE="public.ecr.aws/docker/library/python:3.9.14-slim-bullseye"
 FROM ${BASE_IMAGE}
 
 ENV APP_USER=app
 ENV APP_DIR=/home/${APP_USER}/code
 ENV APP_SHARED_DIR=${APP_DIR}/shared
 
-RUN useradd -m $APP_USER && mkdir -p $APP_SHARED_DIR && chown "${APP_USER}:${APP_USER}" -R $APP_DIR || echo "user already exists" 
+RUN useradd -m $APP_USER && mkdir -p $APP_SHARED_DIR && chown "${APP_USER}:${APP_USER}" -R $APP_DIR || echo "user already exists"
 USER $APP_USER
 
 ENV PATH="/home/${APP_USER}/.local/bin:${PATH}"
