@@ -6,7 +6,8 @@ import { Construct } from "constructs";
 import { FulfillmentMicroserviceAdvancedTierStackProps } from "../../interface/fulfillment-microservice-advanced-tier-props";
 
 export class FulfillmentAdvancedTierStack extends Construct {
-  public readonly fulfillmentQueue: sqs.Queue;
+  public readonly eventSource: string;
+  public readonly eventDetailType: string;
   constructor(
     scope: Construct,
     id: string,
@@ -23,6 +24,7 @@ export class FulfillmentAdvancedTierStack extends Construct {
     const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
+    const eventBus = props.eventBus;
 
     const tier = props.tier;
     const tenantId = props.tenantId;
@@ -32,10 +34,13 @@ export class FulfillmentAdvancedTierStack extends Construct {
       ...(tenantId && { tenantId: tenantId }),
     };
 
-    this.fulfillmentQueue = new sqs.Queue(this, "Queue", {
-      queueName: `SaaS-Microservices-Orders-Fulfilled-${namespace}`,
-      retentionPeriod: cdk.Duration.days(1),
-    });
+    const serviceName = tenantId
+      ? `${tenantId}-fulfillment`
+      : `${tier}-fulfillment`;
+    const serviceType = "webapp";
+
+    this.eventSource = `${tier}-${tenantId ? tenantId : "pool"}`;
+    this.eventDetailType = "order-fulfillment-request";
 
     const fulfillmentServiceAccount = cluster.addServiceAccount(
       "FulfillmentAdvServiceAccount",
@@ -56,8 +61,8 @@ export class FulfillmentAdvancedTierStack extends Construct {
       new iam.Policy(this, "FulfillmentAccessPolicy", {
         statements: [
           new iam.PolicyStatement({
-            actions: ["sqs:SendMessage"],
-            resources: [this.fulfillmentQueue.queueArn],
+            actions: ["events:PutEvents"],
+            resources: [eventBus.eventBusArn],
           }),
         ],
       })
@@ -132,9 +137,11 @@ export class FulfillmentAdvancedTierStack extends Construct {
                   },
                   env: [
                     {
-                      name: "QUEUE_URL",
-                      value: this.fulfillmentQueue.queueUrl,
+                      name: "EVENT_BUS_NAME",
+                      value: eventBus.eventBusName,
                     },
+                    { name: "EVENT_SOURCE", value: this.eventSource },
+                    { name: "EVENT_DETAIL_TYPE", value: this.eventDetailType },
                     {
                       name: "AWS_DEFAULT_REGION",
                       value: cdk.Stack.of(this).region,
@@ -168,8 +175,12 @@ export class FulfillmentAdvancedTierStack extends Construct {
                       },
                     },
                     {
-                      name: "AWS_XRAY_SERVICE_NAME",
-                      value: "FulfillmentService",
+                      name: "SERVICE_NAME",
+                      value: serviceName,
+                    },
+                    {
+                      name: "SERVICE_TYPE",
+                      value: serviceType,
                     },
                   ],
                   ports: [
