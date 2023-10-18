@@ -3,16 +3,21 @@ import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { Construct } from "constructs";
-import { MicroserviceStackProps } from "../../interface/microservice-props";
+import { FulfillmentMicroserviceStackProps } from "../../interface/fulfillment-microservice-props";
 
 var path = require("path");
 export class FulfillmentStack extends Construct {
   public readonly fulfillmentServiceDNS: string;
   public readonly fulfillmentServicePort: number;
-  public readonly fulfillmentQueue: sqs.Queue;
+  public readonly eventSource: string;
+  public readonly eventDetailType: string;
 
   public readonly fulfillmentDockerImageAsset: DockerImageAsset;
-  constructor(scope: Construct, id: string, props?: MicroserviceStackProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props?: FulfillmentMicroserviceStackProps
+  ) {
     super(scope, id);
 
     if (props?.cluster == undefined) {
@@ -24,12 +29,23 @@ export class FulfillmentStack extends Construct {
     const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
+    const eventBus = props.eventBus;
     const tenantId = props.tenantId;
+    const baseImage = props.baseImage;
     const namespace = props.namespace; // from the ApplicationStack
     const multiTenantLabels = {
       tier: tier,
       ...(tenantId && { tenantId: tenantId }),
     };
+
+    const serviceName = tenantId
+      ? `${tenantId}-fulfillment`
+      : `${tier}-fulfillment`;
+    const serviceType = "webapp";
+
+    this.eventSource = `${tier}-${tenantId ? tenantId : "pool"}`;
+    // this.eventSource = `fulfillment-service`;
+    this.eventDetailType = "order-fulfilled";
 
     if (props.applicationImageAsset) {
       this.fulfillmentDockerImageAsset = props.applicationImageAsset;
@@ -39,6 +55,11 @@ export class FulfillmentStack extends Construct {
         "saas-microservices-fulfillment-image",
         {
           directory: path.join(__dirname, "../app"),
+          ...(baseImage && {
+            buildArgs: {
+              BASE_IMAGE: baseImage,
+            },
+          }),
         }
       );
       new cdk.CfnOutput(this, "image", {
@@ -46,11 +67,6 @@ export class FulfillmentStack extends Construct {
       });
       this.fulfillmentDockerImageAsset = image;
     }
-
-    this.fulfillmentQueue = new sqs.Queue(this, "Queue", {
-      queueName: `SaaS-Microservices-Orders-Fulfilled-${namespace}`,
-      retentionPeriod: cdk.Duration.days(1),
-    });
 
     const fulfillmentServiceAccount = cluster.addServiceAccount(
       "FulfillmentServiceAccount",
@@ -71,8 +87,8 @@ export class FulfillmentStack extends Construct {
       new iam.Policy(this, "FulfillmentServiceAccessPolicy", {
         statements: [
           new iam.PolicyStatement({
-            actions: ["sqs:SendMessage"],
-            resources: [this.fulfillmentQueue.queueArn],
+            actions: ["events:PutEvents"],
+            resources: [eventBus.eventBusArn],
           }),
         ],
       })
@@ -143,9 +159,11 @@ export class FulfillmentStack extends Construct {
                 },
                 env: [
                   {
-                    name: "QUEUE_URL",
-                    value: this.fulfillmentQueue.queueUrl,
+                    name: "EVENT_BUS_NAME",
+                    value: eventBus.eventBusName,
                   },
+                  { name: "EVENT_SOURCE", value: this.eventSource },
+                  { name: "EVENT_DETAIL_TYPE", value: this.eventDetailType },
                   {
                     name: "AWS_DEFAULT_REGION",
                     value: cdk.Stack.of(this).region,
@@ -179,8 +197,12 @@ export class FulfillmentStack extends Construct {
                     },
                   },
                   {
-                    name: "AWS_XRAY_SERVICE_NAME",
-                    value: "FulfillmentService",
+                    name: "SERVICE_NAME",
+                    value: serviceName,
+                  },
+                  {
+                    name: "SERVICE_TYPE",
+                    value: serviceType,
                   },
                 ],
                 ports: [
@@ -246,7 +268,7 @@ export class FulfillmentStack extends Construct {
                   uri: {
                     prefix: "/fulfillments",
                   },
-                  /* // LAB4: REMOVE THIS LINE (routing)
+
                   headers: {
                     "x-app-tier": {
                       regex: tier,
@@ -257,7 +279,6 @@ export class FulfillmentStack extends Construct {
                       },
                     }),
                   },
-                  */ // LAB4: REMOVE THIS LINE (routing)
                 },
               ],
               route: [
