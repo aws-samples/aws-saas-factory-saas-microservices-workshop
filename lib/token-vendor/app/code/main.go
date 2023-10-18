@@ -21,7 +21,7 @@ var tokenVendorEndpointPort string = os.Getenv("TOKEN_VENDOR_ENDPOINT_PORT")
 var awsRegion string = os.Getenv("AWS_DEFAULT_REGION")
 
 func main() {
-	xrayServiceName := fmt.Sprintf("TokenVendor-%s-%s", os.Getenv("AWS_XRAY_SERVICE_NAME"), os.Getenv("POD_NAMESPACE"))
+	xrayServiceName := fmt.Sprintf("TokenVendor-%s", os.Getenv("SERVICE_NAME"))
 	http.Handle("/health", http.HandlerFunc(health))
 	http.Handle("/", xray.Handler(xray.NewFixedSegmentNamer(xrayServiceName), http.HandlerFunc(getCredentials)))
 	http.ListenAndServe("127.0.0.1:"+tokenVendorEndpointPort, nil)
