@@ -1,4 +1,7 @@
 import * as cdk from "aws-cdk-lib";
+import * as aws_events from "aws-cdk-lib/aws-events";
+import * as aws_events_targets from "aws-cdk-lib/aws-events-targets";
+import * as logs from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 import { ProductStack } from "../product/infrastructure/product-stack";
 import { FulfillmentStack } from "../fulfillment/infrastructure/fulfillment-stack";
@@ -30,8 +33,11 @@ export class ApplicationStack extends cdk.Stack {
     }
 
     const deploymentMode = props.deploymentMode;
+    const workshopSSMPrefix = props.workshopSSMPrefix;
 
-    const eksCluster = new EksCluster(this, "EksCluster");
+    const eksCluster = new EksCluster(this, "EksCluster", {
+      workshopSSMPrefix: workshopSSMPrefix,
+    });
     const cluster = eksCluster.cluster;
     const xrayServiceDNSAndPort =
       props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentXrayEndpoint;
@@ -53,6 +59,34 @@ export class ApplicationStack extends cdk.Stack {
 
     // Application environment kubernetes namespace
     this.namespace = tenantId ? `${tenantId}` : `${tier}-pool`;
+
+    const eventBus = new aws_events.EventBus(
+      this,
+      `${this.namespace}-event-bus`
+    );
+
+    // EVENT WATCHER START
+    // This rule allows us to read ALL events sent to the advancedTierEventBus
+    const eventBusWatcherRule = new aws_events.Rule(
+      this,
+      "EventBusWatcherRule",
+      {
+        eventBus: eventBus,
+        enabled: true,
+        eventPattern: {
+          account: [cdk.Stack.of(this).account],
+        },
+      }
+    );
+    eventBusWatcherRule.addTarget(
+      new aws_events_targets.CloudWatchLogGroup(
+        new logs.LogGroup(this, "watcher-log-group", {
+          logGroupName: `${workshopSSMPrefix}/${this.namespace}-event-bus-logs`,
+          retention: logs.RetentionDays.ONE_WEEK,
+        })
+      )
+    );
+    // EVENT WATCHER END
 
     const stackNamespace = cluster.addManifest(`StackNamespaceManifest`, {
       apiVersion: "v1",
@@ -81,6 +115,7 @@ export class ApplicationStack extends cdk.Stack {
       cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
       cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       namespaceConstruct: stackNamespace,
+      baseImage: props.baseStack.baseImage,
     });
     productStack.node.addDependency(stackNamespace);
     this.productServiceDNS = productStack.productServiceDNS;
@@ -100,6 +135,8 @@ export class ApplicationStack extends cdk.Stack {
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
+        eventBus: eventBus,
+        baseImage: props.baseStack.baseImage,
       });
       fulfillmentStack.node.addDependency(stackNamespace);
       this.fulfillmentServicePort = fulfillmentStack.fulfillmentServicePort;
@@ -121,6 +158,7 @@ export class ApplicationStack extends cdk.Stack {
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
+        baseImage: props.baseStack.baseImage,
       });
       orderStack.node.addDependency(stackNamespace);
       orderStack.node.addDependency(fulfillmentStack);
@@ -132,7 +170,6 @@ export class ApplicationStack extends cdk.Stack {
         cluster: cluster,
         istioIngressGateway: istioIngressGateway,
         namespace: this.namespace,
-        fulfillmentQueue: fulfillmentStack.fulfillmentQueue,
         productServiceDNS: productStack.productServiceDNS,
         applicationImageAsset: props.basicStack?.invoiceImageAsset,
         sideCarImageAsset: sideCarImageAsset,
@@ -142,10 +179,23 @@ export class ApplicationStack extends cdk.Stack {
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
+        baseImage: props.baseStack.baseImage,
       });
       invoiceStack.node.addDependency(stackNamespace);
       invoiceStack.node.addDependency(fulfillmentStack);
       this.invoiceImageAsset = invoiceStack.invoiceImageAsset;
+
+      const invoiceQueueTarget = new aws_events_targets.SqsQueue(
+        invoiceStack.invoiceQueue
+      );
+      const invoiceRule = new aws_events.Rule(this, "invoiceRule", {
+        eventBus: eventBus,
+        eventPattern: {
+          detailType: [fulfillmentStack.eventDetailType],
+          source: [fulfillmentStack.eventSource],
+        },
+        targets: [invoiceQueueTarget],
+      });
     }
   }
 }
