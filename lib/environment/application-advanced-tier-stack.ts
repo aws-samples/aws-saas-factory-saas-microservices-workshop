@@ -1,4 +1,6 @@
 import * as cdk from "aws-cdk-lib";
+import * as aws_events from "aws-cdk-lib/aws-events";
+import * as aws_events_targets from "aws-cdk-lib/aws-events-targets";
 import { Construct } from "constructs";
 import { ApplicationAdvancedTierStackProps } from "../interface/application-advanced-tier-props";
 import { FulfillmentAdvancedTierStack } from "../fulfillment/infrastructure/fulfillment-advanced-tier-stack";
@@ -22,7 +24,9 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
 
     const tier = Tier.Advanced;
     const tenantId = props.tenantId;
-    const eksCluster = new EksCluster(this, "EksCluster");
+    const eksCluster = new EksCluster(this, "EksCluster", {
+      workshopSSMPrefix: props.workshopSSMPrefix,
+    });
     const cluster = eksCluster.cluster;
 
     const istioIngressGateway =
@@ -45,6 +49,8 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
     const cloudwatchAgentLogGroupName =
       props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogGroup
         .logGroupName;
+
+    const advancedTierEventBus = props.baseStack.advancedTierEventBus;
 
     const productAdvancedTierStack = new ProductAdvancedTierStack(
       this,
@@ -99,6 +105,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
         namespaceConstruct: tenantSpecificAdvancedTierNamespace,
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
+        eventBus: advancedTierEventBus,
       }
     );
     fulfillmentAdvancedTierStack.node.addDependency(
@@ -126,7 +133,6 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
       cluster: cluster,
       istioIngressGateway: istioIngressGateway,
       namespace: tenantSpecificAdvancedTierNamespaceName,
-      fulfillmentQueue: fulfillmentAdvancedTierStack.fulfillmentQueue,
       productServiceDNS: productServiceDNS,
       applicationImageAsset: props.basicStack?.invoiceImageAsset,
       sideCarImageAsset: sideCarImageAsset,
@@ -138,5 +144,17 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
       namespaceConstruct: tenantSpecificAdvancedTierNamespace,
     });
     invoiceStack.node.addDependency(fulfillmentAdvancedTierStack);
+
+    const invoiceQueueTarget = new aws_events_targets.SqsQueue(
+      invoiceStack.invoiceQueue
+    );
+    const invoiceRule = new aws_events.Rule(this, "invoiceRule", {
+      eventBus: advancedTierEventBus,
+      eventPattern: {
+        detailType: [fulfillmentAdvancedTierStack.eventDetailType],
+        source: [fulfillmentAdvancedTierStack.eventSource],
+      },
+      targets: [invoiceQueueTarget],
+    });
   }
 }
