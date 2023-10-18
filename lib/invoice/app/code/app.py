@@ -2,60 +2,31 @@ import os
 import json
 import logging
 import sys
-import random
 import requests
 import boto3
 import jwt
-from shared.helper_functions import get_tenant_context
-from botocore.exceptions import ClientError
+from shared.helper_functions import get_tenant_context, track_metric
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core import patch_all
 from aws_xray_sdk.core.sampling.local.sampler import LocalSampler
-from aws_embedded_metrics import metric_scope
-from aws_embedded_metrics.storage_resolution import StorageResolution
-
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 patch_all()
-# table_name = os.environ["TABLE_NAME"]
-xray_service_name = os.environ["AWS_XRAY_SERVICE_NAME"] + \
-    "-" + os.environ["POD_NAMESPACE"]
-xray_recorder.configure(
-    # sampling_rules=os.path.abspath("xray_sample_rules.json"),
-    service=xray_service_name,
-    sampler=LocalSampler()
-)
 product_endpoint = os.environ["PRODUCT_ENDPOINT"]
+service_name = os.environ["SERVICE_NAME"]
+service_type = os.environ["SERVICE_TYPE"]
+logging.basicConfig(stream=sys.stdout)
+logger = logging.getLogger(service_name)
+logger.setLevel(logging.INFO)
 
-# Initialize SQS and DynamoDB clients
+xray_recorder.configure(
+    service=service_name,
+    sampler=LocalSampler(),
+)
+
 sqs_client = boto3.client('sqs')
-
-# Name of your SQS queue and DynamoDB table
 sqs_queue_url = os.environ['QUEUE_URL']
-# dynamodb_table_name = 'YOUR_DYNAMODB_TABLE_NAME'
-max_messages_to_read = 5
-
-# Long polling configuration
+max_messages_to_read = 10
 wait_time_seconds = 20
-
-
-@metric_scope
-def track_metric(tenant, xray_service_name, metric_name, count, metrics):
-    metrics.put_dimensions({"tenant": tenant})
-    metrics.put_dimensions({"ServiceName": xray_service_name})
-    metrics.put_dimensions({"ServiceType": "app-service"})
-    metrics.put_metric(metric_name, count, "Count", StorageResolution.STANDARD)
-    metrics.flush()
-
-
-# todo: determine if this should be pushed to the shared library
-def log_info_message(message, tenantContext):
-    message_dict = {
-        'message': message,
-        'tier': tenantContext.tenant_tier,
-        'tenantId': tenantContext.tenant_id
-    }
-    logging.info(json.dumps(message_dict))
 
 
 def receive_message_from_sqs(queue_url, max_messages=5):
@@ -83,53 +54,70 @@ def calculate_order_total(product_ids, authorization):
                 "Authorization": authorization,
             },
         )
-        logging.info(f'product response: {response}')
+        logger.info(f'product response: {response}')
         if response.status_code == 200:
             response_json = response.json()
             product_data = response.json().get('product', None)
             if product_data is None:
-                logging.error(
+                logger.error(
                     f'lookup for product_id {product_id} failed. Response from product service: {response_json}')
                 raise Exception("product data is None.")
-            logging.info(f'product response: {product_data}')
+            logger.info(f'product response: {product_data}')
             total_price += float(product_data.get('price', 0))
     return total_price
 
 
-print("starting!!!")
-print(__name__)
 if __name__ == '__main__':
-    segment = xray_recorder.begin_segment('invoice-service')
-    messages = receive_message_from_sqs(
-        sqs_queue_url, max_messages=max_messages_to_read)
+    logger.info(f'searching for sqs messages...')
+    messages_processed = 0
+    while True:
+        segment = xray_recorder.begin_segment(service_name)
+        messages = receive_message_from_sqs(
+            sqs_queue_url, max_messages=max_messages_to_read)
 
-    logging.info(f'found messages: {len(messages)}')
-    logging.info(f'messages: {messages}')
-    if messages:
-        for message in messages:
-            logging.info(f'message: {message}')
-            message_body = json.loads(message['Body'])
-            logging.info(f'message_body: {message_body}')
+        logger.info(f'found {len(messages)} messages')
+        logger.info(f'messages: {messages}')
+        if messages:
+            for message in messages:
+                logger.info(f'message: {message}')
+                message_body = json.loads(message['Body'])
+                logger.info(f'message_body: {message_body}')
 
-            order = json.loads(message_body.get('order', {}))
-            product_ids = order.get('products', [])
-            authorization = message_body.get('authorization', None)
-            if not authorization:
-                logging.error(f'authorization: {authorization}')
-                raise Exception("Authorization in message is missing.")
+                message_detail = message_body.get('detail', {})
+                logger.info(f'message_detail: {message_detail}')
+                order = message_detail.get('order', {})
+                product_ids = order.get('products', [])
+                authorization = message_detail.get('authorization', None)
+                if not authorization:
+                    logger.error(f'authorization: {authorization}')
+                    raise Exception("Authorization in message is missing.")
 
-            total_price = calculate_order_total(product_ids, authorization)
-            tenantContext = get_tenant_context(authorization)
-            segment.put_annotation('tenantId', tenantContext.tenant_id)
-            segment.put_annotation('tenantTier', tenantContext.tenant_tier)
-            track_metric(tenantContext.tenant_id, xray_service_name,
-                         "InvoiceTotalPrice", total_price)
-            sqs_client.delete_message(
-                QueueUrl=sqs_queue_url, ReceiptHandle=message['ReceiptHandle'])
-            log_info_message(
-                f"Invoice created for order {order} with total price {total_price}", tenantContext)
-    else:
-        logging.info(f'No messages found in the SQS queue')
+                tenantContext = get_tenant_context(authorization)
+                subsegment = xray_recorder.begin_subsegment(
+                    f'{service_name}-fulfillment-processing', 'remote')
+                subsegment.put_annotation('tenant_id', tenantContext.tenant_id)
+                subsegment.put_annotation(
+                    'tenant_tier', tenantContext.tenant_tier)
 
-    print(f"Processed {len(messages)} messages. Exiting the script.")
-    xray_recorder.end_segment()
+                total_price = calculate_order_total(product_ids, authorization)
+                track_metric(authorization, service_name, service_type,
+                             "InvoiceTotalPrice", total_price)
+                xray_recorder.end_subsegment()
+
+                sqs_client.delete_message(
+                    QueueUrl=sqs_queue_url, ReceiptHandle=message['ReceiptHandle'])
+
+                message_dict = {
+                    'message': f"Invoice created for order {order} with total price {total_price}",
+                    'tier': tenantContext.tenant_tier,
+                    'tenantId': tenantContext.tenant_id
+                }
+                logger.info(json.dumps(message_dict))
+                messages_processed += 1
+        else:
+            logger.info(f'No messages found in the SQS queue')
+            break
+        xray_recorder.end_segment()
+
+    logger.info(
+        f"Processed {messages_processed} messages. Exiting the script.")

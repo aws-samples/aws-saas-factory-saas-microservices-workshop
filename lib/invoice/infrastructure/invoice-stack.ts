@@ -1,6 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as sqs from "aws-cdk-lib/aws-sqs";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { Construct } from "constructs";
 import { InvoiceMicroserviceStackProps } from "../../interface/invoice-microservice-props";
@@ -9,6 +10,7 @@ var path = require("path");
 
 export class InvoiceStack extends Construct {
   public readonly invoiceImageAsset: DockerImageAsset;
+  public readonly invoiceQueue: sqs.Queue;
   constructor(
     scope: Construct,
     id: string,
@@ -16,29 +18,27 @@ export class InvoiceStack extends Construct {
   ) {
     super(scope, id);
 
-    const workshopSSMPrefix = "/saas-workshop";
-
-    const fulfillmentQueueURL = props.fulfillmentQueue.queueUrl;
-    const fulfillmentQueueArn = props.fulfillmentQueue.queueArn;
     const productServiceDNS = props.productServiceDNS;
-    const xrayServiceName = "InvoiceService";
     const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
-    const baseImageSSMParameterName = `${workshopSSMPrefix}/sharedImageUri`;
-    const baseImage = baseImageSSMParameterName
-      ? ssm.StringParameter.valueFromLookup(this, baseImageSSMParameterName)
-      : "public.ecr.aws/docker/library/python:3.9.14-slim-bullseye";
+    const baseImage = props.baseImage;
 
     const tier = props.tier;
     const tenantId = props.tenantId;
     const namespace = props.namespace; // from the ApplicationStack
+    const serviceName = tenantId ? `${tenantId}-invoice` : `${tier}-invoice`;
+    const serviceType = "job";
     const multiTenantLabels = {
       tier: tier,
       ...(tenantId && { tenantId: tenantId }),
     };
 
-    cdk.Tags.of(this).add("SaaS-Microservices:ServiceName", "Invoice");
+    cdk.Tags.of(this).add("SaaS-Microservices:ServiceName", serviceName);
+
+    this.invoiceQueue = new sqs.Queue(this, `Invoice-Queue-${namespace}`, {
+      retentionPeriod: cdk.Duration.days(1),
+    });
 
     if (props.applicationImageAsset) {
       this.invoiceImageAsset = props.applicationImageAsset;
@@ -48,9 +48,11 @@ export class InvoiceStack extends Construct {
         "InvoiceAppContainerImage",
         {
           directory: path.join(__dirname, "../app"),
-          buildArgs: {
-            BASE_IMAGE: baseImage,
-          },
+          ...(baseImage && {
+            buildArgs: {
+              BASE_IMAGE: baseImage,
+            },
+          }),
         }
       );
       new cdk.CfnOutput(this, "invoiceImage", {
@@ -78,7 +80,7 @@ export class InvoiceStack extends Construct {
     invoiceServiceAccount.role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["sqs:ReceiveMessage", "sqs:DeleteMessage"],
-        resources: [fulfillmentQueueArn],
+        resources: [this.invoiceQueue.queueArn],
       })
     );
 
@@ -141,7 +143,7 @@ export class InvoiceStack extends Construct {
                     },
                     {
                       name: "QUEUE_URL",
-                      value: fulfillmentQueueURL,
+                      value: this.invoiceQueue.queueUrl,
                     },
                     {
                       name: "AWS_DEFAULT_REGION",
@@ -168,16 +170,12 @@ export class InvoiceStack extends Construct {
                       },
                     },
                     {
-                      name: "POD_NAMESPACE",
-                      valueFrom: {
-                        fieldRef: {
-                          fieldPath: "metadata.namespace",
-                        },
-                      },
+                      name: "SERVICE_NAME",
+                      value: serviceName,
                     },
                     {
-                      name: "AWS_XRAY_SERVICE_NAME",
-                      value: xrayServiceName,
+                      name: "SERVICE_TYPE",
+                      value: serviceType,
                     },
                   ],
                 },
@@ -197,8 +195,8 @@ export class InvoiceStack extends Construct {
               name: triggerAuthenticationName,
             },
             metadata: {
-              queueURL: fulfillmentQueueURL,
-              queueLength: "5",
+              queueURL: this.invoiceQueue.queueUrl,
+              queueLength: "30",
               awsRegion: cdk.Stack.of(this).region,
               identityOwner: "operator",
             },
