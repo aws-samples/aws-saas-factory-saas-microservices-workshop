@@ -22,7 +22,7 @@ export class ProductAdvancedTierStack extends Construct {
         apiVersion: "networking.istio.io/v1alpha3",
         kind: "VirtualService",
         metadata: {
-          name: `pro-${tier}`,
+          name: `${tenantId}-product-vs`.substring(0, 14),
           namespace: props?.namespace,
           labels: {
             tier: tier,
@@ -36,9 +36,7 @@ export class ProductAdvancedTierStack extends Construct {
           gateways: [istioIngressGateway],
           http: [
             {
-              name: tenantId
-                ? `${tenantId}-${tier}`.substring(0, 14)
-                : `${tier}`.substring(0, 14),
+              name: `${tenantId}-${tier}`.substring(0, 14),
               match: [
                 {
                   uri: {
