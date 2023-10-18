@@ -1,3 +1,5 @@
+from aws_embedded_metrics.storage_resolution import StorageResolution
+from aws_embedded_metrics import metric_scope
 import jwt
 import boto3
 import os
@@ -6,6 +8,18 @@ import json
 from flask.logging import default_handler
 from shared.log_formatter import CustomFormatter
 default_handler.setFormatter(CustomFormatter())
+
+
+@metric_scope
+def track_metric(authorization, service_name, service_type, metric_name, count, metrics):
+    tenantContext = get_tenant_context(authorization)
+    metrics.set_dimensions({
+        "Tenant": tenantContext.tenant_id,
+        "Tier": tenantContext.tenant_tier,
+        "ServiceName": service_name,
+        "ServiceType": service_type,
+    })
+    metrics.put_metric(metric_name, count, "Count", StorageResolution.STANDARD)
 
 
 class TenantContext:
