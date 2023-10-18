@@ -15,7 +15,7 @@ mkdir ./tmp
 echo "=================================================================================" >./tmp/Sample_JWTs.txt
 echo "Tenant Id, Tenant Tier, JWT" >>./tmp/Sample_JWTs.txt
 echo "=================================================================================" >>./tmp/Sample_JWTs.txt
-for ((u = 1; u <= 4; u++)); do
+for ((u = 1; u <= 5; u++)); do
     USER="user"${u}@example.com
     echo "Refreshing token for user: ${USER}"
 
@@ -30,6 +30,7 @@ for ((u = 1; u <= 4; u++)); do
     "2") tier="advanced" ;;
     "3") tier="premium" ;;
     "4") tier="basic" ;;
+    "5") tier="advanced" ;;
     *) tier="none" ;;
     esac
 
@@ -38,6 +39,7 @@ for ((u = 1; u <= 4; u++)); do
     "2") tenant_id="tenant-b" ;;
     "3") tenant_id="tenant-c" ;;
     "4") tenant_id="tenant-d" ;;
+    "5") tenant_id="tenant-e" ;;
     *) tenant_id="none" ;;
     esac
 
