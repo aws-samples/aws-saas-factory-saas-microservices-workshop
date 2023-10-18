@@ -28,6 +28,7 @@ export class OrderStack extends Construct {
     const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
+    const baseImage = props.baseImage;
 
     const tier = props.tier;
     const tenantId = props.tenantId;
@@ -37,6 +38,9 @@ export class OrderStack extends Construct {
       ...(tenantId && { tenantId: tenantId }),
     };
 
+    const serviceName = tenantId ? `${tenantId}-order` : `${tier}-order`;
+    const serviceType = "webapp";
+
     if (props.applicationImageAsset) {
       this.orderDockerImageAsset = props.applicationImageAsset;
     } else {
@@ -45,6 +49,11 @@ export class OrderStack extends Construct {
         "saas-microservices-order-image",
         {
           directory: path.join(__dirname, "../app"),
+          ...(baseImage && {
+            buildArgs: {
+              BASE_IMAGE: baseImage,
+            },
+          }),
         }
       );
       new cdk.CfnOutput(this, "image", {
@@ -217,8 +226,12 @@ export class OrderStack extends Construct {
                     },
                   },
                   {
-                    name: "AWS_XRAY_SERVICE_NAME",
-                    value: "OrderService",
+                    name: "SERVICE_NAME",
+                    value: serviceName,
+                  },
+                  {
+                    name: "SERVICE_TYPE",
+                    value: serviceType,
                   },
                 ],
                 ports: [
@@ -307,8 +320,8 @@ export class OrderStack extends Construct {
                     },
                   },
                   {
-                    name: "AWS_XRAY_SERVICE_NAME",
-                    value: "OrderService",
+                    name: "SERVICE_NAME",
+                    value: serviceName,
                   },
                 ],
                 ports: [
@@ -373,7 +386,7 @@ export class OrderStack extends Construct {
                 uri: {
                   prefix: "/orders",
                 },
-                /* // LAB4: REMOVE THIS LINE (routing)
+
                 headers: {
                   "@request.auth.claims.custom:tenant_tier": {
                     regex: tier,
@@ -384,7 +397,6 @@ export class OrderStack extends Construct {
                     },
                   }),
                 },
-                */ // LAB4: REMOVE THIS LINE (routing)
               },
             ],
             route: [

@@ -5,65 +5,33 @@ import os
 import logging
 import requests
 import random
-# from shared.helper_functions import get_tenant_context, get_boto3_client
+from shared.helper_functions import get_tenant_context, get_boto3_client, log_info_message, track_metric
 from flask import Flask, request
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core import patch_all
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 from aws_xray_sdk.core.sampling.local.sampler import LocalSampler
+
 patch_all()
 app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
 table_name = os.environ["TABLE_NAME"]
 fulfillment_endpoint = os.environ["FULFILLMENT_ENDPOINT"]
-xray_service_name = os.environ["AWS_XRAY_SERVICE_NAME"] + \
-    "-" + os.environ["POD_NAMESPACE"]
+service_name = os.environ["SERVICE_NAME"]
+service_type = os.environ["SERVICE_TYPE"]
 xray_recorder.configure(
     sampling_rules=os.path.abspath("xray_sample_rules.json"),
-    service=xray_service_name,
+    service=service_name,
     sampler=LocalSampler()
 )
 XRayMiddleware(app, xray_recorder)
 
 
 # LAB 3: REMOVE START (cleanup)
-class TenantContext:
-    tenant_id: str = None
-    tenant_tier: str = None
-
-    def __init__(self, jwt):
-        self.tenant_id = jwt.get('custom:tenant_id', None)
-        self.tenant_tier = jwt.get('custom:tenant_tier', None)
 
 
-def get_tenant_context(authorization):
-    token = authorization.replace("Bearer ", "")
-    decoded_token = jwt.decode(token, options={"verify_signature": False})
-    return TenantContext(decoded_token)
 
 
-def get_boto3_client(service, authorization):
-    token_vendor_endpoint = "127.0.0.1"
-    token_vendor_endpoint_port = os.environ["TOKEN_VENDOR_ENDPOINT_PORT"]
-    url = "http://" + token_vendor_endpoint + ":" + token_vendor_endpoint_port
-    print("Token Vendor URL: " + url)
-    response = requests.get(
-        url,
-        headers={
-            "Authorization": authorization
-        }
-    ).json()
-
-    access_key = response["Credentials"]["AccessKeyId"]
-    secret_key = response["Credentials"]["SecretAccessKey"]
-    session_token = response["Credentials"]["SessionToken"]
-
-    return boto3.client(
-        service,
-        aws_access_key_id=access_key,
-        aws_secret_access_key=secret_key,
-        aws_session_token=session_token
-    )
 # LAB 3: REMOVE END (cleanup)
 
 
@@ -92,6 +60,7 @@ def getAllOrder():
     tenantContext = get_tenant_context(authorization)
     if tenantContext.tenant_id is None:
         return {"msg": "Unable to read 'tenantId' claim from JWT."}, 400
+    xray_recorder.put_annotation("tenant_id", tenantContext.tenant_id)
 
     try:
         dynamodb_client = get_boto3_client("dynamodb", authorization)
@@ -128,6 +97,7 @@ def getOrder(order_id):
         tenantContext = get_tenant_context(authorization)
         if tenantContext.tenant_id is None:
             return {"msg": "Unable to read 'tenantId' claim from JWT."}, 400
+        xray_recorder.put_annotation("tenant_id", tenantContext.tenant_id)
 
         dynamodb_client = get_boto3_client("dynamodb", authorization)
         resp = dynamodb_client.query(
@@ -163,6 +133,7 @@ def postOrder():
         tenantContext = get_tenant_context(authorization)
         if tenantContext.tenant_id is None:
             return {"message": "Unable to read 'tenant_id' claim from JWT."}, 400
+        xray_recorder.put_annotation("tenant_id", tenantContext.tenant_id)
 
         order = Order(request.get_json())
         dynamodb_client = get_boto3_client("dynamodb", authorization)
@@ -190,9 +161,9 @@ def postOrder():
                           tenantContext, fulfillment_endpoint)
 
         # REPLACE BELOW: LAB5 (log)
-        app.logger.debug("Order created: " + str(order.order_id) +
-                         ", tenant:" + str(tenantContext.tenant_id))
-
+        log_info_message(app, "Order created", tenantContext)
+        track_metric(authorization, service_name, service_type,
+                     "OrderCreated", 1)
         return {"msg": "Order created", "order": order.__dict__}, 200
     except Exception as e:
         app.logger.error("Exception raised! " + str(e))
@@ -208,7 +179,7 @@ def submitFulfillment(order, authorization, tenantContext, fulfillment_endpoint)
             json=order.__dict__,
             headers={
                 "Authorization": authorization,
-                # PASTE LINES BELOW: LAB4 (routing)
+                "x-app-tenant-id": tenantContext.tenant_id, "x-app-tier": tenantContext.tenant_tier,
             },
         )
         response.raise_for_status()
