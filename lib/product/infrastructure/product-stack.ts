@@ -16,31 +16,34 @@ export class ProductStack extends Construct {
     super(scope, id);
 
     const istioIngressGateway = props.istioIngressGateway;
-    const xrayServiceName = "ProductService";
     const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
-    const baseImageSSMParameterName = "";
-    const baseImage = baseImageSSMParameterName
-      ? ssm.StringParameter.valueFromLookup(this, baseImageSSMParameterName)
-      : "public.ecr.aws/docker/library/python:3.9.14-slim-bullseye";
+    const baseImage = props.baseImage;
 
-    // REPLACE START: LAB1 (namespace)
-    const namespace = "default";
-    const multiTenantLabels = {};
-    // REPLACE END: LAB1 (namespace)
+    const tier = props.tier;
+    const tenantId = props.tenantId;
+    const namespace = props.namespace; // from the ApplicationStack
+    const multiTenantLabels = {
+      tier: tier,
+      ...(tenantId && { tenantId: tenantId }),
+    };
+
+    const serviceName = tenantId ? `${tenantId}-product` : `${tier}-product`;
+    const serviceType = "webapp";
 
     // PASTE: LAB1(tenant context tags)
-    cdk.Tags.of(this).add("SaaS-Microservices:ServiceName", "Product");
+    cdk.Tags.of(this).add("SaaS-Microservices:ServiceName", serviceName);
 
     // REPLACE START: LAB1 (product table)
     const productTable = new dynamodb.Table(this, "ProductTable", {
-      partitionKey: { name: "productId", type: dynamodb.AttributeType.STRING },
+      partitionKey: { name: "tenantId", type: dynamodb.AttributeType.STRING }, // tenant-id partition key
+      sortKey: { name: "productId", type: dynamodb.AttributeType.STRING },
       readCapacity: 5,
       writeCapacity: 5,
       billingMode: dynamodb.BillingMode.PROVISIONED,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      tableName: `SaaSMicroservices-Products`,
+      tableName: `SaaSMicroservices-Products-${namespace}`, // namespace appended to the table name
     });
     // REPLACE END: LAB1 (product table)
 
@@ -52,9 +55,11 @@ export class ProductStack extends Construct {
         "ProductAppContainerImage",
         {
           directory: path.join(__dirname, "../app"),
-          buildArgs: {
-            BASE_IMAGE: baseImage,
-          },
+          ...(baseImage && {
+            buildArgs: {
+              BASE_IMAGE: baseImage,
+            },
+          }),
         }
       );
       new cdk.CfnOutput(this, "productImage", {
@@ -80,12 +85,29 @@ export class ProductStack extends Construct {
     });
 
     // REPLACE START: LAB2 (IAM resources)
-    productServiceAccount.role.attachInlinePolicy(
-      new iam.Policy(this, "ProductServicePolicy", {
+    const accessRole = new iam.Role(this, "access-role", {
+      assumedBy: productServiceAccount.role.grantPrincipal,
+    });
+    accessRole.assumeRolePolicy?.addStatements(
+      new iam.PolicyStatement({
+        principals: [productServiceAccount.role.grantPrincipal],
+        actions: ["sts:TagSession"],
+        conditions: {
+          StringLike: { [`aws:RequestTag/TenantID`]: "*" },
+        },
+      })
+    );
+    accessRole.attachInlinePolicy(
+      new iam.Policy(this, "ProductServiceAccessPolicy", {
         statements: [
           new iam.PolicyStatement({
             actions: ["dynamodb:query", "dynamodb:PutItem"],
             resources: [productTable.tableArn],
+            conditions: {
+              "ForAllValues:StringLike": {
+                "dynamodb:LeadingKeys": [`\${aws:PrincipalTag/TenantID}`],
+              },
+            },
           }),
         ],
       })
@@ -111,11 +133,10 @@ export class ProductStack extends Construct {
         replicas: 1,
         template: {
           metadata: {
-            /* // REMOVE THIS LINE: LAB2 (annotation)
             annotations: {
-              "eks.amazonaws.com/skip-containers": "product-app"
+              "eks.amazonaws.com/skip-containers": "product-app",
             },
-            */ // REMOVE THIS LINE: LAB2 (annotation)
+
             labels: {
               app: "product-app",
               ...multiTenantLabels,
@@ -201,8 +222,12 @@ export class ProductStack extends Construct {
                     },
                   },
                   {
-                    name: "AWS_XRAY_SERVICE_NAME",
-                    value: xrayServiceName,
+                    name: "SERVICE_NAME",
+                    value: serviceName,
+                  },
+                  {
+                    name: "SERVICE_TYPE",
+                    value: serviceType,
                   },
                 ],
                 ports: [
@@ -212,7 +237,7 @@ export class ProductStack extends Construct {
                   },
                 ],
               },
-              /* // REMOVE THIS LINE: LAB2 (sidecar app)
+
               {
                 name: "sidecar-app",
                 image: props.sideCarImageAsset?.imageUri,
@@ -284,8 +309,8 @@ export class ProductStack extends Construct {
                     },
                   },
                   {
-                    name: "AWS_XRAY_SERVICE_NAME",
-                    value: xrayServiceName,
+                    name: "SERVICE_NAME",
+                    value: serviceName,
                   },
                   {
                     name: "POD_NAMESPACE",
@@ -303,7 +328,6 @@ export class ProductStack extends Construct {
                   },
                 ],
               },
-              */ // REMOVE THIS LINE: LAB2 (sidecar app)
             ],
           },
         },
@@ -359,7 +383,7 @@ export class ProductStack extends Construct {
                 uri: {
                   prefix: "/products",
                 },
-                /* // LAB4: REMOVE THIS LINE (routing)
+
                 headers: {
                   "@request.auth.claims.custom:tenant_tier": {
                     regex: tier,
@@ -370,7 +394,6 @@ export class ProductStack extends Construct {
                     },
                   }),
                 },
-                */ // LAB4: REMOVE THIS LINE (routing)
               },
             ],
             route: [
