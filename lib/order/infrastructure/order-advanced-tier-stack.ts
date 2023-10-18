@@ -26,7 +26,7 @@ export class OrderAdvancedTierStack extends Construct {
       apiVersion: "networking.istio.io/v1alpha3",
       kind: "VirtualService",
       metadata: {
-        name: "order-virtual-service",
+        name: `${tenantId}-order-virtual-service`.substring(0, 14),
         namespace: namespace,
         labels: {
           ...multiTenantLabels,
@@ -37,7 +37,7 @@ export class OrderAdvancedTierStack extends Construct {
         gateways: [istioIngressGateway],
         http: [
           {
-            name: namespace.substring(0, 14),
+            name: `${tenantId}-http`.substring(0, 14),
             match: [
               {
                 uri: {
