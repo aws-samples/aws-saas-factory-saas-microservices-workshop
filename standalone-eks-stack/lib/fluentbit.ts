@@ -1,23 +1,9 @@
-import * as logs from "aws-cdk-lib/aws-logs";
 import * as blueprints from "@aws-quickstart/eks-blueprints";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as cdk from "aws-cdk-lib";
 import { ILogGroup } from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
-import {
-  ResourceProvider,
-  ResourceContext,
-  ClusterInfo,
-} from "@aws-quickstart/eks-blueprints";
-
-export class LogGroupResourceProvider implements ResourceProvider<ILogGroup> {
-  provide(context: ResourceContext): ILogGroup {
-    const scope = context.scope;
-    return new logs.LogGroup(scope, "fluent-bit-log-group", {
-      retention: 7,
-    });
-  }
-}
+import { ClusterInfo } from "@aws-quickstart/eks-blueprints";
 
 export class MyCustomAwsForFluentBitAddOn implements blueprints.ClusterAddOn {
   deploy(clusterInfo: ClusterInfo): void | Promise<Construct> {

@@ -4,16 +4,19 @@ import * as cdk from "aws-cdk-lib";
 import * as eks from "aws-cdk-lib/aws-eks";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as logs from "aws-cdk-lib/aws-logs";
 import * as blueprints from "@aws-quickstart/eks-blueprints";
 import { CapacityType, KubernetesVersion } from "aws-cdk-lib/aws-eks";
 import { Cloud9Resources } from "../lib/cloud9-resources";
 import { DestroyPolicySetter } from "../lib/cdk-aspect/destroy-policy-setter";
 import { SSMResources } from "../lib/ssm-resources";
 import { SharedStack } from "../lib/shared/infrastructure/shared-stack";
+import { ILogGroup } from "aws-cdk-lib/aws-logs";
 import {
-  LogGroupResourceProvider,
-  MyCustomAwsForFluentBitAddOn,
-} from "../lib/fluentbit";
+  ResourceProvider,
+  ResourceContext,
+} from "@aws-quickstart/eks-blueprints";
+import { MyCustomAwsForFluentBitAddOn } from "../lib/fluentbit";
 
 const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;
@@ -24,6 +27,16 @@ const workshopSSMPrefix = "/saas-workshop";
 const cloud9ConnectionType = "CONNECT_SSM";
 const cloud9InstanceType = "m5.large";
 const cloud9ImageId = "ubuntu-22.04-x86_64";
+
+export class LogGroupResourceProvider implements ResourceProvider<ILogGroup> {
+  provide(context: ResourceContext): ILogGroup {
+    const scope = context.scope;
+    return new logs.LogGroup(scope, "fluent-bit-log-group", {
+      logGroupName: `${workshopSSMPrefix}/fluent-bit-logs`,
+      retention: logs.RetentionDays.ONE_WEEK,
+    });
+  }
+}
 
 const blueprint = blueprints.EksBlueprint.builder()
   .resourceProvider("LogGroup", new LogGroupResourceProvider())
@@ -42,7 +55,6 @@ const blueprint = blueprints.EksBlueprint.builder()
       securityContextRunAsGroup: 1001,
       securityContextRunAsUser: 1001,
       irsaRoles: ["AmazonSQSReadOnlyAccess"],
-      // irsaRoles: ["CloudWatchFullAccess", "AmazonSQSFullAccess"],
     }),
     new blueprints.addons.IstioBaseAddOn(),
     new blueprints.addons.IstioControlPlaneAddOn()
