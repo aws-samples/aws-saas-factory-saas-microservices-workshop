@@ -24,8 +24,11 @@ export class CloudwatchAgentAddOnStack extends Construct {
 
     this.cloudwatchAgentLogGroup = new logs.LogGroup(
       this,
-      "cloudwatch-agent-log-groupp", // todo: fix me!!!
+      "cloudwatch-agent-log-group",
       {
+        ...(props.workshopSSMPrefix && {
+          logGroupName: `${props.workshopSSMPrefix}/cloudwatch-agent-logs`,
+        }),
         retention: logs.RetentionDays.ONE_WEEK,
       }
     );
@@ -179,7 +182,7 @@ export class CloudwatchAgentAddOnStack extends Construct {
         apiVersion: "v1",
         data: {
           "cwagentconfig.json": JSON.stringify({
-            agent: { debug: true },
+            agent: { debug: false },
             logs: {
               metrics_collected: {
                 kubernetes: {

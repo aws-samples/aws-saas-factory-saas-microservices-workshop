@@ -10,10 +10,14 @@ export class EksCluster extends Construct {
   public readonly cluster: eks.ICluster;
   public readonly stack: cdk.Stack;
 
-  constructor(scope: Construct, id: string) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: { workshopSSMPrefix: string }
+  ) {
     super(scope, id);
 
-    const workshopSSMPrefix = "/saas-workshop";
+    const workshopSSMPrefix = props.workshopSSMPrefix;
 
     const clusterName = ssm.StringParameter.valueForStringParameter(
       this,
