@@ -51,7 +51,7 @@ def get_boto3_client(service, authorization=None):
 def log_info_message(app, message, tenantContext):
     message_dict = {
         'message': message,
-        'tier': tenantContext.tenant_tier,
+        'tenantTier': tenantContext.tenant_tier,
         'tenantId': tenantContext.tenant_id
     }
     app.logger.info(json.dumps(message_dict))

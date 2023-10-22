@@ -30,8 +30,6 @@ XRayMiddleware(app, xray_recorder)
 # LAB 3: REMOVE START (cleanup)
 
 
-
-
 # LAB 3: REMOVE END (cleanup)
 
 
@@ -179,7 +177,8 @@ def submitFulfillment(order, authorization, tenantContext, fulfillment_endpoint)
             json=order.__dict__,
             headers={
                 "Authorization": authorization,
-                "x-app-tenant-id": tenantContext.tenant_id, "x-app-tier": tenantContext.tenant_tier,
+                "x-app-tenant-id": tenantContext.tenant_id,
+                "x-app-tenant-tier": tenantContext.tenant_tier,
             },
         )
         response.raise_for_status()

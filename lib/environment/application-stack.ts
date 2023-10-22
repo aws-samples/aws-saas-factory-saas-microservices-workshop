@@ -8,7 +8,7 @@ import { FulfillmentStack } from "../fulfillment/infrastructure/fulfillment-stac
 import { ApplicationStackProps } from "../interface/application-props";
 import { OrderStack } from "../order/infrastructure/order-stack";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
-import { Tier } from "../enums/tier";
+import { TenantTier } from "../enums/tenant-tier";
 import { EksCluster } from "../eks/eks-blueprint-stack";
 import { InvoiceStack } from "../invoice/infrastructure/invoice-stack";
 
@@ -49,16 +49,16 @@ export class ApplicationStack extends cdk.Stack {
     const istioIngressGateway =
       props.baseStack.istioResources.istioIngressGateway;
 
-    const tier = props.tier;
+    const tenantTier = props.tenantTier;
     const tenantId = props.tenantId;
     const sideCarImageAsset = props.sideCarImageAsset;
 
-    if (tier != Tier.Basic && tier != Tier.Premium) {
-      throw new Error(`Tier: "${tier}" not supported!`);
+    if (tenantTier != TenantTier.Basic && tenantTier != TenantTier.Premium) {
+      throw new Error(`TenantTier: "${tenantTier}" not supported!`);
     }
 
     // Application environment kubernetes namespace
-    this.namespace = tenantId ? `${tenantId}` : `${tier}-pool`;
+    this.namespace = tenantId ? `${tenantId}` : `${tenantTier}-pool`;
 
     const eventBus = new aws_events.EventBus(
       this,
@@ -95,7 +95,7 @@ export class ApplicationStack extends cdk.Stack {
         name: this.namespace,
         labels: {
           "istio-injection": "enabled",
-          tier: tier,
+          tenantTier: tenantTier,
           ...(tenantId && {
             tenantId: tenantId,
           }),
@@ -109,7 +109,7 @@ export class ApplicationStack extends cdk.Stack {
       applicationImageAsset: props.basicStack?.productDockerImageAsset,
       sideCarImageAsset: sideCarImageAsset,
       namespace: this.namespace,
-      tier: tier,
+      tenantTier: tenantTier,
       tenantId: tenantId,
       xrayServiceDNSAndPort: xrayServiceDNSAndPort,
       cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
@@ -129,7 +129,7 @@ export class ApplicationStack extends cdk.Stack {
         applicationImageAsset: props.basicStack?.fulfillmentDockerImageAsset,
         sideCarImageAsset: sideCarImageAsset,
         namespace: this.namespace,
-        tier: tier,
+        tenantTier: tenantTier,
         tenantId: tenantId,
         xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
@@ -152,7 +152,7 @@ export class ApplicationStack extends cdk.Stack {
         fulfillmentServicePort: fulfillmentStack.fulfillmentServicePort,
         applicationImageAsset: props.basicStack?.orderDockerImageAsset,
         sideCarImageAsset: sideCarImageAsset,
-        tier: tier,
+        tenantTier: tenantTier,
         tenantId: tenantId,
         xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
@@ -173,29 +173,20 @@ export class ApplicationStack extends cdk.Stack {
         productServiceDNS: productStack.productServiceDNS,
         applicationImageAsset: props.basicStack?.invoiceImageAsset,
         sideCarImageAsset: sideCarImageAsset,
-        tier: tier,
+        tenantTier: tenantTier,
         tenantId: tenantId,
         xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
         baseImage: props.baseStack.baseImage,
+        eventBus: eventBus,
+        fulfillmentEventDetailType: fulfillmentStack.eventDetailType,
+        fulfillmentEventSource: fulfillmentStack.eventSource,
       });
       invoiceStack.node.addDependency(stackNamespace);
       invoiceStack.node.addDependency(fulfillmentStack);
       this.invoiceImageAsset = invoiceStack.invoiceImageAsset;
-
-      const invoiceQueueTarget = new aws_events_targets.SqsQueue(
-        invoiceStack.invoiceQueue
-      );
-      const invoiceRule = new aws_events.Rule(this, "invoiceRule", {
-        eventBus: eventBus,
-        eventPattern: {
-          detailType: [fulfillmentStack.eventDetailType],
-          source: [fulfillmentStack.eventSource],
-        },
-        targets: [invoiceQueueTarget],
-      });
     }
   }
 }

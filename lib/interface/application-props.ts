@@ -1,11 +1,11 @@
 import * as cdk from "aws-cdk-lib";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
-import { Tier } from "../enums/tier";
+import { TenantTier } from "../enums/tenant-tier";
 import { BaseStack } from "../base/base-stack";
 import { ApplicationStack } from "../environment/application-stack";
 
 export interface ApplicationStackProps extends cdk.StackProps {
-  tier?: Tier;
+  tenantTier?: TenantTier;
   sideCarImageAsset?: DockerImageAsset;
   tenantId?: string;
   baseStack?: BaseStack;
