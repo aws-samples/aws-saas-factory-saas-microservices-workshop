@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
                 message_dict = {
                     'message': f"Invoice created for order {order} with total price {total_price}",
-                    'tier': tenantContext.tenant_tier,
+                    'tenantTier': tenantContext.tenant_tier,
                     'tenantId': tenantContext.tenant_id
                 }
                 logger.info(json.dumps(message_dict))

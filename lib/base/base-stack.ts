@@ -8,7 +8,7 @@ import { EksCluster } from "../../lib/eks/eks-blueprint-stack";
 import { CognitoResources } from "../../lib/cognito/cognito-stack";
 import { IstioResources } from "../../lib/eks/istio-stack";
 import { CloudwatchAgentAddOnStack } from "../eks/cloudwatch-agent";
-import { Tier } from "../enums/tier";
+import { TenantTier } from "../enums/tenant-tier";
 
 export interface BaseStackProps extends cdk.StackProps {
   tlsCertIstio: string;
@@ -57,14 +57,14 @@ export class BaseStack extends cdk.Stack {
         eventBus: this.advancedTierEventBus,
         enabled: true,
         eventPattern: {
-          account: [cdk.Stack.of(this).account]
+          account: [cdk.Stack.of(this).account],
         },
       }
     );
     eventBusWatcherRule.addTarget(
       new aws_events_targets.CloudWatchLogGroup(
         new logs.LogGroup(this, "watcher-log-group", {
-          logGroupName: `${workshopSSMPrefix}/${Tier.Advanced}-event-bus-logs`,
+          logGroupName: `${workshopSSMPrefix}/${TenantTier.Advanced}-event-bus-logs`,
           retention: logs.RetentionDays.ONE_WEEK,
         })
       )

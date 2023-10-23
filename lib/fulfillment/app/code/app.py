@@ -49,9 +49,11 @@ def postOrderFulfillment(order_id):
 
         message = json.dumps({
             "order": request.get_json(),
+            "tenantId": tenantContext.tenant_id,
+            "tenantTier": tenantContext.tenant_tier,
             "authorization": authorization
         })
-        # send message to event bus using boto3
+
         event_bus_client = boto3.client('events')
         response = event_bus_client.put_events(
             Entries=[

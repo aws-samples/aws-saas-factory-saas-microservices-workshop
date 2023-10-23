@@ -1,5 +1,6 @@
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import * as eks from "aws-cdk-lib/aws-eks";
+import { TenantTier } from "../enums/tenant-tier";
 
 export interface MicroserviceStackProps {
   baseImage?: string;
@@ -12,6 +13,6 @@ export interface MicroserviceStackProps {
   sideCarImageAsset?: DockerImageAsset;
   namespace: string;
   namespaceConstruct?: eks.KubernetesManifest;
-  tier: string;
+  tenantTier: TenantTier;
   tenantId?: string;
 }

@@ -1,6 +1,5 @@
 import * as cdk from "aws-cdk-lib";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { Construct } from "constructs";
@@ -21,15 +20,17 @@ export class ProductStack extends Construct {
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
     const baseImage = props.baseImage;
 
-    const tier = props.tier;
+    const tenantTier = props.tenantTier;
     const tenantId = props.tenantId;
     const namespace = props.namespace; // from the ApplicationStack
     const multiTenantLabels = {
-      tier: tier,
+      tenantTier: tenantTier,
       ...(tenantId && { tenantId: tenantId }),
     };
 
-    const serviceName = tenantId ? `${tenantId}-product` : `${tier}-product`;
+    const serviceName = tenantId
+      ? `${tenantId}-product`
+      : `${tenantTier}-product`;
     const serviceType = "webapp";
 
     // PASTE: LAB1(tenant context tags)
@@ -386,7 +387,7 @@ export class ProductStack extends Construct {
 
                 headers: {
                   "@request.auth.claims.custom:tenant_tier": {
-                    regex: tier,
+                    regex: tenantTier,
                   },
                   ...(tenantId && {
                     "@request.auth.claims.custom:tenant_id": {
