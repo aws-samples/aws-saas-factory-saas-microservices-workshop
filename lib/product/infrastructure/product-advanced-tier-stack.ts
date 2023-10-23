@@ -14,7 +14,7 @@ export class ProductAdvancedTierStack extends Construct {
     const productServiceDNS = props.productServiceDNS;
     const productServicePort = props.productServicePort;
     const tenantId = props.tenantId;
-    const tier = props.tier;
+    const tenantTier = props.tenantTier;
 
     const productVirtualService = cluster.addManifest(
       "product-virtual-service",
@@ -25,7 +25,7 @@ export class ProductAdvancedTierStack extends Construct {
           name: `${tenantId}-product-vs`.substring(0, 14),
           namespace: props?.namespace,
           labels: {
-            tier: tier,
+            tenantTier: tenantTier,
             ...(tenantId && {
               tenantId: tenantId,
             }),
@@ -36,7 +36,7 @@ export class ProductAdvancedTierStack extends Construct {
           gateways: [istioIngressGateway],
           http: [
             {
-              name: `${tenantId}-${tier}`.substring(0, 14),
+              name: `${tenantId}-${tenantTier}`.substring(0, 14),
               match: [
                 {
                   uri: {
@@ -44,7 +44,7 @@ export class ProductAdvancedTierStack extends Construct {
                   },
                   headers: {
                     "@request.auth.claims.custom:tenant_tier": {
-                      regex: tier,
+                      regex: tenantTier,
                     },
                     "@request.auth.claims.custom:tenant_id": {
                       regex: tenantId,

@@ -10,18 +10,6 @@ from shared.log_formatter import CustomFormatter
 default_handler.setFormatter(CustomFormatter())
 
 
-@metric_scope
-def track_metric(authorization, service_name, service_type, metric_name, count, metrics):
-    tenantContext = get_tenant_context(authorization)
-    metrics.set_dimensions({
-        "Tenant": tenantContext.tenant_id,
-        "Tier": tenantContext.tenant_tier,
-        "ServiceName": service_name,
-        "ServiceType": service_type,
-    })
-    metrics.put_metric(metric_name, count, "Count", StorageResolution.STANDARD)
-
-
 class TenantContext:
     tenant_id: str = None
     tenant_tier: str = None
@@ -62,10 +50,22 @@ def get_boto3_client(service, authorization=None):
     )
 
 
+@metric_scope
+def track_metric(authorization, service_name, service_type, metric_name, count, metrics):
+    tenantContext = get_tenant_context(authorization)
+    metrics.set_dimensions({
+        "TenantId": tenantContext.tenant_id,
+        "TenantTier": tenantContext.tenant_tier,
+        "ServiceName": service_name,
+        "ServiceType": service_type,
+    })
+    metrics.put_metric(metric_name, count, "Count", StorageResolution.STANDARD)
+
+
 def log_info_message(app, message, tenantContext):
     message_dict = {
         'message': message,
-        'tier': tenantContext.tenant_tier,
+        'tenantTier': tenantContext.tenant_tier,
         'tenantId': tenantContext.tenant_id
     }
     app.logger.info(json.dumps(message_dict))

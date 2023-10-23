@@ -1,5 +1,4 @@
 import * as cdk from "aws-cdk-lib";
-import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { Construct } from "constructs";
@@ -25,7 +24,7 @@ export class FulfillmentStack extends Construct {
     }
 
     const cluster = props.cluster;
-    const tier = props.tier;
+    const tenantTier = props.tenantTier;
     const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
@@ -34,17 +33,16 @@ export class FulfillmentStack extends Construct {
     const baseImage = props.baseImage;
     const namespace = props.namespace; // from the ApplicationStack
     const multiTenantLabels = {
-      tier: tier,
+      tenantTier: tenantTier,
       ...(tenantId && { tenantId: tenantId }),
     };
 
     const serviceName = tenantId
       ? `${tenantId}-fulfillment`
-      : `${tier}-fulfillment`;
+      : `${tenantTier}-fulfillment`;
     const serviceType = "webapp";
 
-    this.eventSource = `${tier}-${tenantId ? tenantId : "pool"}`;
-    // this.eventSource = `fulfillment-service`;
+    this.eventSource = "fulfillment-service";
     this.eventDetailType = "order-fulfilled";
 
     if (props.applicationImageAsset) {
@@ -270,8 +268,8 @@ export class FulfillmentStack extends Construct {
                   },
 
                   headers: {
-                    "x-app-tier": {
-                      regex: tier,
+                    "x-app-tenant-tier": {
+                      regex: tenantTier,
                     },
                     ...(tenantId && {
                       "x-app-tenant-id": {

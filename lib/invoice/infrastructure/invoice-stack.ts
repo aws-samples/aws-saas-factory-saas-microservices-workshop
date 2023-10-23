@@ -1,5 +1,6 @@
 import * as cdk from "aws-cdk-lib";
-import * as ssm from "aws-cdk-lib/aws-ssm";
+import * as aws_events from "aws-cdk-lib/aws-events";
+import * as aws_events_targets from "aws-cdk-lib/aws-events-targets";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
@@ -10,7 +11,6 @@ var path = require("path");
 
 export class InvoiceStack extends Construct {
   public readonly invoiceImageAsset: DockerImageAsset;
-  public readonly invoiceQueue: sqs.Queue;
   constructor(
     scope: Construct,
     id: string,
@@ -24,20 +24,41 @@ export class InvoiceStack extends Construct {
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
     const baseImage = props.baseImage;
 
-    const tier = props.tier;
+    const tenantTier = props.tenantTier;
     const tenantId = props.tenantId;
-    const namespace = props.namespace; // from the ApplicationStack
-    const serviceName = tenantId ? `${tenantId}-invoice` : `${tier}-invoice`;
+    const namespace = props.namespace;
+    const eventBus = props.eventBus;
+    const fulfillmentEventDetailType = props.fulfillmentEventDetailType;
+    const fulfillmentEventSource = props.fulfillmentEventSource;
+    const serviceName = tenantId
+      ? `${tenantId}-invoice`
+      : `${tenantTier}-invoice`;
     const serviceType = "job";
     const multiTenantLabels = {
-      tier: tier,
+      tenantTier: tenantTier,
       ...(tenantId && { tenantId: tenantId }),
     };
 
     cdk.Tags.of(this).add("SaaS-Microservices:ServiceName", serviceName);
 
-    this.invoiceQueue = new sqs.Queue(this, `Invoice-Queue-${namespace}`, {
+    const invoiceQueue = new sqs.Queue(this, `Invoice-Queue-${namespace}`, {
       retentionPeriod: cdk.Duration.days(1),
+    });
+
+    const invoiceQueueTarget = new aws_events_targets.SqsQueue(invoiceQueue);
+    new aws_events.Rule(this, "invoiceRule", {
+      eventBus: eventBus,
+      eventPattern: {
+        detailType: [fulfillmentEventDetailType],
+        source: [fulfillmentEventSource],
+        detail: {
+          ...(tenantId && {
+            tenantId: [tenantId],
+          }),
+          tenantTier: [tenantTier],
+        },
+      },
+      targets: [invoiceQueueTarget],
     });
 
     if (props.applicationImageAsset) {
@@ -80,7 +101,7 @@ export class InvoiceStack extends Construct {
     invoiceServiceAccount.role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["sqs:ReceiveMessage", "sqs:DeleteMessage"],
-        resources: [this.invoiceQueue.queueArn],
+        resources: [invoiceQueue.queueArn],
       })
     );
 
@@ -143,7 +164,7 @@ export class InvoiceStack extends Construct {
                     },
                     {
                       name: "QUEUE_URL",
-                      value: this.invoiceQueue.queueUrl,
+                      value: invoiceQueue.queueUrl,
                     },
                     {
                       name: "AWS_DEFAULT_REGION",
@@ -195,7 +216,7 @@ export class InvoiceStack extends Construct {
               name: triggerAuthenticationName,
             },
             metadata: {
-              queueURL: this.invoiceQueue.queueUrl,
+              queueURL: invoiceQueue.queueUrl,
               queueLength: "30",
               awsRegion: cdk.Stack.of(this).region,
               identityOwner: "operator",

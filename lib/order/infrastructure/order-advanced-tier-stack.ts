@@ -14,11 +14,11 @@ export class OrderAdvancedTierStack extends Construct {
     const orderServiceDNS = props.orderServiceDNS;
     const orderServicePort = props.orderServicePort;
 
-    const tier = props.tier;
+    const tenantTier = props.tenantTier;
     const tenantId = props.tenantId;
     const namespace = props.namespace; // from the ApplicationStack
     const multiTenantLabels = {
-      tier: tier,
+      tenantTier: tenantTier,
       ...(tenantId && { tenantId: tenantId }),
     };
 
@@ -45,7 +45,7 @@ export class OrderAdvancedTierStack extends Construct {
                 },
                 headers: {
                   "@request.auth.claims.custom:tenant_tier": {
-                    regex: tier,
+                    regex: tenantTier,
                   },
                   "@request.auth.claims.custom:tenant_id": {
                     regex: tenantId,

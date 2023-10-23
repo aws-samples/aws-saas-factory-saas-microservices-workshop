@@ -1,13 +1,11 @@
 import * as cdk from "aws-cdk-lib";
-import * as aws_events from "aws-cdk-lib/aws-events";
-import * as aws_events_targets from "aws-cdk-lib/aws-events-targets";
 import { Construct } from "constructs";
 import { ApplicationAdvancedTierStackProps } from "../interface/application-advanced-tier-props";
 import { FulfillmentAdvancedTierStack } from "../fulfillment/infrastructure/fulfillment-advanced-tier-stack";
 import { OrderAdvancedTierStack } from "../order/infrastructure/order-advanced-tier-stack";
 import { ProductAdvancedTierStack } from "../product/infrastructure/product-advanced-tier-stack";
 import { EksCluster } from "../eks/eks-blueprint-stack";
-import { Tier } from "../enums/tier";
+import { TenantTier } from "../enums/tenant-tier";
 import { InvoiceStack } from "../invoice/infrastructure/invoice-stack";
 
 export class ApplicationAdvancedTierStack extends cdk.Stack {
@@ -22,7 +20,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
       throw new Error("Missing definition for baseStack or basicStack!");
     }
 
-    const tier = Tier.Advanced;
+    const tenantTier = TenantTier.Advanced;
     const tenantId = props.tenantId;
     const eksCluster = new EksCluster(this, "EksCluster", {
       workshopSSMPrefix: props.workshopSSMPrefix,
@@ -61,7 +59,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
         productServiceDNS: productServiceDNS,
         productServicePort: productServicePort,
         namespace: namespace,
-        tier: tier,
+        tenantTier: tenantTier,
         tenantId: tenantId,
         xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
@@ -79,7 +77,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
           name: tenantSpecificAdvancedTierNamespaceName,
           labels: {
             "istio-injection": "enabled",
-            tier: tier,
+            tenantTier: tenantTier,
             ...(tenantId && {
               tenantId: tenantId,
             }),
@@ -99,7 +97,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
         fulfillmentDockerImageAsset: fulfillmentDockerImageAsset,
         sideCarImageAsset: sideCarImageAsset,
         namespace: tenantSpecificAdvancedTierNamespaceName,
-        tier: tier,
+        tenantTier: tenantTier,
         tenantId: tenantId,
         xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         namespaceConstruct: tenantSpecificAdvancedTierNamespace,
@@ -121,7 +119,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
         orderServiceDNS: orderServiceDNS,
         orderServicePort: orderServicePort,
         namespace: namespace,
-        tier: tier,
+        tenantTier: tenantTier,
         tenantId: tenantId,
         xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
@@ -136,25 +134,16 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
       productServiceDNS: productServiceDNS,
       applicationImageAsset: props.basicStack?.invoiceImageAsset,
       sideCarImageAsset: sideCarImageAsset,
-      tier: tier,
+      tenantTier: tenantTier,
       tenantId: tenantId,
       xrayServiceDNSAndPort: xrayServiceDNSAndPort,
       cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
       cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       namespaceConstruct: tenantSpecificAdvancedTierNamespace,
+      eventBus: advancedTierEventBus,
+      fulfillmentEventDetailType: fulfillmentAdvancedTierStack.eventDetailType,
+      fulfillmentEventSource: fulfillmentAdvancedTierStack.eventSource,
     });
     invoiceStack.node.addDependency(fulfillmentAdvancedTierStack);
-
-    const invoiceQueueTarget = new aws_events_targets.SqsQueue(
-      invoiceStack.invoiceQueue
-    );
-    const invoiceRule = new aws_events.Rule(this, "invoiceRule", {
-      eventBus: advancedTierEventBus,
-      eventPattern: {
-        detailType: [fulfillmentAdvancedTierStack.eventDetailType],
-        source: [fulfillmentAdvancedTierStack.eventSource],
-      },
-      targets: [invoiceQueueTarget],
-    });
   }
 }

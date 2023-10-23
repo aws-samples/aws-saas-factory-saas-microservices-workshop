@@ -5,7 +5,7 @@ import { TokenVendorStack } from "../lib/token-vendor/infrastructure/token-vendo
 import { ApplicationStack } from "../lib/environment/application-stack";
 import { BaseStack } from "../lib/base/base-stack";
 import { ApplicationAdvancedTierStack } from "../lib/environment/application-advanced-tier-stack";
-import { Tier } from "../lib/enums/tier";
+import { TenantTier } from "../lib/enums/tenant-tier";
 import { DestroyPolicySetter } from "../lib/cdk-aspect/destroy-policy-setter";
 
 const app = new cdk.App();
@@ -37,7 +37,7 @@ const tokenVendorStack = new TokenVendorStack(app, "TokenVendorStack", {
 const basicStack = new ApplicationStack(app, "PoolBasicStack", {
   env: { account, region },
   baseStack: baseStack,
-  tier: Tier.Basic,
+  tenantTier: TenantTier.Basic,
   sideCarImageAsset: tokenVendorStack.tokenVendorImage,
   deploymentMode: deploymentMode,
   workshopSSMPrefix: workshopSSMPrefix,
@@ -75,7 +75,7 @@ const tenantCstack = new ApplicationStack(app, "tenantCstack", {
   tenantId: "tenant-c",
   sideCarImageAsset: tokenVendorStack.tokenVendorImage,
   deploymentMode: deploymentMode,
-  tier: Tier.Premium,
+  tenantTier: TenantTier.Premium,
   workshopSSMPrefix: workshopSSMPrefix,
 });
 tenantCstack.node.addDependency(basicStack);

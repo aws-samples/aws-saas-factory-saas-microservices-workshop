@@ -1,6 +1,5 @@
 import * as cdk from "aws-cdk-lib";
 import * as eks from "aws-cdk-lib/aws-eks";
-import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 import { FulfillmentMicroserviceAdvancedTierStackProps } from "../../interface/fulfillment-microservice-advanced-tier-props";
@@ -26,21 +25,21 @@ export class FulfillmentAdvancedTierStack extends Construct {
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
     const eventBus = props.eventBus;
 
-    const tier = props.tier;
+    const tenantTier = props.tenantTier;
     const tenantId = props.tenantId;
     const namespace = props.namespace; // from the ApplicationStack
     const multiTenantLabels = {
-      tier: tier,
+      tenantTier: tenantTier,
       ...(tenantId && { tenantId: tenantId }),
     };
 
     const serviceName = tenantId
       ? `${tenantId}-fulfillment`
-      : `${tier}-fulfillment`;
+      : `${tenantTier}-fulfillment`;
     const serviceType = "webapp";
 
-    this.eventSource = `${tier}-${tenantId ? tenantId : "pool"}`;
-    this.eventDetailType = "order-fulfillment-request";
+    this.eventSource = "fulfillment-service";
+    this.eventDetailType = "order-fulfilled";
 
     const fulfillmentServiceAccount = cluster.addServiceAccount(
       "FulfillmentAdvServiceAccount",
@@ -84,7 +83,7 @@ export class FulfillmentAdvancedTierStack extends Construct {
           selector: {
             matchLabels: {
               app: "fulfillment-app",
-              tier: tier,
+              tenantTier: tenantTier,
               tenantId: tenantId,
             },
           },
@@ -93,7 +92,7 @@ export class FulfillmentAdvancedTierStack extends Construct {
             metadata: {
               labels: {
                 app: "fulfillment-app",
-                tier: tier,
+                tenantTier: tenantTier,
                 tenantId: tenantId,
               },
             },
@@ -248,8 +247,8 @@ export class FulfillmentAdvancedTierStack extends Construct {
                     prefix: "/fulfillments",
                   },
                   headers: {
-                    "x-app-tier": {
-                      regex: tier,
+                    "x-app-tenant-tier": {
+                      regex: tenantTier,
                     },
                     "x-app-tenant-id": {
                       regex: tenantId,

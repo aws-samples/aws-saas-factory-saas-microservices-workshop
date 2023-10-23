@@ -30,15 +30,15 @@ export class OrderStack extends Construct {
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
     const baseImage = props.baseImage;
 
-    const tier = props.tier;
+    const tenantTier = props.tenantTier;
     const tenantId = props.tenantId;
     const namespace = props.namespace; // from the ApplicationStack
     const multiTenantLabels = {
-      tier: tier,
+      tenantTier: tenantTier,
       ...(tenantId && { tenantId: tenantId }),
     };
 
-    const serviceName = tenantId ? `${tenantId}-order` : `${tier}-order`;
+    const serviceName = tenantId ? `${tenantId}-order` : `${tenantTier}-order`;
     const serviceType = "webapp";
 
     if (props.applicationImageAsset) {
@@ -389,7 +389,7 @@ export class OrderStack extends Construct {
 
                 headers: {
                   "@request.auth.claims.custom:tenant_tier": {
-                    regex: tier,
+                    regex: tenantTier,
                   },
                   ...(tenantId && {
                     "@request.auth.claims.custom:tenant_id": {
