@@ -16,19 +16,16 @@ class TenantContext:
         self.tenant_id = jwt.get('custom:tenant_id', None)
         self.tenant_tier = jwt.get('custom:tenant_tier', None)
 
-
 def get_tenant_context(authorization):
     token = authorization.replace("Bearer ", "")
-    decoded_token = jwt.decode(token, options={"verify_signature": False})
-    print("Decoded JWT: " + str(decoded_token))
+    decoded_token = jwt.decode(token, options={"verify_signature": False})    
     return TenantContext(decoded_token)
 
 
 def get_boto3_client(service, authorization=None):
     token_vendor_endpoint = "127.0.0.1"
     token_vendor_endpoint_port = os.environ["TOKEN_VENDOR_ENDPOINT_PORT"]
-    url = "http://" + token_vendor_endpoint + ":" + token_vendor_endpoint_port
-    print("Token Vendor URL: " + url)
+    url = "http://" + token_vendor_endpoint + ":" + token_vendor_endpoint_port    
     response = requests.get(
         url,
         headers={
