@@ -10,7 +10,7 @@ REPO_BRANCH_NAME="v2"
 PARTICIPANT_ASSUMED_ROLE_ARN="$(aws sts get-caller-identity --query 'Arn' --output text)"
 
 # Use the same method that workshop studio uses to deploy standalone stack
-aws cloudformation deploy \
+aws cloudformation create-stack \
     --template-file WorkshopStack.yaml \
     --stack-name workshopStack \
     --capabilities CAPABILITY_IAM \
@@ -19,4 +19,4 @@ aws cloudformation deploy \
         RepoBranchName="$REPO_BRANCH_NAME" \
         ParticipantAssumedRoleArn="$PARTICIPANT_ASSUMED_ROLE_ARN"
 
-echo "Done deploying workshop resources!"
+echo "CloudFormation stack creation started. You can monitor progress in the AWS Console at https://console.aws.amazon.com/cloudformation"
