@@ -2,11 +2,13 @@ import * as cdk from "aws-cdk-lib";
 import * as eks from "aws-cdk-lib/aws-eks";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
+import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { FulfillmentMicroserviceAdvancedTierStackProps } from "../../interface/fulfillment-microservice-advanced-tier-props";
-
+var path = require("path");
 export class FulfillmentAdvancedTierStack extends Construct {
   public readonly eventSource: string;
   public readonly eventDetailType: string;
+  public readonly fulfillmentDockerImageAsset: DockerImageAsset;
   constructor(
     scope: Construct,
     id: string,
@@ -18,15 +20,15 @@ export class FulfillmentAdvancedTierStack extends Construct {
       throw new Error("props.clusterInfo must be defined!");
     }
 
-    const cluster = props.cluster;
-    const fulfillmentDockerImageAsset = props.fulfillmentDockerImageAsset;
+    const cluster = props.cluster;    
     const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
     const eventBus = props.eventBus;
-
+    const baseImage = props.baseImage;
+    
     const tenantTier = props.tenantTier;
-    const tenantId = props.tenantId;
+    const tenantId = props.tenantId;    
     const namespace = props.namespace; // from the ApplicationStack
     const multiTenantLabels = {
       tenantTier: tenantTier,
@@ -40,6 +42,27 @@ export class FulfillmentAdvancedTierStack extends Construct {
 
     this.eventSource = "fulfillment-service";
     this.eventDetailType = "order-fulfilled";
+
+    if (props.applicationImageAsset) {
+      this.fulfillmentDockerImageAsset = props.applicationImageAsset;
+    } else {
+      const image = new DockerImageAsset(
+        this,
+        "saas-microservices-fulfillment-image",
+        {
+          directory: path.join(__dirname, "../app"),
+          ...(baseImage && {
+            buildArgs: {
+              BASE_IMAGE: baseImage,
+            },
+          }),
+        }
+      );
+      new cdk.CfnOutput(this, "image", {
+        value: image.imageUri,
+      });
+      this.fulfillmentDockerImageAsset = image;
+    }
 
     const fulfillmentServiceAccount = cluster.addServiceAccount(
       "FulfillmentAdvServiceAccount",
@@ -101,7 +124,7 @@ export class FulfillmentAdvancedTierStack extends Construct {
               containers: [
                 {
                   name: "fulfillment-app",
-                  image: fulfillmentDockerImageAsset.imageUri,
+                  image: this.fulfillmentDockerImageAsset.imageUri,
                   resources: {
                     requests: {
                       cpu: "100m",
