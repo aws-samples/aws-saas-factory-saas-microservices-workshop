@@ -14,9 +14,6 @@ WORKDIR /code
 COPY --from=build /code/main .
 EXPOSE 8080
 
-RUN apt-get update && apt-get install -y curl
-
 RUN useradd app
 USER app
-HEALTHCHECK CMD curl --fail http://localhost:8080/health || exit 1
 CMD ["/code/main"]
