@@ -2,7 +2,7 @@ import os
 import logging
 import random
 import boto3
-from shared.helper_functions import get_tenant_context, get_boto3_client, track_metric
+# from shared.helper_functions import get_tenant_context, get_boto3_client, track_metric
 from botocore.exceptions import ClientError
 from flask import Flask, request
 from aws_xray_sdk.core import xray_recorder
@@ -65,8 +65,8 @@ def getProduct(product_id):
             'description': resp['Items'][0]['description']['S'],
             'price': resp['Items'][0]['price']['S']
         }
-
         return {"msg": "GET successful!", "product": product_dict}, 200
+
     except Exception as e:
         app.logger.error("Exception: " + str(e))
         return {"msg": "Unable to get product!", "product_id": product_id}, 500
@@ -118,39 +118,4 @@ def postProduct():
 @app.route("/products")
 def getAllProduct():
     # IMPLEMENT ME: LAB1 (GET /products)
-    pass        
-    # try:
-    #     authorization = request.headers.get("Authorization", None)
-    #     tenantContext = get_tenant_context(authorization)
-    #     if tenantContext.tenant_id is None:
-    #         return {"msg": "Unable to read 'tenantId' claim from JWT."}, 400
-    #     xray_recorder.put_annotation("tenant_id", tenantContext.tenant_id)
-
-    #     dynamodb_client = get_boto3_client("dynamodb", authorization)
-
-    #     resp = dynamodb_client.query(
-    #         TableName=table_name,
-    #         KeyConditionExpression='tenantId = :t_id',
-    #         ExpressionAttributeValues={
-    #             # REPLACE LINE BELOW: lab1 (bug)
-    #             ':t_id': {'S': tenantContext.tenant_id}
-    #         }
-    #     )
-
-    #     list = []
-    #     for item in resp['Items']:
-    #         list.append({
-    #             'productId': item['productId']['S'],
-    #             'name': item['name']['S'],
-    #             'description': item['description']['S'],
-    #             'price': item['price']['S']
-    #         })
-    #     return {"products": list}, 200
-
-    # except ClientError as e:
-    #     app.logger.error("ClientError: " + str(e.response['Error']['Message']))
-    #     return {"msg": "Unable to get products!"}, 500
-
-    # except Exception as e:
-    #     app.logger.error("Exception: " + str(e))
-    #     return {"msg": "Unable to get products!"}, 500
+    pass

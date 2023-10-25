@@ -70,5 +70,6 @@ export JWT_TOKEN_TENANT_A=$(awk -v ten=tenant-a '$0~ten {print $3}' ${JWT_FILE})
 export JWT_TOKEN_TENANT_B=$(awk -v ten=tenant-b '$0~ten {print $3}' ${JWT_FILE})
 export JWT_TOKEN_TENANT_C=$(awk -v ten=tenant-c '$0~ten {print $3}' ${JWT_FILE})
 export JWT_TOKEN_TENANT_D=$(awk -v ten=tenant-d '$0~ten {print $3}' ${JWT_FILE})
+export JWT_TOKEN_TENANT_E=$(awk -v ten=tenant-e '$0~ten {print $3}' ${JWT_FILE})
 
 echo "Token variables loaded"
