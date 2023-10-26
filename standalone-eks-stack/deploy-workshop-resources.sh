@@ -20,4 +20,5 @@ STACK_ID=$(aws cloudformation create-stack \
         ParameterKey=ParticipantAssumedRoleArn,ParameterValue="$PARTICIPANT_ASSUMED_ROLE_ARN" \
     --query StackId --output text)
 
-echo "CloudFormation stack $STACK_NAME creation started. You can monitor progress in the AWS Console at https://console.aws.amazon.com/cloudformation/home#/stacks/stackinfo?stackId=${STACK_ID}"
+echo "STACK_ID: $STACK_ID"
+echo "CloudFormation stack $STACK_NAME creation started. You can monitor progress in the AWS Console at https://console.aws.amazon.com/cloudformation"
