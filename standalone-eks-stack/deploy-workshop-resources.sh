@@ -10,13 +10,14 @@ REPO_URL="https://github.com/aws-samples/aws-saas-factory-saas-microservices-wor
 REPO_BRANCH_NAME="v2"
 PARTICIPANT_ASSUMED_ROLE_ARN="$(aws sts get-caller-identity --query 'Arn' --output text)"
 
-aws cloudformation create-stack \
+STACK_ID=$(aws cloudformation create-stack \
     --stack-name "$STACK_NAME" \
     --template-body file://WorkshopStack.yaml \
     --capabilities CAPABILITY_IAM \
     --parameters \
         ParameterKey=RepoUrl,ParameterValue="$REPO_URL" \
         ParameterKey=RepoBranchName,ParameterValue="$REPO_BRANCH_NAME" \
-        ParameterKey=ParticipantAssumedRoleArn,ParameterValue="$PARTICIPANT_ASSUMED_ROLE_ARN"
+        ParameterKey=ParticipantAssumedRoleArn,ParameterValue="$PARTICIPANT_ASSUMED_ROLE_ARN" \
+    --query StackId --output text)
 
-echo "CloudFormation stack $STACK_NAME creation started. You can monitor progress in the AWS Console at https://console.aws.amazon.com/cloudformation"
+echo "CloudFormation stack $STACK_NAME creation started. You can monitor progress in the AWS Console at https://console.aws.amazon.com/cloudformation/home#/stacks/stackinfo?stackId=${STACK_ID}"
