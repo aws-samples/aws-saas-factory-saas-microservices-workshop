@@ -7,11 +7,7 @@ import boto3
 import jwt
 from shared.helper_functions import get_tenant_context, track_metric
 from flask import Flask, request
-from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.core import patch_all
-from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
-from aws_xray_sdk.core.sampling.local.sampler import LocalSampler
-patch_all()
+
 logging.getLogger('boto').setLevel(logging.CRITICAL)
 app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
@@ -20,12 +16,6 @@ event_source = os.environ["EVENT_SOURCE"]
 event_detail_type = os.environ["EVENT_DETAIL_TYPE"]
 service_name = os.environ["SERVICE_NAME"]
 service_type = os.environ["SERVICE_TYPE"]
-xray_recorder.configure(
-    sampling_rules=os.path.abspath("xray_sample_rules.json"),
-    service=service_name,
-    sampler=LocalSampler()
-)
-XRayMiddleware(app, xray_recorder)
 
 # LAB 3: REMOVE START (cleanup)
 
@@ -45,7 +35,6 @@ def postOrderFulfillment(order_id):
         tenantContext = get_tenant_context(authorization)
         if tenantContext.tenant_id is None:
             return {"msg": "Unable to read 'tenantId' claim from JWT."}, 400
-        xray_recorder.put_annotation("tenant_id", tenantContext.tenant_id)
 
         message = json.dumps({
             "order": request.get_json(),

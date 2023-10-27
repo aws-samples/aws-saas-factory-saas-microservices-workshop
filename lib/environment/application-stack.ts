@@ -39,8 +39,6 @@ export class ApplicationStack extends cdk.Stack {
       workshopSSMPrefix: workshopSSMPrefix,
     });
     const cluster = eksCluster.cluster;
-    const xrayServiceDNSAndPort =
-      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentXrayEndpoint;
     const cloudwatchAgentLogEndpoint =
       props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName =
@@ -111,7 +109,6 @@ export class ApplicationStack extends cdk.Stack {
       namespace: this.namespace,
       tenantTier: tenantTier,
       tenantId: tenantId,
-      xrayServiceDNSAndPort: xrayServiceDNSAndPort,
       cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
       cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       namespaceConstruct: stackNamespace,
@@ -131,7 +128,6 @@ export class ApplicationStack extends cdk.Stack {
         namespace: this.namespace,
         tenantTier: tenantTier,
         tenantId: tenantId,
-        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
@@ -154,7 +150,6 @@ export class ApplicationStack extends cdk.Stack {
         sideCarImageAsset: sideCarImageAsset,
         tenantTier: tenantTier,
         tenantId: tenantId,
-        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
@@ -175,7 +170,6 @@ export class ApplicationStack extends cdk.Stack {
         sideCarImageAsset: sideCarImageAsset,
         tenantTier: tenantTier,
         tenantId: tenantId,
-        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,

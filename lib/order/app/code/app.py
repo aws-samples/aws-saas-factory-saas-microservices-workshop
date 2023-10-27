@@ -7,24 +7,13 @@ import requests
 import random
 from shared.helper_functions import get_tenant_context, get_boto3_client, log_info_message, track_metric
 from flask import Flask, request
-from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.core import patch_all
-from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
-from aws_xray_sdk.core.sampling.local.sampler import LocalSampler
 
-patch_all()
 app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
 table_name = os.environ["TABLE_NAME"]
 fulfillment_endpoint = os.environ["FULFILLMENT_ENDPOINT"]
 service_name = os.environ["SERVICE_NAME"]
 service_type = os.environ["SERVICE_TYPE"]
-xray_recorder.configure(
-    sampling_rules=os.path.abspath("xray_sample_rules.json"),
-    service=service_name,
-    sampler=LocalSampler()
-)
-XRayMiddleware(app, xray_recorder)
 
 
 # LAB 3: REMOVE START (cleanup)
@@ -58,7 +47,6 @@ def getAllOrder():
     tenantContext = get_tenant_context(authorization)
     if tenantContext.tenant_id is None:
         return {"msg": "Unable to read 'tenantId' claim from JWT."}, 400
-    xray_recorder.put_annotation("tenant_id", tenantContext.tenant_id)
 
     try:
         dynamodb_client = get_boto3_client("dynamodb", authorization)
@@ -95,7 +83,6 @@ def getOrder(order_id):
         tenantContext = get_tenant_context(authorization)
         if tenantContext.tenant_id is None:
             return {"msg": "Unable to read 'tenantId' claim from JWT."}, 400
-        xray_recorder.put_annotation("tenant_id", tenantContext.tenant_id)
 
         dynamodb_client = get_boto3_client("dynamodb", authorization)
         resp = dynamodb_client.query(
@@ -131,7 +118,6 @@ def postOrder():
         tenantContext = get_tenant_context(authorization)
         if tenantContext.tenant_id is None:
             return {"message": "Unable to read 'tenant_id' claim from JWT."}, 400
-        xray_recorder.put_annotation("tenant_id", tenantContext.tenant_id)
 
         order = Order(request.get_json())
         dynamodb_client = get_boto3_client("dynamodb", authorization)

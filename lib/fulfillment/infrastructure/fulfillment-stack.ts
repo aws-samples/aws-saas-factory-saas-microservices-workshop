@@ -25,7 +25,6 @@ export class FulfillmentStack extends Construct {
 
     const cluster = props.cluster;
     const tenantTier = props.tenantTier;
-    const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
     const eventBus = props.eventBus;
@@ -165,10 +164,6 @@ export class FulfillmentStack extends Construct {
                   {
                     name: "AWS_DEFAULT_REGION",
                     value: cdk.Stack.of(this).region,
-                  },
-                  {
-                    name: "AWS_XRAY_DAEMON_ADDRESS",
-                    value: xrayServiceDNSAndPort,
                   },
                   {
                     name: "AWS_EMF_AGENT_ENDPOINT",

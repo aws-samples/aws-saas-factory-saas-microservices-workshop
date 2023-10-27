@@ -5,22 +5,12 @@ import boto3
 # from shared.helper_functions import get_tenant_context, get_boto3_client, track_metric
 from botocore.exceptions import ClientError
 from flask import Flask, request
-from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.core import patch_all
-from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
-from aws_xray_sdk.core.sampling.local.sampler import LocalSampler
-patch_all()
 app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
 table_name = os.environ["TABLE_NAME"]
 service_name = os.environ["SERVICE_NAME"] + "-" + os.environ["POD_NAMESPACE"]
 service_type = os.environ["SERVICE_TYPE"]
-xray_recorder.configure(
-    sampling_rules=os.path.abspath("xray_sample_rules.json"),
-    service=service_name,
-    sampler=LocalSampler()
-)
-XRayMiddleware(app, xray_recorder)
+
 
 class Product():
     product_id: str
@@ -43,9 +33,9 @@ def health():
 @app.route("/products/<product_id>")
 def getProduct(product_id):
 
-    # PASTE: LAB1 (GET route tenant context)    
+    # PASTE: LAB1 (GET route tenant context)
 
-    try:        
+    try:
         dynamodb_client = boto3.client("dynamodb")
 
         # REPLACE START: LAB1 (query DynamoDB with tenant context)
