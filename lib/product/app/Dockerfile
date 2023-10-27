@@ -17,5 +17,4 @@ COPY ./code/requirements.txt ${APP_DIR}/requirements.txt
 RUN pip install --user --no-cache-dir --requirement ${APP_DIR}/requirements.txt
 COPY ./code $APP_DIR
 
-HEALTHCHECK CMD curl --fail http://localhost:8080/products/health || exit 1
 CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:8080", "--log-level=debug"]
