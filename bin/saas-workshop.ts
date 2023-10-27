@@ -41,7 +41,6 @@ const basicStack = new ApplicationStack(app, "PoolBasicStack", {
   sideCarImageAsset: tokenVendorStack.tokenVendorImage,
   deploymentMode: deploymentMode,
   workshopSSMPrefix: workshopSSMPrefix,
-  stackName: "PoolBasicStack"
 });
 basicStack.node.addDependency(baseStack);
 
