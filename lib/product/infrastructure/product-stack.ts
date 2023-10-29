@@ -286,7 +286,7 @@ export class ProductStack extends Construct {
                   },
                   {
                     name: "SERVICE_NAME",
-                    value: serviceName,
+                    value: "Product",
                   },
                   {
                     name: "POD_NAMESPACE",
