@@ -48,7 +48,7 @@ export class ProductStack extends Construct {
           directory: path.join(__dirname, "../app"),
           ...(baseImage && {
             buildArgs: {
-              BASE_IMAGE: baseImage,
+              BASE_IMAGE: baseImage.imageUri,
             },
           }),
         }

@@ -112,7 +112,7 @@ export class ApplicationStack extends cdk.Stack {
       cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
       cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       namespaceConstruct: stackNamespace,
-      baseImage: props.baseStack.baseImage,
+      baseImage: props.baseStack.sharedResources.sharedImageAsset,
     });
     productStack.node.addDependency(stackNamespace);
     this.productServiceDNS = productStack.productServiceDNS;
@@ -132,7 +132,7 @@ export class ApplicationStack extends cdk.Stack {
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
         eventBus: eventBus,
-        baseImage: props.baseStack.baseImage,
+        baseImage: props.baseStack.sharedResources.sharedImageAsset,
       });
       fulfillmentStack.node.addDependency(stackNamespace);
       this.fulfillmentServicePort = fulfillmentStack.fulfillmentServicePort;
@@ -153,7 +153,7 @@ export class ApplicationStack extends cdk.Stack {
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
-        baseImage: props.baseStack.baseImage,
+        baseImage: props.baseStack.sharedResources.sharedImageAsset,
       });
       orderStack.node.addDependency(stackNamespace);
       orderStack.node.addDependency(fulfillmentStack);
@@ -173,7 +173,7 @@ export class ApplicationStack extends cdk.Stack {
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
-        baseImage: props.baseStack.baseImage,
+        baseImage: props.baseStack.sharedResources.sharedImageAsset,
         eventBus: eventBus,
         fulfillmentEventDetailType: fulfillmentStack.eventDetailType,
         fulfillmentEventSource: fulfillmentStack.eventSource,

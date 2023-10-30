@@ -11,14 +11,12 @@ export class SSMResources extends Construct {
     props: {
       clusterInfo: blueprints.ClusterInfo;
       workshopSSMPrefix: string;
-      sharedImageAsset: DockerImageAsset;
     }
   ) {
     super(scope, id);
 
     const clusterInfo = props.clusterInfo;
     const workshopSSMPrefix = props.workshopSSMPrefix;
-    const sharedImageAsset = props.sharedImageAsset;
 
     new ssm.StringParameter(this, "clusterNameParameter", {
       parameterName: `${workshopSSMPrefix}/clusterName`,
@@ -65,11 +63,6 @@ export class SSMResources extends Construct {
       parameterName: `${workshopSSMPrefix}/openIdConnectProviderArn`,
       stringValue:
         clusterInfo.cluster.openIdConnectProvider.openIdConnectProviderArn,
-    });
-
-    new ssm.StringParameter(this, "sharedImage", {
-      parameterName: `${workshopSSMPrefix}/sharedImageUri`,
-      stringValue: sharedImageAsset.imageUri,
     });
   }
 }
