@@ -6,22 +6,13 @@ import requests
 import boto3
 import jwt
 from shared.helper_functions import get_tenant_context, track_metric
-from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.core import patch_all
-from aws_xray_sdk.core.sampling.local.sampler import LocalSampler
 
-patch_all()
 product_endpoint = os.environ["PRODUCT_ENDPOINT"]
 service_name = os.environ["SERVICE_NAME"]
 service_type = os.environ["SERVICE_TYPE"]
 logging.basicConfig(stream=sys.stdout)
 logger = logging.getLogger(service_name)
 logger.setLevel(logging.INFO)
-
-xray_recorder.configure(
-    service=service_name,
-    sampler=LocalSampler(),
-)
 
 sqs_client = boto3.client('sqs')
 sqs_queue_url = os.environ['QUEUE_URL']
@@ -71,7 +62,6 @@ if __name__ == '__main__':
     logger.info(f'searching for sqs messages...')
     messages_processed = 0
     while True:
-        segment = xray_recorder.begin_segment(service_name)
         messages = receive_message_from_sqs(
             sqs_queue_url, max_messages=max_messages_to_read)
 
@@ -92,21 +82,14 @@ if __name__ == '__main__':
                     logger.error(f'authorization: {authorization}')
                     raise Exception("Authorization in message is missing.")
 
-                tenantContext = get_tenant_context(authorization)
-                subsegment = xray_recorder.begin_subsegment(
-                    f'{service_name}-fulfillment-processing', 'remote')
-                subsegment.put_annotation('tenant_id', tenantContext.tenant_id)
-                subsegment.put_annotation(
-                    'tenant_tier', tenantContext.tenant_tier)
-
                 total_price = calculate_order_total(product_ids, authorization)
                 track_metric(authorization, service_name, service_type,
                              "InvoiceTotalPrice", total_price)
-                xray_recorder.end_subsegment()
 
                 sqs_client.delete_message(
                     QueueUrl=sqs_queue_url, ReceiptHandle=message['ReceiptHandle'])
 
+                tenantContext = get_tenant_context(authorization)
                 message_dict = {
                     'message': f"Invoice created for order {order} with total price {total_price}",
                     'tenantTier': tenantContext.tenant_tier,
@@ -117,7 +100,6 @@ if __name__ == '__main__':
         else:
             logger.info(f'No messages found in the SQS queue')
             break
-        xray_recorder.end_segment()
 
     logger.info(
         f"Processed {messages_processed} messages. Exiting the script.")

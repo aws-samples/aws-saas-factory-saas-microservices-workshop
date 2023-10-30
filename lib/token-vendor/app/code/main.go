@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"	
 	"net/http"
 	"os"
@@ -11,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/golang-jwt/jwt/v4"
 )
 
@@ -21,9 +19,8 @@ var tokenVendorEndpointPort string = os.Getenv("TOKEN_VENDOR_ENDPOINT_PORT")
 var awsRegion string = os.Getenv("AWS_DEFAULT_REGION")
 
 func main() {
-	xrayServiceName := fmt.Sprintf("TokenVendor-%s", os.Getenv("SERVICE_NAME"))
 	http.Handle("/health", http.HandlerFunc(health))
-	http.Handle("/", xray.Handler(xray.NewFixedSegmentNamer(xrayServiceName), http.HandlerFunc(getCredentials)))
+	http.Handle("/", http.HandlerFunc(getCredentials))
 	http.ListenAndServe("127.0.0.1:"+tokenVendorEndpointPort, nil)
 }
 
@@ -83,8 +80,6 @@ func getCredentials(w http.ResponseWriter, r *http.Request) {
 	log.Printf("claims.TenantTier: %s\n", claims.TenantTier)
 	log.Printf("authorization: %s\n", authorization)
 
-	xray.AddAnnotation(ctx, "tenant_id", claims.TenantID)
-
 	mySession, err := session.NewSession(&aws.Config{
 		Region: &awsRegion,
 	})
@@ -98,8 +93,6 @@ func getCredentials(w http.ResponseWriter, r *http.Request) {
 	}
 
 	svc := sts.New(mySession)
-	xray.AWS(svc.Client)
-
 	input := &sts.GetCallerIdentityInput{}
 	identity, err := svc.GetCallerIdentityWithContext(ctx, input)
 	if err != nil {

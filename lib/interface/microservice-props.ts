@@ -5,7 +5,6 @@ import { TenantTier } from "../enums/tenant-tier";
 export interface MicroserviceStackProps {
   baseImage?: string;
   cluster: eks.ICluster;
-  xrayServiceDNSAndPort: string;
   cloudwatchAgentLogEndpoint: string;
   cloudwatchAgentLogGroupName: string;
   istioIngressGateway: string;
