@@ -40,8 +40,6 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
     const productServicePort = props.basicStack.productServicePort;
     const orderServiceDNS = props.basicStack.orderServiceDNS;
     const orderServicePort = props.basicStack.orderServicePort;
-    const xrayServiceDNSAndPort =
-      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentXrayEndpoint;
     const cloudwatchAgentLogEndpoint =
       props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName =
@@ -61,7 +59,6 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
         namespace: namespace,
         tenantTier: tenantTier,
         tenantId: tenantId,
-        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       }
@@ -99,7 +96,6 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
         namespace: tenantSpecificAdvancedTierNamespaceName,
         tenantTier: tenantTier,
         tenantId: tenantId,
-        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         namespaceConstruct: tenantSpecificAdvancedTierNamespace,
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
@@ -121,7 +117,6 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
         namespace: namespace,
         tenantTier: tenantTier,
         tenantId: tenantId,
-        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       }
@@ -136,7 +131,6 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
       sideCarImageAsset: sideCarImageAsset,
       tenantTier: tenantTier,
       tenantId: tenantId,
-      xrayServiceDNSAndPort: xrayServiceDNSAndPort,
       cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
       cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       namespaceConstruct: tenantSpecificAdvancedTierNamespace,

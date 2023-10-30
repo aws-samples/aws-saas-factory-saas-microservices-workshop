@@ -19,7 +19,6 @@ export class InvoiceStack extends Construct {
     super(scope, id);
 
     const productServiceDNS = props.productServiceDNS;
-    const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
     const baseImage = props.baseImage;
@@ -169,10 +168,6 @@ export class InvoiceStack extends Construct {
                     {
                       name: "AWS_DEFAULT_REGION",
                       value: cdk.Stack.of(this).region,
-                    },
-                    {
-                      name: "AWS_XRAY_DAEMON_ADDRESS",
-                      value: xrayServiceDNSAndPort,
                     },
                     {
                       name: "AWS_EMF_AGENT_ENDPOINT",

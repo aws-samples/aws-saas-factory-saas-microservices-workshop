@@ -20,15 +20,14 @@ export class FulfillmentAdvancedTierStack extends Construct {
       throw new Error("props.clusterInfo must be defined!");
     }
 
-    const cluster = props.cluster;    
-    const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
+    const cluster = props.cluster;
     const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
     const eventBus = props.eventBus;
     const baseImage = props.baseImage;
-    
+
     const tenantTier = props.tenantTier;
-    const tenantId = props.tenantId;    
+    const tenantId = props.tenantId;
     const namespace = props.namespace; // from the ApplicationStack
     const multiTenantLabels = {
       tenantTier: tenantTier,
@@ -167,10 +166,6 @@ export class FulfillmentAdvancedTierStack extends Construct {
                     {
                       name: "AWS_DEFAULT_REGION",
                       value: cdk.Stack.of(this).region,
-                    },
-                    {
-                      name: "AWS_XRAY_DAEMON_ADDRESS",
-                      value: xrayServiceDNSAndPort,
                     },
                     {
                       name: "AWS_EMF_AGENT_ENDPOINT",

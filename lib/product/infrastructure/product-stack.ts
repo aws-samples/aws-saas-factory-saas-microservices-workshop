@@ -15,7 +15,6 @@ export class ProductStack extends Construct {
     super(scope, id);
 
     const istioIngressGateway = props.istioIngressGateway;
-    const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
     const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
     const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
     const baseImage = props.baseImage;
@@ -170,10 +169,6 @@ export class ProductStack extends Construct {
                     value: cdk.Stack.of(this).region,
                   },
                   {
-                    name: "AWS_XRAY_DAEMON_ADDRESS",
-                    value: xrayServiceDNSAndPort,
-                  },
-                  {
                     name: "AWS_EMF_AGENT_ENDPOINT",
                     value: cloudwatchAgentLogEndpoint,
                   },
@@ -263,10 +258,6 @@ export class ProductStack extends Construct {
                   {
                     name: "AWS_DEFAULT_REGION",
                     value: cdk.Stack.of(this).region,
-                  },
-                  {
-                    name: "AWS_XRAY_DAEMON_ADDRESS",
-                    value: xrayServiceDNSAndPort,
                   },
                   {
                     name: "AWS_EMF_AGENT_ENDPOINT",
