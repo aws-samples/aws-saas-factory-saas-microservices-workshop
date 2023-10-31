@@ -5,7 +5,7 @@ import requests
 import logging
 import boto3
 import jwt
-from shared.helper_functions import get_tenant_context, track_metric
+from shared.helper_functions import get_tenant_context, create_emf_log, create_emf_log_with_tenant_context
 from flask import Flask, request
 
 logging.getLogger('boto').setLevel(logging.CRITICAL)
@@ -15,7 +15,6 @@ event_bus_name = os.environ["EVENT_BUS_NAME"]
 event_source = os.environ["EVENT_SOURCE"]
 event_detail_type = os.environ["EVENT_DETAIL_TYPE"]
 service_name = os.environ["SERVICE_NAME"]
-service_type = os.environ["SERVICE_TYPE"]
 
 # LAB 3: REMOVE START (cleanup)
 
@@ -32,14 +31,14 @@ def health():
 def postOrderFulfillment(order_id):
     try:
         authorization = request.headers.get("Authorization", None)
-        tenantContext = get_tenant_context(authorization)
-        if tenantContext.tenant_id is None:
+        tenant_context = get_tenant_context(authorization)
+        if tenant_context.tenant_id is None:
             return {"msg": "Unable to read 'tenantId' claim from JWT."}, 400
 
         message = json.dumps({
             "order": request.get_json(),
-            "tenantId": tenantContext.tenant_id,
-            "tenantTier": tenantContext.tenant_tier,
+            "tenantId": tenant_context.tenant_id,
+            "tenantTier": tenant_context.tenant_tier,
             "authorization": authorization
         })
 
@@ -56,9 +55,13 @@ def postOrderFulfillment(order_id):
         )
         app.logger.debug("Message sent to event bus: " + str(response))
         app.logger.debug("Fulfillment complete: " + str(order_id) +
-                         ", tenant:" + str(tenantContext.tenant_id))
-        track_metric(authorization, service_name, service_type,
-                     "FulfillmentComplete", 1)
+                         ", tenant:" + str(tenant_context.tenant_id))
+        dimensions = {
+            "ServiceName": service_name,
+        }
+        create_emf_log(dimensions, "FulfillmentComplete", 1)
+        create_emf_log_with_tenant_context(
+            service_name, tenant_context, "FulfillmentComplete", 1)
         return {"msg": "Fulfillment successful", "order_id": order_id}, 200
 
     except Exception as e:

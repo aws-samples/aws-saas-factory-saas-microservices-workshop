@@ -5,7 +5,7 @@ import os
 import logging
 import requests
 import random
-from shared.helper_functions import get_tenant_context, get_boto3_client, log_info_message, track_metric
+from shared.helper_functions import get_tenant_context, get_boto3_client, create_emf_log, create_emf_log_with_tenant_context
 from flask import Flask, request
 
 app = Flask(__name__)
@@ -13,7 +13,6 @@ app.logger.setLevel(logging.DEBUG)
 table_name = os.environ["TABLE_NAME"]
 fulfillment_endpoint = os.environ["FULFILLMENT_ENDPOINT"]
 service_name = os.environ["SERVICE_NAME"]
-service_type = os.environ["SERVICE_TYPE"]
 
 
 # LAB 3: REMOVE START (cleanup)
@@ -44,8 +43,8 @@ def health():
 @app.route("/orders")
 def getAllOrder():
     authorization = request.headers.get("Authorization", None)
-    tenantContext = get_tenant_context(authorization)
-    if tenantContext.tenant_id is None:
+    tenant_context = get_tenant_context(authorization)
+    if tenant_context.tenant_id is None:
         return {"msg": "Unable to read 'tenantId' claim from JWT."}, 400
 
     try:
@@ -54,7 +53,7 @@ def getAllOrder():
             TableName=table_name,
             KeyConditionExpression='tenantId = :t_id',
             ExpressionAttributeValues={
-                ':t_id': {'S': tenantContext.tenant_id}
+                ':t_id': {'S': tenant_context.tenant_id}
             }
         )
 
@@ -80,8 +79,8 @@ def getAllOrder():
 def getOrder(order_id):
     try:
         authorization = request.headers.get("Authorization", None)
-        tenantContext = get_tenant_context(authorization)
-        if tenantContext.tenant_id is None:
+        tenant_context = get_tenant_context(authorization)
+        if tenant_context.tenant_id is None:
             return {"msg": "Unable to read 'tenantId' claim from JWT."}, 400
 
         dynamodb_client = get_boto3_client("dynamodb", authorization)
@@ -89,7 +88,7 @@ def getOrder(order_id):
             TableName=table_name,
             KeyConditionExpression='tenantId=:t_id AND order_id=:o_id',
             ExpressionAttributeValues={
-                ':t_id': {'S': tenantContext.tenant_id},
+                ':t_id': {'S': tenant_context.tenant_id},
                 ':o_id': {'S': order_id}
             }
         )
@@ -115,8 +114,8 @@ def getOrder(order_id):
 def postOrder():
     try:
         authorization = request.headers.get("Authorization", None)
-        tenantContext = get_tenant_context(authorization)
-        if tenantContext.tenant_id is None:
+        tenant_context = get_tenant_context(authorization)
+        if tenant_context.tenant_id is None:
             return {"message": "Unable to read 'tenant_id' claim from JWT."}, 400
 
         order = Order(request.get_json())
@@ -124,7 +123,7 @@ def postOrder():
         dynamodb_client.put_item(
             Item={
                 'tenantId': {
-                    'S': tenantContext.tenant_id,
+                    'S': tenant_context.tenant_id,
                 },
                 'orderId': {
                     'S': order.order_id,
@@ -142,19 +141,21 @@ def postOrder():
             TableName=table_name,
         )
         submitFulfillment(order, authorization,
-                          tenantContext, fulfillment_endpoint)
+                          tenant_context, fulfillment_endpoint)
 
-        # REPLACE BELOW: LAB5 (log)
-        log_info_message(app, "Order created", tenantContext)
-        track_metric(authorization, service_name, service_type,
-                     "OrderCreated", 1)
+        dimensions = {
+            "ServiceName": service_name,
+        }
+        create_emf_log(dimensions, "OrderCreated", 1)
+        create_emf_log_with_tenant_context(
+            service_name, tenant_context, "OrderCreated", 1)
         return {"msg": "Order created", "order": order.__dict__}, 200
     except Exception as e:
         app.logger.error("Exception raised! " + str(e))
         return {"msg": "Unable to save order!", "order": order.__dict__}, 500
 
 
-def submitFulfillment(order, authorization, tenantContext, fulfillment_endpoint):
+def submitFulfillment(order, authorization, tenant_context, fulfillment_endpoint):
     try:
         url = "http://" + fulfillment_endpoint + "/fulfillments/" + order.order_id
         app.logger.debug("Fulfillment request: " + url)
@@ -163,8 +164,8 @@ def submitFulfillment(order, authorization, tenantContext, fulfillment_endpoint)
             json=order.__dict__,
             headers={
                 "Authorization": authorization,
-                "x-app-tenant-id": tenantContext.tenant_id,
-                "x-app-tenant-tier": tenantContext.tenant_tier,
+                "x-app-tenant-id": tenant_context.tenant_id,
+                "x-app-tenant-tier": tenant_context.tenant_tier,
             },
         )
         response.raise_for_status()

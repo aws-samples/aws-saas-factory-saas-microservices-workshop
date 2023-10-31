@@ -5,11 +5,10 @@ import sys
 import requests
 import boto3
 import jwt
-from shared.helper_functions import get_tenant_context, track_metric
+from shared.helper_functions import get_tenant_context, create_emf_log, create_emf_log_with_tenant_context
 
 product_endpoint = os.environ["PRODUCT_ENDPOINT"]
 service_name = os.environ["SERVICE_NAME"]
-service_type = os.environ["SERVICE_TYPE"]
 logging.basicConfig(stream=sys.stdout)
 logger = logging.getLogger(service_name)
 logger.setLevel(logging.INFO)
@@ -59,7 +58,7 @@ def calculate_order_total(product_ids, authorization):
 
 
 if __name__ == '__main__':
-    logger.info(f'searching for sqs messages...')
+    logger.info(f'Searching for sqs messages...')
     messages_processed = 0
     while True:
         messages = receive_message_from_sqs(
@@ -67,39 +66,45 @@ if __name__ == '__main__':
 
         logger.info(f'found {len(messages)} messages')
         logger.info(f'messages: {messages}')
-        if messages:
-            for message in messages:
-                logger.info(f'message: {message}')
-                message_body = json.loads(message['Body'])
-                logger.info(f'message_body: {message_body}')
-
-                message_detail = message_body.get('detail', {})
-                logger.info(f'message_detail: {message_detail}')
-                order = message_detail.get('order', {})
-                product_ids = order.get('products', [])
-                authorization = message_detail.get('authorization', None)
-                if not authorization:
-                    logger.error(f'authorization: {authorization}')
-                    raise Exception("Authorization in message is missing.")
-
-                total_price = calculate_order_total(product_ids, authorization)
-                track_metric(authorization, service_name, service_type,
-                             "InvoiceTotalPrice", total_price)
-
-                sqs_client.delete_message(
-                    QueueUrl=sqs_queue_url, ReceiptHandle=message['ReceiptHandle'])
-
-                tenantContext = get_tenant_context(authorization)
-                message_dict = {
-                    'message': f"Invoice created for order {order} with total price {total_price}",
-                    'tenantTier': tenantContext.tenant_tier,
-                    'tenantId': tenantContext.tenant_id
-                }
-                logger.info(json.dumps(message_dict))
-                messages_processed += 1
-        else:
-            logger.info(f'No messages found in the SQS queue')
+        if len(messages) < 1:
+            logger.info(
+                f'No more messages found in the SQS queue. Exiting out of loop.')
             break
+
+        for message in messages:
+            logger.info(f'message: {message}')
+            message_body = json.loads(message['Body'])
+            logger.info(f'message_body: {message_body}')
+
+            message_detail = message_body.get('detail', {})
+            logger.info(f'message_detail: {message_detail}')
+            order = message_detail.get('order', {})
+            product_ids = order.get('products', [])
+            authorization = message_detail.get('authorization', None)
+            if not authorization:
+                logger.error(f'authorization: {authorization}')
+                raise Exception("Authorization in message is missing.")
+
+            total_price = calculate_order_total(product_ids, authorization)
+            dimensions = {
+                "ServiceName": service_name,
+            }
+            create_emf_log(dimensions, "InvoiceTotalPrice", total_price)
+            create_emf_log_with_tenant_context(
+                service_name, tenant_context, "InvoiceTotalPrice", total_price)
+
+
+            sqs_client.delete_message(
+                QueueUrl=sqs_queue_url, ReceiptHandle=message['ReceiptHandle'])
+
+            tenant_context = get_tenant_context(authorization)
+            message_dict = {
+                'message': f"Invoice created for order {order} with total price {total_price}",
+                'tenantTier': tenant_context.tenant_tier,
+                'tenantId': tenant_context.tenant_id
+            }
+            logger.info(json.dumps(message_dict))
+            messages_processed += 1
 
     logger.info(
         f"Processed {messages_processed} messages. Exiting the script.")

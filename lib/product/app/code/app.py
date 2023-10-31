@@ -2,14 +2,13 @@ import os
 import logging
 import random
 import boto3
-# from shared.helper_functions import get_tenant_context, get_boto3_client, track_metric
+# from shared.helper_functions import get_tenant_context, get_boto3_client, create_emf_log, create_emf_log_with_tenant_context
 from botocore.exceptions import ClientError
 from flask import Flask, request
 app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
 table_name = os.environ["TABLE_NAME"]
-service_name = os.environ["SERVICE_NAME"] + "-" + os.environ["POD_NAMESPACE"]
-service_type = os.environ["SERVICE_TYPE"]
+service_name = os.environ["SERVICE_NAME"]
 
 
 class Product():
@@ -97,7 +96,12 @@ def postProduct():
         # REPLACE END: LAB1 (DynamoDB put_item with tenant context)
 
         app.logger.debug("Product created: " + str(product.product_id))
-        # track_metric(authorization, service_name, service_type, "ProductCreated", 1)
+        dimensions = {
+            "ServiceName": service_name,
+        }
+        create_emf_log(dimensions, "ProductCreated", 1)
+        create_emf_log_with_tenant_context(
+            service_name, tenant_context, "ProductCreated", 1)
         return {"msg": "Product created", "product": product.__dict__}, 201
 
     except Exception as e:
