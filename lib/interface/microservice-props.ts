@@ -3,7 +3,8 @@ import * as eks from "aws-cdk-lib/aws-eks";
 import { TenantTier } from "../enums/tenant-tier";
 
 export interface MicroserviceStackProps {
-  baseImage?: string;
+  //baseImage?: DockerImageAsset;
+  baseImage?: string
   cluster: eks.ICluster;
   cloudwatchAgentLogEndpoint: string;
   cloudwatchAgentLogGroupName: string;

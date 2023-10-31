@@ -7,7 +7,7 @@ echo "Deploying workshop resources..."
 
 STACK_NAME="WorkshopStack"
 REPO_URL="https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop.git"
-REPO_BRANCH_NAME="v2"
+REPO_BRANCH_NAME="lab-changes"
 PARTICIPANT_ASSUMED_ROLE_ARN="$(aws sts get-caller-identity --query 'Arn' --output text)"
 
 STACK_ID=$(aws cloudformation create-stack \
