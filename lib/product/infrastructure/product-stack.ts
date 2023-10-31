@@ -4,28 +4,28 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { Construct } from "constructs";
 import { MicroserviceStackProps } from "../../interface/microservice-props";
+import { MicroserviceStack } from "../../abstract-class/microservice-stack";
 
 var path = require("path");
 
-export class ProductStack extends Construct {
+export class ProductStack extends MicroserviceStack {
   public readonly productServiceDNS: string;
   public readonly productServicePort: number;
   public readonly productImageAsset: DockerImageAsset;
+  public readonly serviceName: string = "product";
   constructor(scope: Construct, id: string, props: MicroserviceStackProps) {
-    super(scope, id);
+    super(scope, id, props);
 
     const istioIngressGateway = props.istioIngressGateway;
-    const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
-    const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
     const baseImage = props.baseImage;
-    
+
     // REPLACE START: LAB1 (namespace)
     const namespace = "default";
     const multiTenantLabels = {};
     // REPLACE END: LAB1 (namespace)
 
     // PASTE: LAB1(tenant context tags)
-    cdk.Tags.of(this).add("SaaS-Microservices:ServiceName", "Product");
+    cdk.Tags.of(this).add("SaaS-Microservices:ServiceName", this.serviceName);
 
     // REPLACE START: LAB1 (product table)
     const productTable = new dynamodb.Table(this, "ProductTable", {
@@ -155,7 +155,7 @@ export class ProductStack extends Construct {
                   failureThreshold: 3,
                   periodSeconds: 10,
                 },
-                env: [
+                env: this.combineWithBaseContainerEnvs([
                   {
                     name: "TOKEN_VENDOR_ENDPOINT_PORT",
                     value: "8081",
@@ -164,43 +164,7 @@ export class ProductStack extends Construct {
                     name: "TABLE_NAME",
                     value: productTable.tableName,
                   },
-                  {
-                    name: "AWS_DEFAULT_REGION",
-                    value: cdk.Stack.of(this).region,
-                  },
-                  {
-                    name: "AWS_EMF_AGENT_ENDPOINT",
-                    value: cloudwatchAgentLogEndpoint,
-                  },
-                  {
-                    name: "AWS_EMF_LOG_GROUP_NAME",
-                    value: cloudwatchAgentLogGroupName,
-                  },
-                  {
-                    name: "AWS_EMF_LOG_STREAM_NAME",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.name",
-                      },
-                    },
-                  },
-                  {
-                    name: "POD_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.namespace",
-                      },
-                    },
-                  },
-                  {
-                    name: "SERVICE_NAME",
-                    value: "Product",
-                  },
-                  {
-                    name: "SERVICE_TYPE",
-                    value: "WebApp",
-                  },
-                ],
+                ]),
                 ports: [
                   {
                     containerPort: 8080,
@@ -242,7 +206,7 @@ export class ProductStack extends Construct {
                   failureThreshold: 3,
                   periodSeconds: 10,
                 },
-                env: [
+                env: this.combineWithBaseContainerEnvs([
                   {
                     name: "ROLE_ARN",
                     value: accessRole.roleArn,
@@ -255,39 +219,7 @@ export class ProductStack extends Construct {
                     name: "TENANT_TAG_KEY",
                     value: "TenantID",
                   },
-                  {
-                    name: "AWS_DEFAULT_REGION",
-                    value: cdk.Stack.of(this).region,
-                  },
-                  {
-                    name: "AWS_EMF_AGENT_ENDPOINT",
-                    value: cloudwatchAgentLogEndpoint,
-                  },
-                  {
-                    name: "AWS_EMF_LOG_GROUP_NAME",
-                    value: cloudwatchAgentLogGroupName,
-                  },
-                  {
-                    name: "AWS_EMF_LOG_STREAM_NAME",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.name",
-                      },
-                    },
-                  },
-                  {
-                    name: "SERVICE_NAME",
-                    value: "Product",
-                  },
-                  {
-                    name: "POD_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.namespace",
-                      },
-                    },
-                  },
-                ],
+                ]),
                 ports: [
                   {
                     containerPort: 8081,

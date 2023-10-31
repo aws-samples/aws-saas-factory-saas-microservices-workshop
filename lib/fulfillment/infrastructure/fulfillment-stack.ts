@@ -3,30 +3,26 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { Construct } from "constructs";
 import { FulfillmentMicroserviceStackProps } from "../../interface/fulfillment-microservice-props";
+import { MicroserviceStack } from "../../abstract-class/microservice-stack";
 
 var path = require("path");
-export class FulfillmentStack extends Construct {
+export class FulfillmentStack extends MicroserviceStack {
   public readonly fulfillmentServiceDNS: string;
   public readonly fulfillmentServicePort: number;
   public readonly eventSource: string;
   public readonly eventDetailType: string;
+  public readonly serviceName: string = "fulfillment";
 
   public readonly fulfillmentDockerImageAsset: DockerImageAsset;
   constructor(
     scope: Construct,
     id: string,
-    props?: FulfillmentMicroserviceStackProps
+    props: FulfillmentMicroserviceStackProps
   ) {
-    super(scope, id);
-
-    if (props?.cluster == undefined) {
-      throw new Error("props.clusterInfo must be defined!");
-    }
+    super(scope, id, props);
 
     const cluster = props.cluster;
     const tenantTier = props.tenantTier;
-    const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
-    const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
     const eventBus = props.eventBus;
     const tenantId = props.tenantId;
     const baseImage = props.baseImage;
@@ -35,11 +31,6 @@ export class FulfillmentStack extends Construct {
       tenantTier: tenantTier,
       ...(tenantId && { tenantId: tenantId }),
     };
-
-    const serviceName = tenantId
-      ? `${tenantId}-fulfillment`
-      : `${tenantTier}-fulfillment`;
-    const serviceType = "webapp";
 
     this.eventSource = "fulfillment-service";
     this.eventDetailType = "order-fulfilled";
@@ -154,50 +145,14 @@ export class FulfillmentStack extends Construct {
                   failureThreshold: 3,
                   periodSeconds: 10,
                 },
-                env: [
+                env: this.combineWithBaseContainerEnvs([
                   {
                     name: "EVENT_BUS_NAME",
                     value: eventBus.eventBusName,
                   },
                   { name: "EVENT_SOURCE", value: this.eventSource },
                   { name: "EVENT_DETAIL_TYPE", value: this.eventDetailType },
-                  {
-                    name: "AWS_DEFAULT_REGION",
-                    value: cdk.Stack.of(this).region,
-                  },
-                  {
-                    name: "AWS_EMF_AGENT_ENDPOINT",
-                    value: cloudwatchAgentLogEndpoint,
-                  },
-                  {
-                    name: "AWS_EMF_LOG_GROUP_NAME",
-                    value: cloudwatchAgentLogGroupName,
-                  },
-                  {
-                    name: "AWS_EMF_LOG_STREAM_NAME",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.name",
-                      },
-                    },
-                  },
-                  {
-                    name: "POD_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.namespace",
-                      },
-                    },
-                  },
-                  {
-                    name: "SERVICE_NAME",
-                    value: serviceName,
-                  },
-                  {
-                    name: "SERVICE_TYPE",
-                    value: serviceType,
-                  },
-                ],
+                ]),
                 ports: [
                   {
                     containerPort: 8088,
