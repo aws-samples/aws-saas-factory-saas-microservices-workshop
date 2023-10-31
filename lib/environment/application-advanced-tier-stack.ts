@@ -30,7 +30,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
 
     const istioIngressGateway = props.baseStack.istioResources.istioIngressGateway;
     const sideCarImageAsset = props.sideCarImageAsset;
-    const baseImageUri = process.env.HELPER_LIBRARY_BASE_IMAGE
+    const baseImageUri = props.helperLibraryBaseImageUri
     const namespace = props.basicStack.namespace;
     const fulfillmentServiceDNS = props.basicStack.fulfillmentServiceDNS;
     const fulfillmentServicePort = props.basicStack.fulfillmentServicePort;
@@ -95,7 +95,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         eventBus: advancedTierEventBus,
-        baseImage: baseImageUri //props.baseStack.sharedResources.sharedImageAsset,
+        baseImage: baseImageUri
       }
     );
     fulfillmentAdvancedTierStack.node.addDependency(
@@ -130,7 +130,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
       cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
       cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       namespaceConstruct: tenantSpecificAdvancedTierNamespace,
-      baseImage: baseImageUri, //props.baseStack.sharedResources.sharedImageAsset,
+      baseImage: baseImageUri,
       eventBus: advancedTierEventBus,
       fulfillmentEventDetailType: fulfillmentAdvancedTierStack.eventDetailType,
       fulfillmentEventSource: fulfillmentAdvancedTierStack.eventSource,

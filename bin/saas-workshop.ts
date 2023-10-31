@@ -15,6 +15,7 @@ const region = process.env.CDK_DEFAULT_REGION;
 const deploymentMode = process.env.CDK_PARAM_DEPLOYMENT_MODE || "all";
 const tlsCertIstio = process.env.CDK_PARAM_TLS_CERT_ISTIO;
 const tlsKeyIstio = process.env.CDK_PARAM_TLS_KEY_ISTIO;
+const helperLibraryBaseImageUri = process.env.HELPER_LIBRARY_BASE_IMAGE
 const workshopSSMPrefix = "/saas-workshop";
 
 if (!tlsCertIstio || !tlsKeyIstio) {
@@ -44,6 +45,7 @@ const basicStack = new ApplicationStack(app, "PoolBasicStack", {
   sideCarImageAsset: tokenVendorStack.tokenVendorImage,
   deploymentMode: deploymentMode,
   workshopSSMPrefix: workshopSSMPrefix,
+  helperLibraryBaseImageUri: helperLibraryBaseImageUri
 });
 basicStack.node.addDependency(baseStack);
 
@@ -56,6 +58,7 @@ const tenantBstack = new ApplicationAdvancedTierStack(app, "tenantBstack", {
   deploymentMode: deploymentMode,
   tenantId: "tenant-b",
   workshopSSMPrefix: workshopSSMPrefix,
+  helperLibraryBaseImageUri: helperLibraryBaseImageUri
 });
 tenantBstack.node.addDependency(basicStack);
 
@@ -68,6 +71,7 @@ const tenantEstack = new ApplicationAdvancedTierStack(app, "tenantEstack", {
   deploymentMode: deploymentMode,
   tenantId: "tenant-e",
   workshopSSMPrefix: workshopSSMPrefix,
+  helperLibraryBaseImageUri: helperLibraryBaseImageUri
 });
 tenantEstack.node.addDependency(basicStack);
 
@@ -80,6 +84,7 @@ const tenantCstack = new ApplicationStack(app, "tenantCstack", {
   deploymentMode: deploymentMode,
   tenantTier: TenantTier.Premium,
   workshopSSMPrefix: workshopSSMPrefix,
+  helperLibraryBaseImageUri: helperLibraryBaseImageUri
 });
 tenantCstack.node.addDependency(basicStack);
 
