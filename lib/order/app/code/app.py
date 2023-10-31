@@ -143,10 +143,7 @@ def postOrder():
         submitFulfillment(order, authorization,
                           tenant_context, fulfillment_endpoint)
 
-        dimensions = {
-            "ServiceName": service_name,
-        }
-        create_emf_log(dimensions, "OrderCreated", 1)
+        create_emf_log(service_name, "OrderCreated", 1)
         create_emf_log_with_tenant_context(
             service_name, tenant_context, "OrderCreated", 1)
         return {"msg": "Order created", "order": order.__dict__}, 200

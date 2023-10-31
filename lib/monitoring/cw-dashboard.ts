@@ -59,7 +59,6 @@ export class MyDashboardStack extends cdk.Stack {
         dimensionsMap: {
           Tenant: "tenant-a",
           ServiceName: "order",
-          Tier: "basic",
         },
       })
     );
@@ -71,7 +70,6 @@ export class MyDashboardStack extends cdk.Stack {
         dimensionsMap: {
           Tenant: "tenant-a",
           ServiceName: "order",
-          Tier: "basic",
         },
       })
     );
@@ -83,7 +81,6 @@ export class MyDashboardStack extends cdk.Stack {
         dimensionsMap: {
           Tenant: "tenant-b",
           ServiceName: "order",
-          Tier: "advanced",
         },
       })
     );
@@ -95,7 +92,6 @@ export class MyDashboardStack extends cdk.Stack {
         dimensionsMap: {
           Tenant: "tenant-c",
           ServiceName: "order",
-          Tier: "premium",
         },
       })
     );
@@ -107,7 +103,6 @@ export class MyDashboardStack extends cdk.Stack {
         dimensionsMap: {
           Tenant: "tenant-d",
           ServiceName: "order",
-          Tier: "basic",
         },
       })
     );
@@ -119,7 +114,6 @@ export class MyDashboardStack extends cdk.Stack {
         dimensionsMap: {
           Tenant: "tenant-e",
           ServiceName: "order",
-          Tier: "advanced",
         },
       })
     );
@@ -138,7 +132,6 @@ export class MyDashboardStack extends cdk.Stack {
         dimensionsMap: {
           Tenant: "tenant-a",
           ServiceName: "invoice",
-          Tier: "basic",
         },
       })
     );
@@ -150,7 +143,6 @@ export class MyDashboardStack extends cdk.Stack {
         dimensionsMap: {
           Tenant: "tenant-b",
           ServiceName: "invoice",
-          Tier: "advanced",
         },
       })
     );
@@ -162,7 +154,6 @@ export class MyDashboardStack extends cdk.Stack {
         dimensionsMap: {
           Tenant: "tenant-c",
           ServiceName: "invoice",
-          Tier: "premium",
         },
       })
     );
@@ -174,7 +165,6 @@ export class MyDashboardStack extends cdk.Stack {
         dimensionsMap: {
           Tenant: "tenant-d",
           ServiceName: "invoice",
-          Tier: "basic",
         },
       })
     );
@@ -186,7 +176,6 @@ export class MyDashboardStack extends cdk.Stack {
         dimensionsMap: {
           Tenant: "tenant-e",
           ServiceName: "invoice",
-          Tier: "advanced",
         },
       })
     );

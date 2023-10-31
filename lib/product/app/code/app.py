@@ -96,12 +96,9 @@ def postProduct():
         # REPLACE END: LAB1 (DynamoDB put_item with tenant context)
 
         app.logger.debug("Product created: " + str(product.product_id))
-        dimensions = {
-            "ServiceName": service_name,
-        }
-        create_emf_log(dimensions, "ProductCreated", 1)
-        create_emf_log_with_tenant_context(
-            service_name, tenant_context, "ProductCreated", 1)
+        # create_emf_log(service_name, "ProductCreated", 1)
+        # create_emf_log_with_tenant_context(
+        #     service_name, tenant_context, "ProductCreated", 1)
         return {"msg": "Product created", "product": product.__dict__}, 201
 
     except Exception as e:

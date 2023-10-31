@@ -56,10 +56,7 @@ def postOrderFulfillment(order_id):
         app.logger.debug("Message sent to event bus: " + str(response))
         app.logger.debug("Fulfillment complete: " + str(order_id) +
                          ", tenant:" + str(tenant_context.tenant_id))
-        dimensions = {
-            "ServiceName": service_name,
-        }
-        create_emf_log(dimensions, "FulfillmentComplete", 1)
+        create_emf_log(service_name, "FulfillmentComplete", 1)
         create_emf_log_with_tenant_context(
             service_name, tenant_context, "FulfillmentComplete", 1)
         return {"msg": "Fulfillment successful", "order_id": order_id}, 200

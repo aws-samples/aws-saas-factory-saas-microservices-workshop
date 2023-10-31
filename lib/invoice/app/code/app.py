@@ -86,11 +86,7 @@ if __name__ == '__main__':
                 raise Exception("Authorization in message is missing.")
 
             total_price = calculate_order_total(product_ids, authorization)
-            dimensions = {
-                "ServiceName": service_name,
-            }
-
-            create_emf_log(dimensions, "InvoiceTotalPrice", total_price)
+            create_emf_log(service_name, "InvoiceTotalPrice", total_price)
             tenant_context = get_tenant_context(authorization)
             create_emf_log_with_tenant_context(
                 service_name, tenant_context, "InvoiceTotalPrice", total_price)
