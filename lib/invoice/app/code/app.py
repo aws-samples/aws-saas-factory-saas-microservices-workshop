@@ -89,7 +89,9 @@ if __name__ == '__main__':
             dimensions = {
                 "ServiceName": service_name,
             }
+
             create_emf_log(dimensions, "InvoiceTotalPrice", total_price)
+            tenant_context = get_tenant_context(authorization)
             create_emf_log_with_tenant_context(
                 service_name, tenant_context, "InvoiceTotalPrice", total_price)
 
@@ -97,7 +99,6 @@ if __name__ == '__main__':
             sqs_client.delete_message(
                 QueueUrl=sqs_queue_url, ReceiptHandle=message['ReceiptHandle'])
 
-            tenant_context = get_tenant_context(authorization)
             message_dict = {
                 'message': f"Invoice created for order {order} with total price {total_price}",
                 'tenantTier': tenant_context.tenant_tier,
