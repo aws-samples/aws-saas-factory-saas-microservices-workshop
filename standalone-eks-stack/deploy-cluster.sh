@@ -11,6 +11,6 @@ aws cloudformation deploy \
     --stack-name workshopStack \
     --capabilities CAPABILITY_IAM \
     --parameter-overrides \
-        RepoUrl="https://github.com/somensi-aws/aws-saas-factory-saas-microservices-workshop.git" \
-        RepoBranchName="move-shared-libs" \
+        RepoUrl="https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop.git" \
+        RepoBranchName="lab-changes" \
         IsWorkshopStudioEnv="no"
