@@ -20,13 +20,12 @@ export class MyDashboardStack extends cdk.Stack {
         new cloudwatch.Metric({
           namespace: namespace,
           metricName: "OrderCreated",
-          dimensionsMap: { ServiceName: "order", ServiceType: "webapp" },
+          dimensionsMap: { ServiceName: "order" },
           statistic: cloudwatch.Stats.SAMPLE_COUNT,
         }),
       ],
       height: 4,
       width: 12,
-      period: cdk.Duration.minutes(5),
       title: "COUNT(OrderCreated)",
     });
 
@@ -37,21 +36,18 @@ export class MyDashboardStack extends cdk.Stack {
           metricName: "InvoiceTotalPrice",
           dimensionsMap: {
             ServiceName: "invoice",
-            ServiceType: "job",
           },
           statistic: cloudwatch.Stats.SUM,
         }),
       ],
       height: 4,
       width: 12,
-      period: cdk.Duration.minutes(5),
       title: "SUM(InvoiceTotalPrice)",
     });
 
     const orderCountByTenantGraph = new cloudwatch.GraphWidget({
       view: cloudwatch.GraphWidgetView.PIE,
       statistic: cloudwatch.Stats.SUM,
-      period: cdk.Duration.minutes(5),
       height: 11,
       width: 12,
     });
@@ -62,9 +58,8 @@ export class MyDashboardStack extends cdk.Stack {
         metricName: "OrderCreated",
         dimensionsMap: {
           Tenant: "tenant-a",
-          ServiceName: "basic-order",
+          ServiceName: "order",
           Tier: "basic",
-          ServiceType: "webapp",
         },
       })
     );
@@ -75,9 +70,8 @@ export class MyDashboardStack extends cdk.Stack {
         metricName: "OrderCreated",
         dimensionsMap: {
           Tenant: "tenant-a",
-          ServiceName: "basic-order",
+          ServiceName: "order",
           Tier: "basic",
-          ServiceType: "webapp",
         },
       })
     );
@@ -88,9 +82,8 @@ export class MyDashboardStack extends cdk.Stack {
         metricName: "OrderCreated",
         dimensionsMap: {
           Tenant: "tenant-b",
-          ServiceName: "advanced-order",
+          ServiceName: "order",
           Tier: "advanced",
-          ServiceType: "webapp",
         },
       })
     );
@@ -101,9 +94,8 @@ export class MyDashboardStack extends cdk.Stack {
         metricName: "OrderCreated",
         dimensionsMap: {
           Tenant: "tenant-c",
-          ServiceName: "premium-order",
+          ServiceName: "order",
           Tier: "premium",
-          ServiceType: "webapp",
         },
       })
     );
@@ -114,9 +106,8 @@ export class MyDashboardStack extends cdk.Stack {
         metricName: "OrderCreated",
         dimensionsMap: {
           Tenant: "tenant-d",
-          ServiceName: "basic-order",
+          ServiceName: "order",
           Tier: "basic",
-          ServiceType: "webapp",
         },
       })
     );
@@ -127,9 +118,8 @@ export class MyDashboardStack extends cdk.Stack {
         metricName: "OrderCreated",
         dimensionsMap: {
           Tenant: "tenant-e",
-          ServiceName: "advanced-order",
+          ServiceName: "order",
           Tier: "advanced",
-          ServiceType: "webapp",
         },
       })
     );
@@ -137,7 +127,6 @@ export class MyDashboardStack extends cdk.Stack {
     const invoiceTotalByTenantGraph = new cloudwatch.GraphWidget({
       view: cloudwatch.GraphWidgetView.PIE,
       statistic: cloudwatch.Stats.SUM,
-      period: cdk.Duration.minutes(5),
       height: 11,
       width: 12,
     });
@@ -148,9 +137,8 @@ export class MyDashboardStack extends cdk.Stack {
         metricName: "InvoiceTotalPrice",
         dimensionsMap: {
           Tenant: "tenant-a",
-          ServiceName: "basic-invoice",
+          ServiceName: "invoice",
           Tier: "basic",
-          ServiceType: "job",
         },
       })
     );
@@ -161,9 +149,8 @@ export class MyDashboardStack extends cdk.Stack {
         metricName: "InvoiceTotalPrice",
         dimensionsMap: {
           Tenant: "tenant-b",
-          ServiceName: "tenant-b-invoice",
+          ServiceName: "invoice",
           Tier: "advanced",
-          ServiceType: "job",
         },
       })
     );
@@ -174,9 +161,8 @@ export class MyDashboardStack extends cdk.Stack {
         metricName: "InvoiceTotalPrice",
         dimensionsMap: {
           Tenant: "tenant-c",
-          ServiceName: "tenant-c-invoice",
+          ServiceName: "invoice",
           Tier: "premium",
-          ServiceType: "job",
         },
       })
     );
@@ -187,9 +173,8 @@ export class MyDashboardStack extends cdk.Stack {
         metricName: "InvoiceTotalPrice",
         dimensionsMap: {
           Tenant: "tenant-d",
-          ServiceName: "basic-invoice",
+          ServiceName: "invoice",
           Tier: "basic",
-          ServiceType: "job",
         },
       })
     );
@@ -200,15 +185,15 @@ export class MyDashboardStack extends cdk.Stack {
         metricName: "InvoiceTotalPrice",
         dimensionsMap: {
           Tenant: "tenant-e",
-          ServiceName: "tenant-e-invoice",
+          ServiceName: "invoice",
           Tier: "advanced",
-          ServiceType: "job",
         },
       })
     );
 
     new cloudwatch.Dashboard(this, "Dashboard", {
       dashboardName: `${workshopSSMPrefix}-dashboard`,
+      periodOverride: cloudwatch.PeriodOverride.AUTO,
       widgets: [
         // https://github.com/aws/aws-cdk/issues/8938#issuecomment-849178914
         [orderCountWidget, invoiceTotalWidget],
