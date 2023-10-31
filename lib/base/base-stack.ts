@@ -1,5 +1,4 @@
 import * as cdk from "aws-cdk-lib";
-import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as aws_events from "aws-cdk-lib/aws-events";
 import * as aws_events_targets from "aws-cdk-lib/aws-events-targets";
 import * as logs from "aws-cdk-lib/aws-logs";
@@ -19,9 +18,8 @@ export interface BaseStackProps extends cdk.StackProps {
 export class BaseStack extends cdk.Stack {
   public readonly eksCluster: EksCluster;
   public readonly cognitoResources: CognitoResources;
-  public readonly istioResources: IstioResources;
+  public readonly istioResources: IstioResources;  
   public readonly cloudwatchAgentAddOnStack: CloudwatchAgentAddOnStack;
-  public readonly baseImage: string;
   public readonly advancedTierEventBus: aws_events.EventBus;
 
   constructor(scope: Construct, id: string, props: BaseStackProps) {
@@ -30,18 +28,12 @@ export class BaseStack extends cdk.Stack {
     const tlsCertIstio = props.tlsCertIstio;
     const tlsKeyIstio = props.tlsKeyIstio;
     const workshopSSMPrefix = props.workshopSSMPrefix;
-
+    
     const cognitoResources = new CognitoResources(this, "CognitoResources");
 
     const eksCluster = new EksCluster(this, "EksCluster", {
       workshopSSMPrefix: workshopSSMPrefix,
     });
-
-    const baseImageSSMParameterName = `${workshopSSMPrefix}/sharedImageUri`;
-    this.baseImage = ssm.StringParameter.valueFromLookup(
-      this,
-      baseImageSSMParameterName
-    );
 
     this.advancedTierEventBus = new aws_events.EventBus(
       this,

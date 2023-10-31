@@ -12,5 +12,5 @@ aws cloudformation deploy \
     --capabilities CAPABILITY_IAM \
     --parameter-overrides \
         RepoUrl="https://github.com/aws-samples/aws-saas-factory-saas-microservices-workshop.git" \
-        RepoBranchName="v2" \
+        RepoBranchName="lab-changes" \
         IsWorkshopStudioEnv="no"

@@ -12,4 +12,5 @@ export interface ApplicationStackProps extends cdk.StackProps {
   basicStack?: ApplicationStack;
   deploymentMode: string;
   workshopSSMPrefix: string;
+  helperLibraryBaseImageUri?: string;
 }
