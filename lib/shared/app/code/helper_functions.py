@@ -1,10 +1,8 @@
-from aws_embedded_metrics.storage_resolution import StorageResolution
 from aws_embedded_metrics import metric_scope
 import jwt
 import boto3
 import os
 import requests
-import json
 from flask.logging import default_handler
 from shared.log_formatter import CustomFormatter
 default_handler.setFormatter(CustomFormatter())
@@ -51,21 +49,18 @@ def get_boto3_client(service, authorization=None):
 
 
 @metric_scope
-def track_metric(authorization, service_name, service_type, metric_name, count, metrics):
-    tenantContext = get_tenant_context(authorization)
-    metrics.set_dimensions({
-        "TenantId": tenantContext.tenant_id,
-        "TenantTier": tenantContext.tenant_tier,
+def create_emf_log(dimensions, metric_name, metric_value, metrics):
+    metrics.set_dimensions(dimensions)
+    metrics.put_metric(metric_name, metric_value)
+
+
+@metric_scope
+def create_emf_log_with_tenant_context(service_name, tenant_context, metric_name, metric_value, metrics):
+    # "workshop-metrics"
+    dimensions = {
         "ServiceName": service_name,
-        "ServiceType": service_type,
-    })
-    metrics.put_metric(metric_name, count, "Count", StorageResolution.STANDARD)
-
-
-def log_info_message(app, message, tenantContext):
-    message_dict = {
-        'message': message,
-        'tenantTier': tenantContext.tenant_tier,
-        'tenantId': tenantContext.tenant_id
+        "Tenant": tenant_context.tenant_id,
+        "Tier": tenant_context.tenant_tier,
     }
-    app.logger.info(json.dumps(message_dict))
+    metrics.set_dimensions(dimensions)
+    metrics.put_metric(metric_name, metric_value)
