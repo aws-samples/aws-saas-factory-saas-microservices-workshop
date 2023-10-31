@@ -1,5 +1,4 @@
 import * as cdk from "aws-cdk-lib";
-import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as aws_events from "aws-cdk-lib/aws-events";
 import * as aws_events_targets from "aws-cdk-lib/aws-events-targets";
 import * as logs from "aws-cdk-lib/aws-logs";
@@ -9,7 +8,7 @@ import { CognitoResources } from "../../lib/cognito/cognito-stack";
 import { IstioResources } from "../../lib/eks/istio-stack";
 import { CloudwatchAgentAddOnStack } from "../eks/cloudwatch-agent";
 import { TenantTier } from "../enums/tenant-tier";
-import { SharedResources } from "../shared/infrastructure/shared-stack";
+//import { SharedResources } from "../shared/infrastructure/shared-stack";
 
 export interface BaseStackProps extends cdk.StackProps {
   tlsCertIstio: string;
@@ -21,7 +20,7 @@ export class BaseStack extends cdk.Stack {
   public readonly eksCluster: EksCluster;
   public readonly cognitoResources: CognitoResources;
   public readonly istioResources: IstioResources;
-  public readonly sharedResources: SharedResources;
+  //public readonly sharedResources: SharedResources;
   public readonly cloudwatchAgentAddOnStack: CloudwatchAgentAddOnStack;
   public readonly advancedTierEventBus: aws_events.EventBus;
 
@@ -32,7 +31,7 @@ export class BaseStack extends cdk.Stack {
     const tlsKeyIstio = props.tlsKeyIstio;
     const workshopSSMPrefix = props.workshopSSMPrefix;
 
-    const sharedResources = new SharedResources(this, "SharedResources");
+    //const sharedResources = new SharedResources(this, "SharedResources");
     const cognitoResources = new CognitoResources(this, "CognitoResources");
 
     const eksCluster = new EksCluster(this, "EksCluster", {
@@ -87,7 +86,7 @@ export class BaseStack extends cdk.Stack {
     this.eksCluster = eksCluster;
     this.cognitoResources = cognitoResources;
     this.istioResources = istioResources;
-    this.sharedResources = sharedResources;
+    //this.sharedResources = sharedResources;
     this.cloudwatchAgentAddOnStack = cloudwatchAgentAddOnStack;
 
     new cdk.CfnOutput(this, "CognitoUserPoolId", {

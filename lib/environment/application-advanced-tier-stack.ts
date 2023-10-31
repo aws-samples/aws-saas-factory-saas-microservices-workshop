@@ -1,4 +1,5 @@
 import * as cdk from "aws-cdk-lib";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 import { Construct } from "constructs";
 import { ApplicationAdvancedTierStackProps } from "../interface/application-advanced-tier-props";
 import { FulfillmentAdvancedTierStack } from "../fulfillment/infrastructure/fulfillment-advanced-tier-stack";
@@ -27,25 +28,19 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
     });
     const cluster = eksCluster.cluster;
 
-    const istioIngressGateway =
-      props.baseStack.istioResources.istioIngressGateway;
+    const istioIngressGateway = props.baseStack.istioResources.istioIngressGateway;
     const sideCarImageAsset = props.sideCarImageAsset;
-
+    const baseImageUri = process.env.HELPER_LIBRARY_BASE_IMAGE
     const namespace = props.basicStack.namespace;
     const fulfillmentServiceDNS = props.basicStack.fulfillmentServiceDNS;
     const fulfillmentServicePort = props.basicStack.fulfillmentServicePort;
-    const fulfillmentDockerImageAsset =
-      props.basicStack.fulfillmentDockerImageAsset;
+    const fulfillmentDockerImageAsset = props.basicStack.fulfillmentDockerImageAsset;
     const productServiceDNS = props.basicStack.productServiceDNS;
     const productServicePort = props.basicStack.productServicePort;
     const orderServiceDNS = props.basicStack.orderServiceDNS;
     const orderServicePort = props.basicStack.orderServicePort;
-    const cloudwatchAgentLogEndpoint =
-      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogEndpoint;
-    const cloudwatchAgentLogGroupName =
-      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogGroup
-        .logGroupName;
-
+    const cloudwatchAgentLogEndpoint = props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogEndpoint;
+    const cloudwatchAgentLogGroupName = props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogGroup.logGroupName;
     const advancedTierEventBus = props.baseStack.advancedTierEventBus;
 
     const productAdvancedTierStack = new ProductAdvancedTierStack(
@@ -100,7 +95,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         eventBus: advancedTierEventBus,
-        baseImage: props.baseStack.sharedResources.sharedImageAsset,
+        baseImage: baseImageUri //props.baseStack.sharedResources.sharedImageAsset,
       }
     );
     fulfillmentAdvancedTierStack.node.addDependency(
@@ -135,7 +130,7 @@ export class ApplicationAdvancedTierStack extends cdk.Stack {
       cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
       cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       namespaceConstruct: tenantSpecificAdvancedTierNamespace,
-      baseImage: props.baseStack.sharedResources.sharedImageAsset,
+      baseImage: baseImageUri, //props.baseStack.sharedResources.sharedImageAsset,
       eventBus: advancedTierEventBus,
       fulfillmentEventDetailType: fulfillmentAdvancedTierStack.eventDetailType,
       fulfillmentEventSource: fulfillmentAdvancedTierStack.eventSource,
