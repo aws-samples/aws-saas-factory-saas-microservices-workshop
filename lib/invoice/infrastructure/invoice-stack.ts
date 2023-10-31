@@ -6,17 +6,19 @@ import * as sqs from "aws-cdk-lib/aws-sqs";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { Construct } from "constructs";
 import { InvoiceMicroserviceStackProps } from "../../interface/invoice-microservice-props";
+import { MicroserviceStack } from "../../abstract-class/microservice-stack";
 
 var path = require("path");
 
-export class InvoiceStack extends Construct {
+export class InvoiceStack extends MicroserviceStack {
   public readonly invoiceImageAsset: DockerImageAsset;
+  public readonly serviceName: string = "invoice";
   constructor(
     scope: Construct,
     id: string,
     props: InvoiceMicroserviceStackProps
   ) {
-    super(scope, id);
+    super(scope, id, props);
 
     const productServiceDNS = props.productServiceDNS;
     const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
@@ -29,16 +31,12 @@ export class InvoiceStack extends Construct {
     const eventBus = props.eventBus;
     const fulfillmentEventDetailType = props.fulfillmentEventDetailType;
     const fulfillmentEventSource = props.fulfillmentEventSource;
-    const serviceName = tenantId
-      ? `${tenantId}-invoice`
-      : `${tenantTier}-invoice`;
-    const serviceType = "job";
     const multiTenantLabels = {
       tenantTier: tenantTier,
       ...(tenantId && { tenantId: tenantId }),
     };
 
-    cdk.Tags.of(this).add("SaaS-Microservices:ServiceName", serviceName);
+    cdk.Tags.of(this).add("SaaS-Microservices:ServiceName", this.serviceName);
 
     const invoiceQueue = new sqs.Queue(this, `Invoice-Queue-${namespace}`, {
       retentionPeriod: cdk.Duration.days(1),
@@ -156,7 +154,7 @@ export class InvoiceStack extends Construct {
                       memory: "300Mi",
                     },
                   },
-                  env: [
+                  env: this.combineWithBaseContainerEnvs([
                     {
                       name: "PRODUCT_ENDPOINT",
                       value: productServiceDNS,
@@ -165,35 +163,7 @@ export class InvoiceStack extends Construct {
                       name: "QUEUE_URL",
                       value: invoiceQueue.queueUrl,
                     },
-                    {
-                      name: "AWS_DEFAULT_REGION",
-                      value: cdk.Stack.of(this).region,
-                    },
-                    {
-                      name: "AWS_EMF_AGENT_ENDPOINT",
-                      value: cloudwatchAgentLogEndpoint,
-                    },
-                    {
-                      name: "AWS_EMF_LOG_GROUP_NAME",
-                      value: cloudwatchAgentLogGroupName,
-                    },
-                    {
-                      name: "AWS_EMF_LOG_STREAM_NAME",
-                      valueFrom: {
-                        fieldRef: {
-                          fieldPath: "metadata.name",
-                        },
-                      },
-                    },
-                    {
-                      name: "SERVICE_NAME",
-                      value: serviceName,
-                    },
-                    {
-                      name: "SERVICE_TYPE",
-                      value: serviceType,
-                    },
-                  ],
+                  ]),
                 },
               ],
             },
