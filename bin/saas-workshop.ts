@@ -5,6 +5,7 @@ import { TokenVendorStack } from "../lib/token-vendor/infrastructure/token-vendo
 import { ApplicationStack } from "../lib/environment/application-stack";
 import { BaseStack } from "../lib/base/base-stack";
 import { ApplicationAdvancedTierStack } from "../lib/environment/application-advanced-tier-stack";
+import { HelperLibraryBaseImageStack } from "../lib/shared/infrastructure/shared-stack"
 import { TenantTier } from "../lib/enums/tenant-tier";
 import { DestroyPolicySetter } from "../lib/cdk-aspect/destroy-policy-setter";
 
@@ -21,6 +22,8 @@ if (!tlsCertIstio || !tlsKeyIstio) {
     "Please provide the TLS certificate and key for Istio in the environment variables."
   );
 }
+
+const libStack = new HelperLibraryBaseImageStack(app, "HelperLibraryBaseImageStack")
 
 const baseStack = new BaseStack(app, "SaaSMicroserviceBaseStack", {
   env: { account, region },
