@@ -33,7 +33,7 @@ run_ssm_command() {
 }
 
 STACK_OPERATION=$(echo "$1" | tr '[:upper:]' '[:lower:]')
-CLOUD9_INSTANCE_ID_PARAMETER_NAME="/saas-workshop/cloud9InstanceId"
+CLOUD9_INSTANCE_ID_PARAMETER_NAME="/workshop/cloud9InstanceId"
 GIT_REPO=$REPO_URL
 GIT_BRANCH=$REPO_BRANCH_NAME
 CDK_VERSION="2.91.0"
