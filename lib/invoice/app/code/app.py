@@ -5,7 +5,7 @@ import sys
 import requests
 import boto3
 import jwt
-from shared.helper_functions import get_tenant_context, create_emf_log, create_emf_log_with_tenant_context
+from shared.helper_functions import get_tenant_context, create_emf_log
 
 product_endpoint = os.environ["PRODUCT_ENDPOINT"]
 service_name = os.environ["SERVICE_NAME"]
@@ -88,9 +88,6 @@ if __name__ == '__main__':
             total_price = calculate_order_total(product_ids, authorization)
             create_emf_log(service_name, "InvoiceTotalPrice", total_price)
             tenant_context = get_tenant_context(authorization)
-            create_emf_log_with_tenant_context(
-                service_name, tenant_context, "InvoiceTotalPrice", total_price)
-
 
             sqs_client.delete_message(
                 QueueUrl=sqs_queue_url, ReceiptHandle=message['ReceiptHandle'])
