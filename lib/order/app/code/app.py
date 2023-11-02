@@ -5,7 +5,7 @@ import os
 import logging
 import requests
 import random
-from shared.helper_functions import get_tenant_context, get_boto3_client, create_emf_log, create_emf_log_with_tenant_context
+from shared.helper_functions import get_tenant_context, get_boto3_client, create_emf_log
 from flask import Flask, request
 
 app = Flask(__name__)
@@ -144,8 +144,6 @@ def postOrder():
                           tenant_context, fulfillment_endpoint)
 
         create_emf_log(service_name, "OrderCreated", 1)
-        create_emf_log_with_tenant_context(
-            service_name, tenant_context, "OrderCreated", 1)
         return {"msg": "Order created", "order": order.__dict__}, 200
     except Exception as e:
         app.logger.error("Exception raised! " + str(e))
