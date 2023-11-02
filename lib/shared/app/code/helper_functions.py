@@ -22,6 +22,7 @@ default_handler.setFormatter(CustomFormatter())
 #     print("Decoded JWT: " + str(decoded_token))
 #     return TenantContext(decoded_token)
 
+# IMPLEMENT ME: LAB2 (get_boto3_client)
 # def get_boto3_client(service, authorization=None):
 #     token_vendor_endpoint = "127.0.0.1"
 #     token_vendor_endpoint_port = os.environ["TOKEN_VENDOR_ENDPOINT_PORT"]
