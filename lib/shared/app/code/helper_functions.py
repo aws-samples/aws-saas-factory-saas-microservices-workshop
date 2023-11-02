@@ -55,12 +55,4 @@ def create_emf_log(service_name, metric_name, metric_value, metrics):
     )
     metrics.put_metric(metric_name, metric_value)
 
-
-@metric_scope
-def create_emf_log_with_tenant_context(service_name, tenant_context, metric_name, metric_value, metrics):
-    metrics.set_dimensions(
-        {"ServiceName": service_name},
-        {"ServiceName": service_name, "Tenant": tenant_context.tenant_id},
-        {"ServiceName": service_name, "Tier": tenant_context.tenant_tier},
-    )
-    metrics.put_metric(metric_name, metric_value)
+# LAB5 - Define create_emf_log_with_tenant_context() function here

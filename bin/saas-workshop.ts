@@ -5,10 +5,10 @@ import { TokenVendorStack } from "../lib/token-vendor/infrastructure/token-vendo
 import { ApplicationStack } from "../lib/environment/application-stack";
 import { BaseStack } from "../lib/base/base-stack";
 import { ApplicationAdvancedTierStack } from "../lib/environment/application-advanced-tier-stack";
-import { HelperLibraryBaseImageStack } from "../lib/shared/infrastructure/shared-stack"
+import { HelperLibraryBaseImageStack } from "../lib/shared/infrastructure/shared-stack";
 import { TenantTier } from "../lib/enums/tenant-tier";
 import { DestroyPolicySetter } from "../lib/cdk-aspect/destroy-policy-setter";
-import { MyDashboardStack } from "../lib/monitoring/cw-dashboard";
+import { WorkshopDashboardStack } from "../lib/monitoring/cw-dashboard";
 
 const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;
@@ -16,7 +16,7 @@ const region = process.env.CDK_DEFAULT_REGION;
 const deploymentMode = process.env.CDK_PARAM_DEPLOYMENT_MODE || "all";
 const tlsCertIstio = process.env.CDK_PARAM_TLS_CERT_ISTIO;
 const tlsKeyIstio = process.env.CDK_PARAM_TLS_KEY_ISTIO;
-const helperLibraryBaseImageUri = process.env.HELPER_LIBRARY_BASE_IMAGE
+const helperLibraryBaseImageUri = process.env.HELPER_LIBRARY_BASE_IMAGE;
 const workshopSSMPrefix = "/workshop";
 
 if (!tlsCertIstio || !tlsKeyIstio) {
@@ -25,7 +25,10 @@ if (!tlsCertIstio || !tlsKeyIstio) {
   );
 }
 
-const libStack = new HelperLibraryBaseImageStack(app, "HelperLibraryBaseImageStack")
+const libStack = new HelperLibraryBaseImageStack(
+  app,
+  "HelperLibraryBaseImageStack"
+);
 
 const baseStack = new BaseStack(app, "SaaSMicroserviceBaseStack", {
   env: { account, region },
@@ -46,7 +49,7 @@ const basicStack = new ApplicationStack(app, "PoolBasicStack", {
   sideCarImageAsset: tokenVendorStack.tokenVendorImage,
   deploymentMode: deploymentMode,
   workshopSSMPrefix: workshopSSMPrefix,
-  helperLibraryBaseImageUri: helperLibraryBaseImageUri
+  helperLibraryBaseImageUri: helperLibraryBaseImageUri,
 });
 basicStack.node.addDependency(baseStack);
 
@@ -59,7 +62,7 @@ const tenantBstack = new ApplicationAdvancedTierStack(app, "tenantBstack", {
   deploymentMode: deploymentMode,
   tenantId: "tenant-b",
   workshopSSMPrefix: workshopSSMPrefix,
-  helperLibraryBaseImageUri: helperLibraryBaseImageUri
+  helperLibraryBaseImageUri: helperLibraryBaseImageUri,
 });
 tenantBstack.node.addDependency(basicStack);
 
@@ -72,7 +75,7 @@ const tenantEstack = new ApplicationAdvancedTierStack(app, "tenantEstack", {
   deploymentMode: deploymentMode,
   tenantId: "tenant-e",
   workshopSSMPrefix: workshopSSMPrefix,
-  helperLibraryBaseImageUri: helperLibraryBaseImageUri
+  helperLibraryBaseImageUri: helperLibraryBaseImageUri,
 });
 tenantEstack.node.addDependency(basicStack);
 
@@ -85,14 +88,18 @@ const tenantCstack = new ApplicationStack(app, "tenantCstack", {
   deploymentMode: deploymentMode,
   tenantTier: TenantTier.Premium,
   workshopSSMPrefix: workshopSSMPrefix,
-  helperLibraryBaseImageUri: helperLibraryBaseImageUri
+  helperLibraryBaseImageUri: helperLibraryBaseImageUri,
 });
 tenantCstack.node.addDependency(basicStack);
 
-const cloudwatchDashboard = new MyDashboardStack(app, "workshopDashboard", {
-  namespace: "workshop-metrics",
-  workshopSSMPrefix: workshopSSMPrefix,
-});
+const workshopDashboardStack = new WorkshopDashboardStack(
+  app,
+  "workshopDashboardStack",
+  {
+    namespace: "workshop-metrics",
+    workshopSSMPrefix: workshopSSMPrefix,
+  }
+);
 
 // Set destroy policies to all stacks.
 const stacks = [
@@ -102,7 +109,7 @@ const stacks = [
   tenantBstack,
   tenantCstack,
   tenantEstack,
-  cloudwatchDashboard,
+  workshopDashboardStack,
 ];
 stacks.forEach((stack) => {
   cdk.Aspects.of(stack).add(new DestroyPolicySetter());

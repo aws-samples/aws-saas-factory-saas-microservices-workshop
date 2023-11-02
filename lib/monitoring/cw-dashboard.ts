@@ -2,7 +2,7 @@ import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
 import { Construct } from "constructs";
 import * as cdk from "aws-cdk-lib";
 
-export class MyDashboardStack extends cdk.Stack {
+export class WorkshopDashboardStack extends cdk.Stack {
   constructor(
     scope: Construct,
     id: string,
@@ -14,180 +14,155 @@ export class MyDashboardStack extends cdk.Stack {
     super(scope, id);
     const namespace = props.namespace;
     const workshopSSMPrefix = props.workshopSSMPrefix.replace("/", "");
+    const period = cdk.Duration.hours(2);
+    const widgets = [];
 
-    const orderCountWidget = new cloudwatch.SingleValueWidget({
-      metrics: [
-        new cloudwatch.Metric({
-          namespace: namespace,
-          metricName: "OrderCreated",
-          dimensionsMap: { ServiceName: "order" },
-          statistic: cloudwatch.Stats.SAMPLE_COUNT,
-        }),
-      ],
-      height: 4,
-      width: 12,
-      title: "COUNT(OrderCreated)",
+    const metrics = [
+      { metricName: "OrderCreated", serviceName: "order" },
+      { metricName: "ProductCreated", serviceName: "product" },
+      { metricName: "FulfillmentComplete", serviceName: "fulfillment" },
+    ];
+    const metricsCountGraph = new cloudwatch.GraphWidget({
+      view: cloudwatch.GraphWidgetView.BAR,
+      statistic: cloudwatch.Stats.SUM,
+      period: period,
+      height: 11,
+      width: 20,
+      title: "COUNT(Metrics)",
     });
 
-    const invoiceTotalWidget = new cloudwatch.SingleValueWidget({
+    metrics.forEach((metric) => {
+      metricsCountGraph.addRightMetric(
+        new cloudwatch.Metric({
+          namespace: namespace,
+          metricName: metric.metricName,
+          dimensionsMap: { ServiceName: metric.serviceName },
+          statistic: cloudwatch.Stats.SAMPLE_COUNT,
+          period: period,
+        })
+      );
+    });
+
+    const invoiceTotalValue = new cloudwatch.SingleValueWidget({
       metrics: [
         new cloudwatch.Metric({
           namespace: namespace,
           metricName: "InvoiceTotalPrice",
-          dimensionsMap: {
-            ServiceName: "invoice",
-          },
+          dimensionsMap: { ServiceName: "invoice" },
           statistic: cloudwatch.Stats.SUM,
+          period: period,
         }),
       ],
-      height: 4,
-      width: 12,
+      height: 11,
+      width: 4,
       title: "SUM(InvoiceTotalPrice)",
     });
+    widgets.push([metricsCountGraph, invoiceTotalValue]);
 
+    /* // Start LAB5 - Tenant-aware widgets
+    const tenantIds = [
+      "tenant-a",
+      "tenant-b",
+      "tenant-c",
+      "tenant-d",
+      "tenant-e",
+    ];
     const orderCountByTenantGraph = new cloudwatch.GraphWidget({
       view: cloudwatch.GraphWidgetView.PIE,
       statistic: cloudwatch.Stats.SUM,
+      period: period,
       height: 11,
       width: 12,
+      title: "COUNT(OrderCreated) by Tenant",
     });
 
-    orderCountByTenantGraph.addRightMetric(
-      new cloudwatch.Metric({
-        namespace: namespace,
-        metricName: "OrderCreated",
-        dimensionsMap: {
-          Tenant: "tenant-a",
-          ServiceName: "order",
-        },
-      })
-    );
-
-    orderCountByTenantGraph.addRightMetric(
-      new cloudwatch.Metric({
-        namespace: namespace,
-        metricName: "OrderCreated",
-        dimensionsMap: {
-          Tenant: "tenant-a",
-          ServiceName: "order",
-        },
-      })
-    );
-
-    orderCountByTenantGraph.addRightMetric(
-      new cloudwatch.Metric({
-        namespace: namespace,
-        metricName: "OrderCreated",
-        dimensionsMap: {
-          Tenant: "tenant-b",
-          ServiceName: "order",
-        },
-      })
-    );
-
-    orderCountByTenantGraph.addRightMetric(
-      new cloudwatch.Metric({
-        namespace: namespace,
-        metricName: "OrderCreated",
-        dimensionsMap: {
-          Tenant: "tenant-c",
-          ServiceName: "order",
-        },
-      })
-    );
-
-    orderCountByTenantGraph.addRightMetric(
-      new cloudwatch.Metric({
-        namespace: namespace,
-        metricName: "OrderCreated",
-        dimensionsMap: {
-          Tenant: "tenant-d",
-          ServiceName: "order",
-        },
-      })
-    );
-
-    orderCountByTenantGraph.addRightMetric(
-      new cloudwatch.Metric({
-        namespace: namespace,
-        metricName: "OrderCreated",
-        dimensionsMap: {
-          Tenant: "tenant-e",
-          ServiceName: "order",
-        },
-      })
-    );
+    tenantIds.forEach((tenantId) => {
+      orderCountByTenantGraph.addRightMetric(
+        new cloudwatch.Metric({
+          namespace: namespace,
+          metricName: "OrderCreated",
+          dimensionsMap: {
+            Tenant: tenantId,
+            ServiceName: "order",
+          },
+        })
+      );
+    });
 
     const invoiceTotalByTenantGraph = new cloudwatch.GraphWidget({
       view: cloudwatch.GraphWidgetView.PIE,
       statistic: cloudwatch.Stats.SUM,
+      period: period,
       height: 11,
       width: 12,
+      title: "SUM(InvoiceTotalPrice) by Tenant",
     });
 
-    invoiceTotalByTenantGraph.addRightMetric(
-      new cloudwatch.Metric({
-        namespace: namespace,
-        metricName: "InvoiceTotalPrice",
-        dimensionsMap: {
-          Tenant: "tenant-a",
-          ServiceName: "invoice",
-        },
-      })
-    );
+    tenantIds.forEach((tenantId) => {
+      invoiceTotalByTenantGraph.addRightMetric(
+        new cloudwatch.Metric({
+          namespace: namespace,
+          metricName: "InvoiceTotalPrice",
+          dimensionsMap: {
+            Tenant: tenantId,
+            ServiceName: "invoice",
+          },
+        })
+      );
+    });
+    widgets.push([orderCountByTenantGraph, invoiceTotalByTenantGraph]);
+    */ // End LAB5 - Tenant-aware widgets
 
-    invoiceTotalByTenantGraph.addRightMetric(
-      new cloudwatch.Metric({
-        namespace: namespace,
-        metricName: "InvoiceTotalPrice",
-        dimensionsMap: {
-          Tenant: "tenant-b",
-          ServiceName: "invoice",
-        },
-      })
-    );
+    /*  // StartLAB5 - Challenge - Tenant-aware widgets
+    const tenantTiers = ["basic", "advanced", "premium"];
+    const orderCountByTierGraph = new cloudwatch.GraphWidget({
+      view: cloudwatch.GraphWidgetView.PIE,
+      statistic: cloudwatch.Stats.SUM,
+      period: period,
+      height: 11,
+      width: 12,
+      title: "COUNT(OrderCreated) by Tier",
+    });
+    tenantTiers.forEach((tenantTier) => {
+      orderCountByTierGraph.addRightMetric(
+        new cloudwatch.Metric({
+          namespace: namespace,
+          metricName: "OrderCreated",
+          dimensionsMap: {
+            Tier: tenantTier,
+            ServiceName: "order",
+          },
+        })
+      );
+    });
 
-    invoiceTotalByTenantGraph.addRightMetric(
-      new cloudwatch.Metric({
-        namespace: namespace,
-        metricName: "InvoiceTotalPrice",
-        dimensionsMap: {
-          Tenant: "tenant-c",
-          ServiceName: "invoice",
-        },
-      })
-    );
+    const invoiceTotalByTierGraph = new cloudwatch.GraphWidget({
+      view: cloudwatch.GraphWidgetView.PIE,
+      statistic: cloudwatch.Stats.SUM,
+      period: period,
+      height: 11,
+      width: 12,
+      title: "SUM(InvoiceTotalPrice) by Tier",
+    });
 
-    invoiceTotalByTenantGraph.addRightMetric(
-      new cloudwatch.Metric({
-        namespace: namespace,
-        metricName: "InvoiceTotalPrice",
-        dimensionsMap: {
-          Tenant: "tenant-d",
-          ServiceName: "invoice",
-        },
-      })
-    );
-
-    invoiceTotalByTenantGraph.addRightMetric(
-      new cloudwatch.Metric({
-        namespace: namespace,
-        metricName: "InvoiceTotalPrice",
-        dimensionsMap: {
-          Tenant: "tenant-e",
-          ServiceName: "invoice",
-        },
-      })
-    );
+    tenantTiers.forEach((tenantTier) => {
+      invoiceTotalByTierGraph.addRightMetric(
+        new cloudwatch.Metric({
+          namespace: namespace,
+          metricName: "InvoiceTotalPrice",
+          dimensionsMap: {
+            Tier: tenantTier,
+            ServiceName: "invoice",
+          },
+        })
+      );
+    });
+    widgets.push([orderCountByTierGraph, invoiceTotalByTierGraph]);
+    */ // End LAB5 - Challenge - Tenant-aware widgets
 
     new cloudwatch.Dashboard(this, "Dashboard", {
       dashboardName: `${workshopSSMPrefix}-dashboard`,
-      periodOverride: cloudwatch.PeriodOverride.AUTO,
-      widgets: [
-        // https://github.com/aws/aws-cdk/issues/8938#issuecomment-849178914
-        [orderCountWidget, invoiceTotalWidget],
-        [orderCountByTenantGraph, invoiceTotalByTenantGraph],
-      ],
+      widgets: widgets, // https://github.com/aws/aws-cdk/issues/8938#issuecomment-849178914
     });
   }
 }
