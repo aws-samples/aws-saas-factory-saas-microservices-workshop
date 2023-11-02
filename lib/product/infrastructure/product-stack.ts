@@ -48,7 +48,7 @@ export class ProductStack extends MicroserviceStack {
           directory: path.join(__dirname, "../app"),
           ...(baseImage && {
             buildArgs: {
-              BASE_IMAGE: baseImage,
+              BASE_IMAGE: baseImage,  // baseImage assigned from process.env.HELPER_LIBRARY_BASE_IMAGE
             },
           }),
         }
