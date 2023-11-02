@@ -84,10 +84,10 @@ if __name__ == '__main__':
             if not authorization:
                 logger.error(f'authorization: {authorization}')
                 raise Exception("Authorization in message is missing.")
+            tenant_context = get_tenant_context(authorization)
 
             total_price = calculate_order_total(product_ids, authorization)
             create_emf_log(service_name, "InvoiceTotalPrice", total_price)
-            tenant_context = get_tenant_context(authorization)
 
             sqs_client.delete_message(
                 QueueUrl=sqs_queue_url, ReceiptHandle=message['ReceiptHandle'])
