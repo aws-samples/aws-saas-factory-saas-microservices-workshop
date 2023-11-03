@@ -216,7 +216,7 @@ export class FulfillmentStack extends MicroserviceStack {
                   uri: {
                     prefix: "/fulfillments",
                   },
-
+                  /* // LAB4: REMOVE THIS LINE (routing)
                   headers: {
                     "x-app-tenant-tier": {
                       regex: tenantTier,
@@ -227,6 +227,7 @@ export class FulfillmentStack extends MicroserviceStack {
                       },
                     }),
                   },
+                  */ // LAB4: REMOVE THIS LINE (routing)
                 },
               ],
               route: [

@@ -2,7 +2,7 @@ import os
 import logging
 import random
 import boto3
-# from shared.helper_functions import get_tenant_context
+# from shared.helper_functions import get_tenant_context, create_emf_log
 from botocore.exceptions import ClientError
 from flask import Flask, request
 app = Flask(__name__)
