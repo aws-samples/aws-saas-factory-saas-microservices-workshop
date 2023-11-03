@@ -103,8 +103,4 @@ def postProduct():
         app.logger.error("Exception: " + str(e))
         return {"msg": "Unable to create product", "product": product.__dict__}, 500
 
-
-@app.route("/products")
-def getAllProduct():
-    # IMPLEMENT ME: LAB1 (GET /products)
-    pass
+# IMPLEMENT ME: LAB1 (GET /products)
