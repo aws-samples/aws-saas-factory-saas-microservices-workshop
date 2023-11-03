@@ -65,7 +65,7 @@ if __name__ == '__main__':
         for message in messages:
             message_body = json.loads(message['Body'])            
             message_detail = message_body.get('detail', {})
-            event = message_detail.get('message', {})
+            event = message_detail.get('event', {})
             order = event.get('order', {})
             product_ids = order.get('products', [])
             
