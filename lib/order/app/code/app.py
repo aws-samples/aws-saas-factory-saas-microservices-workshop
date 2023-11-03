@@ -14,13 +14,6 @@ table_name = os.environ["TABLE_NAME"]
 fulfillment_endpoint = os.environ["FULFILLMENT_ENDPOINT"]
 service_name = os.environ["SERVICE_NAME"]
 
-
-# LAB 3: REMOVE START (cleanup)
-
-
-# LAB 3: REMOVE END (cleanup)
-
-
 class Order():
     order_id: str
     name: str
@@ -140,10 +133,9 @@ def postOrder():
             },
             TableName=table_name,
         )
-        submitFulfillment(order, authorization,
-                          tenant_context, fulfillment_endpoint)
-
+        submitFulfillment(order, authorization, tenant_context, fulfillment_endpoint)        
         create_emf_log(service_name, "OrderCreated", 1)
+        app.logger.debug("Order created: " + str(order.order_id) + ", tenant:" + str(tenant_context.tenant_id))
         return {"msg": "Order created", "order": order.__dict__}, 200
     except Exception as e:
         app.logger.error("Exception raised! " + str(e))
@@ -151,20 +143,5 @@ def postOrder():
 
 
 def submitFulfillment(order, authorization, tenant_context, fulfillment_endpoint):
-    try:
-        url = "http://" + fulfillment_endpoint + "/fulfillments/" + order.order_id
-        app.logger.debug("Fulfillment request: " + url)
-        response = requests.post(
-            url=url,
-            json=order.__dict__,
-            headers={
-                "Authorization": authorization,
-                "x-app-tenant-id": tenant_context.tenant_id,
-                "x-app-tenant-tier": tenant_context.tenant_tier,
-            },
-        )
-        response.raise_for_status()
-        return None
-    except Exception as e:
-        app.logger.error("Exception raised! " + str(e))
-        return None
+    # IMPLEMENT ME: LAB3 (submitFulfillment)
+    pass
