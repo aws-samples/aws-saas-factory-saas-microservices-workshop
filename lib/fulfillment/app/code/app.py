@@ -5,7 +5,8 @@ import requests
 import logging
 import boto3
 import jwt
-from shared.helper_functions import get_tenant_context, create_emf_log
+from shared.helper_functions import get_tenant_context
+from aws_embedded_metrics import metric_scope
 from flask import Flask, request
 
 logging.getLogger('boto').setLevel(logging.CRITICAL)
@@ -15,6 +16,11 @@ event_bus_name = os.environ["EVENT_BUS_NAME"]
 event_source = os.environ["EVENT_SOURCE"]
 event_detail_type = os.environ["EVENT_DETAIL_TYPE"]
 service_name = os.environ["SERVICE_NAME"]
+
+@metric_scope
+def create_emf_log(service_name, metric_name, metric_value, metrics):
+    metrics.set_dimensions({"ServiceName": service_name})
+    metrics.put_metric(metric_name, metric_value)
 
 @app.route("/fulfillments/health")
 def health():
