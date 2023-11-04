@@ -107,7 +107,7 @@ export class EksCluster extends Construct {
         ...(awscliLayerVersionArn.includes(":layer:") && {
           awscliLayer: awscliLayer,
         }),
-        kubectlLambdaRole: kubectlLambdaRole,
+        // kubectlLambdaRole: kubectlLambdaRole,
         kubectlSecurityGroupId: kubectlSecurityGroupId,
         clusterSecurityGroupId: clusterSecurityGroupId,
         openIdConnectProvider: openIdConnectProvider,
