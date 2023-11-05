@@ -2,8 +2,8 @@ import os
 import logging
 import random
 import boto3
-# from shared.helper_functions import get_tenant_context, create_emf_log
-from botocore.exceptions import ClientError
+# from shared.helper_functions import get_tenant_context
+from aws_embedded_metrics import metric_scope
 from flask import Flask, request
 app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
@@ -23,6 +23,10 @@ class Product():
         self.description = product_json.get('description', '')
         self.price = str(float(product_json['price']))
 
+@metric_scope
+def create_emf_log(service_name, metric_name, metric_value, metrics):
+    metrics.set_dimensions({"ServiceName": service_name})
+    metrics.put_metric(metric_name, metric_value)
 
 @app.route("/products/health")
 def health():

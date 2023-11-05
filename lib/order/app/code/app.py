@@ -5,7 +5,8 @@ import os
 import logging
 import requests
 import random
-from shared.helper_functions import get_tenant_context, get_boto3_client, create_emf_log
+from shared.helper_functions import get_tenant_context, get_boto3_client
+from aws_embedded_metrics import metric_scope
 from flask import Flask, request
 
 app = Flask(__name__)
@@ -27,6 +28,10 @@ class Order():
         self.description = order_json.get('description', '')
         self.products = order_json['products']
 
+@metric_scope
+def create_emf_log(service_name, metric_name, metric_value, metrics):
+    metrics.set_dimensions({"ServiceName": service_name})
+    metrics.put_metric(metric_name, metric_value)
 
 @app.route("/orders/health")
 def health():
