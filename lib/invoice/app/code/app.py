@@ -5,7 +5,7 @@ import sys
 import requests
 import boto3
 import jwt
-from shared.helper_functions import create_emf_log
+from aws_embedded_metrics import metric_scope
 
 product_endpoint = os.environ["PRODUCT_ENDPOINT"]
 service_name = os.environ["SERVICE_NAME"]
@@ -18,6 +18,10 @@ sqs_queue_url = os.environ['QUEUE_URL']
 max_messages_to_read = 10
 wait_time_seconds = 20
 
+@metric_scope
+def create_emf_log(service_name, metric_name, metric_value, metrics):
+    metrics.set_dimensions({"ServiceName": service_name})
+    metrics.put_metric(metric_name, metric_value)
 
 def receive_message_from_sqs(queue_url, max_messages=5):
     response = sqs_client.receive_message(

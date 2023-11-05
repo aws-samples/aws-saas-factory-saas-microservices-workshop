@@ -20,12 +20,4 @@ default_handler.setFormatter(CustomFormatter())
 # IMPLEMENT ME: LAB3 (get_tenant_context_from_message_detail)
 
 
-# IMPLEMENT ME: LAB5 (create_emf_log_with_tenant_context) 
-
-
-@metric_scope
-def create_emf_log(service_name, metric_name, metric_value, metrics):
-    metrics.set_dimensions(
-        {"ServiceName": service_name},
-    )
-    metrics.put_metric(metric_name, metric_value)
+# IMPLEMENT ME: LAB5 (create_emf_log_with_tenant_context)
