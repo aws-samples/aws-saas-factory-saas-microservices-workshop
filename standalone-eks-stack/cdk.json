@@ -34,6 +34,7 @@
     "@aws-cdk/aws-sns-subscriptions:restrictSqsDescryption": true,
     "@aws-cdk/aws-apigateway:disableCloudWatchRole": true,
     "@aws-cdk/core:enablePartitionLiterals": true,
+    "@aws-cdk/customresources:installLatestAwsSdkDefault": false,
     "@aws-cdk/core:target-partitions": [
       "aws",
       "aws-cn"
