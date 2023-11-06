@@ -3,6 +3,7 @@ import logging
 import random
 import boto3
 # from shared.helper_functions import get_tenant_context
+from botocore.exceptions import ClientError
 from aws_embedded_metrics import metric_scope
 from flask import Flask, request
 app = Flask(__name__)
