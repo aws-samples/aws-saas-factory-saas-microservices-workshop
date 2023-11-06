@@ -62,8 +62,7 @@ if __name__ == '__main__':
     while True:
         messages = receive_message_from_sqs(sqs_queue_url, max_messages=max_messages_to_read)
             
-        if len(messages) < 1:
-            logger.info(f'No more messages found in the SQS queue. Exiting.')
+        if len(messages) < 1:            
             break
 
         for message in messages:

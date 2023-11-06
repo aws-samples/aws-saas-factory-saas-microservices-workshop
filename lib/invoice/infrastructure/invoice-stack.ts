@@ -48,12 +48,14 @@ export class InvoiceStack extends MicroserviceStack {
       eventPattern: {
         detailType: [fulfillmentEventDetailType],
         source: [fulfillmentEventSource],
+        /* // LAB4: REMOVE THIS LINE (routing)
         detail: {
           ...(tenantId && {
             tenantId: [tenantId],
           }),
           tenantTier: [tenantTier],
         },
+        */ // LAB4: REMOVE THIS LINE (routing)
       },
       targets: [invoiceQueueTarget],
     });
