@@ -22,9 +22,7 @@ export class OrderStack extends MicroserviceStack {
 
     const cluster = props.cluster;
     const istioIngressGateway = props.istioIngressGateway;
-    const fulfillmentServiceDNS = props.fulfillmentServiceDNS;
-    const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
-    const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
+    const fulfillmentServiceDNS = props.fulfillmentServiceDNS;    
     const baseImage = props.baseImage;
 
     const tenantTier = props.tenantTier;
@@ -73,9 +71,8 @@ export class OrderStack extends MicroserviceStack {
         namespace: namespace,
       }
     );
-
-    // ensure that namespace is created before orderServiceAccount
-    orderServiceAccount.node.children.forEach((child) => {
+    
+    orderServiceAccount.node.children.forEach((child) => {   // ensure that namespace is created before orderServiceAccount
       if (props.namespaceConstruct) {
         child.node.addDependency(props.namespaceConstruct);
       }
@@ -304,7 +301,7 @@ export class OrderStack extends MicroserviceStack {
                 uri: {
                   prefix: "/orders",
                 },
-
+                /* // LAB4: REMOVE THIS LINE (routing)
                 headers: {
                   "@request.auth.claims.custom:tenant_tier": {
                     regex: tenantTier,
@@ -315,6 +312,7 @@ export class OrderStack extends MicroserviceStack {
                     },
                   }),
                 },
+                */ // LAB4: REMOVE THIS LINE (routing)
               },
             ],
             route: [

@@ -64,8 +64,7 @@ export class FulfillmentStack extends MicroserviceStack {
       }
     );
 
-    // ensure that namespace is created before fulfillmentServiceAccount
-    fulfillmentServiceAccount.node.children.forEach((child) => {
+    fulfillmentServiceAccount.node.children.forEach((child) => {   // ensure that namespace is created before fulfillmentServiceAccount
       if (props.namespaceConstruct) {
         child.node.addDependency(props.namespaceConstruct);
       }
