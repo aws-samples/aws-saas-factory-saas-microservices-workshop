@@ -68,8 +68,8 @@ export class ProductStack extends MicroserviceStack {
         namespace: namespace,
       }
     );
-    // ensure that namespace is created before productServiceAccount
-    productServiceAccount.node.children.forEach((child) => {
+    
+    productServiceAccount.node.children.forEach((child) => {   // ensure that namespace is created before productServiceAccount
       if (props.namespaceConstruct) {
         child.node.addDependency(props.namespaceConstruct);
       }
