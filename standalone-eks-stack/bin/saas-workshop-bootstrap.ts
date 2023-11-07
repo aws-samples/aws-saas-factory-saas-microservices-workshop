@@ -20,7 +20,6 @@ import { MyCustomAwsForFluentBitAddOn } from "../lib/fluentbit";
 const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;
 const region = process.env.CDK_DEFAULT_REGION;
-const isWorkshopStudioEnv = process.env.IS_WORKSHOP_STUDIO_ENV || "no";
 const participantAssumedRoleArn = process.env.PARTICIPANT_ASSUMED_ROLE_ARN;
 const workshopSSMPrefix = "/workshop";
 const cloud9ConnectionType = "CONNECT_SSM";
@@ -70,8 +69,10 @@ const blueprint = blueprints.EksBlueprint.builder()
       instanceTypes: [
         new ec2.InstanceType("m6i.xlarge"),
         new ec2.InstanceType("r6i.xlarge"),
+        new ec2.InstanceType("m5.xlarge"),
         new ec2.InstanceType("m4.xlarge"),
         new ec2.InstanceType("c4.xlarge"),
+        new ec2.InstanceType("c5.xlarge"),
       ],
     })
   )
