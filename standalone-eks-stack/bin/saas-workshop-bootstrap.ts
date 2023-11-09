@@ -63,8 +63,7 @@ const blueprint = blueprints.EksBlueprint.builder()
       minSize: 2,
       desiredSize: 2,
       maxSize: 4,
-      nodeGroupCapacityType: CapacityType.SPOT,
-      // nodeGroupCapacityType: CapacityType.ON_DEMAND,
+      nodeGroupCapacityType: CapacityType.ON_DEMAND,
       amiType: eks.NodegroupAmiType.BOTTLEROCKET_X86_64,
       instanceTypes: [
         new ec2.InstanceType("m6i.xlarge"),

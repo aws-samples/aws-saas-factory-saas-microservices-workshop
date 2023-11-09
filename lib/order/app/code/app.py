@@ -146,7 +146,6 @@ def postOrder():
         app.logger.error("Exception raised! " + str(e))
         return {"msg": "Unable to save order!", "order": order.__dict__}, 500
 
-
+# IMPLEMENT ME: LAB3 (submitFulfillment)
 def submitFulfillment(order, authorization, tenant_context, fulfillment_endpoint):
-    # IMPLEMENT ME: LAB3 (submitFulfillment)
     pass
