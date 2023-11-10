@@ -29,10 +29,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-cdk/asset-node-proxy-agent-v5@npm:^2.0.166":
-  version: 2.0.166
-  resolution: "@aws-cdk/asset-node-proxy-agent-v5@npm:2.0.166"
-  checksum: d286c3d9e30d5acf6e3eef820bba74a87d4ff8e052183166702f22a615c0eed19471408df798d92208b12c8b8ecbaaa6cbe2b8b2729ec10c6446b5ef2081af37
+"@aws-cdk/asset-node-proxy-agent-v6@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@aws-cdk/asset-node-proxy-agent-v6@npm:2.0.1"
+  checksum: 5d011a554e71212662e32ff5d9187a1733a07d5424bdedfef2f43e7a6075d4b5f316d696867cc5dcd9ed1a11731b0d6b3ae41872c454796c326983ab382e05d0
   languageName: node
   linkType: hard
 
@@ -153,9 +153,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-quickstart/eks-blueprints@npm:~1.11.3":
-  version: 1.11.3
-  resolution: "@aws-quickstart/eks-blueprints@npm:1.11.3"
+"@aws-quickstart/eks-blueprints@npm:~1.12.0":
+  version: 1.12.0
+  resolution: "@aws-quickstart/eks-blueprints@npm:1.12.0"
   dependencies:
     "@aws-cdk/lambda-layer-kubectl-v23": ^2.0.7
     "@aws-cdk/lambda-layer-kubectl-v24": ^2.0.202
@@ -168,7 +168,7 @@ __metadata:
     "@types/bcrypt": ^5.0.0
     "@types/lodash.clonedeep": ^4.5.7
     "@types/uuid": ^9.0.1
-    aws-cdk-lib: 2.91.0
+    aws-cdk-lib: 2.99.1
     bcrypt: ^5.1.1
     constructs: ^10.2.33
     dot-object: ^2.1.4
@@ -183,13 +183,13 @@ __metadata:
     tslog: ^4.9.1
     uuid: ^9.0.0
     yaml: ^2.2.1
-    zod: ^3.22.1
+    zod: ^3.22.3
   dependenciesMeta:
     "@aws-cdk/lambda-layer-kubectl-v23":
       optional: true
     "@aws-cdk/lambda-layer-kubectl-v24":
       optional: true
-  checksum: 8f585f449008342e0f7679fc31a2352323cf364c2a8371bcbb1ad3c7573da31f7b5bb344ce38fc76caeb4e9156b59c92dcd4339a9235419885c23349caf20167
+  checksum: d2d484bf4bb6ad1ceea59489381427427f42064805e0024a4def159bce613cf9b28a2967779bd46430d576dc835afb8c408ae3ec1503956488c9dae9fa6af2ec
   languageName: node
   linkType: hard
 
@@ -2392,13 +2392,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"aws-cdk-lib@npm:2.91.0":
-  version: 2.91.0
-  resolution: "aws-cdk-lib@npm:2.91.0"
+"aws-cdk-lib@npm:2.99.1":
+  version: 2.99.1
+  resolution: "aws-cdk-lib@npm:2.99.1"
   dependencies:
     "@aws-cdk/asset-awscli-v1": ^2.2.200
     "@aws-cdk/asset-kubectl-v20": ^2.1.2
-    "@aws-cdk/asset-node-proxy-agent-v5": ^2.0.166
+    "@aws-cdk/asset-node-proxy-agent-v6": ^2.0.1
     "@balena/dockerignore": ^1.0.2
     case: 1.6.3
     fs-extra: ^11.1.1
@@ -2411,7 +2411,7 @@ __metadata:
     yaml: 1.10.2
   peerDependencies:
     constructs: ^10.0.0
-  checksum: 11367a1ca64d57b9c8f023581cd6ccee1fa18706cf636e9f934be680e0282c79aa5c5087d40e93143c9469d1a3c3e6df784e0c5a8185cd390dad9591641074d0
+  checksum: ed351f197fddd388d7298ff1ccf741dec998c62352ace2728867f59c09bfc828f6aadb86adaa44a1bf4873d7fe47c25f23e83848eb849a5fa76587efabc6426f
   languageName: node
   linkType: hard
 
@@ -4352,7 +4352,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "microservices-saas-workshop@workspace:."
   dependencies:
-    "@aws-quickstart/eks-blueprints": ~1.11.3
+    "@aws-quickstart/eks-blueprints": ~1.12.0
     "@types/jest": ^29.5.1
     "@types/node": 20.1.0
     constructs: ^10.0.0
@@ -5831,9 +5831,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.22.1":
-  version: 3.22.2
-  resolution: "zod@npm:3.22.2"
-  checksum: 231e2180c8eabb56e88680d80baff5cf6cbe6d64df3c44c50ebe52f73081ecd0229b1c7215b9552537f537a36d9e36afac2737ddd86dc14e3519bdbc777e82b9
+"zod@npm:^3.22.3":
+  version: 3.22.4
+  resolution: "zod@npm:3.22.4"
+  checksum: 80bfd7f8039b24fddeb0718a2ec7c02aa9856e4838d6aa4864335a047b6b37a3273b191ef335bf0b2002e5c514ef261ffcda5a589fb084a48c336ffc4cdbab7f
   languageName: node
   linkType: hard
