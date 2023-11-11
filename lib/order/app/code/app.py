@@ -6,7 +6,7 @@ import logging
 import requests
 import random
 from shared.helper_functions import get_tenant_context, get_boto3_client
-from aws_embedded_metrics import metric_scope
+from aws_embedded_metrics.logger.metrics_logger_factory import create_metrics_logger
 from flask import Flask, request
 
 app = Flask(__name__)
@@ -14,6 +14,7 @@ app.logger.setLevel(logging.DEBUG)
 table_name = os.environ["TABLE_NAME"]
 fulfillment_endpoint = os.environ["FULFILLMENT_ENDPOINT"]
 service_name = os.environ["SERVICE_NAME"]
+
 
 class Order():
     order_id: str
@@ -28,10 +29,13 @@ class Order():
         self.description = order_json.get('description', '')
         self.products = order_json['products']
 
-@metric_scope
-def create_emf_log(service_name, metric_name, metric_value, metrics):
-    metrics.set_dimensions({"ServiceName": service_name})
-    metrics.put_metric(metric_name, metric_value)
+
+async def create_emf_log(service_name, metric_name, metric_value):
+    logger = create_metrics_logger()
+    logger.set_dimensions({"ServiceName": service_name})
+    logger.put_metric(metric_name, metric_value)
+    await logger.flush()
+
 
 @app.route("/orders/health")
 def health():
@@ -109,7 +113,7 @@ def getOrder(order_id):
 
 
 @app.route("/orders", methods=['POST'])
-def postOrder():
+async def postOrder():
     try:
         authorization = request.headers.get("Authorization", None)
         tenant_context = get_tenant_context(authorization)
@@ -139,7 +143,8 @@ def postOrder():
             TableName=table_name,
         )
         submitFulfillment(order, authorization, tenant_context, fulfillment_endpoint)        
-        create_emf_log(service_name, "OrderCreated", 1)
+        await create_emf_log(service_name, "OrderCreated", 1)
+        # await create_emf_log_with_tenant_context(service_name, tenant_context, "OrderCreated", 1) # todo: remove me after updating narrative
         app.logger.debug("Order created: " + str(order.order_id) + ", tenant:" + str(tenant_context.tenant_id))
         return {"msg": "Order created", "order": order.__dict__}, 200
     except Exception as e:

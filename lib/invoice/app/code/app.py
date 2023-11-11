@@ -4,8 +4,8 @@ import logging
 import sys
 import requests
 import boto3
-import jwt
-from aws_embedded_metrics import metric_scope
+import asyncio
+from aws_embedded_metrics.logger.metrics_logger_factory import create_metrics_logger
 
 product_endpoint = os.environ["PRODUCT_ENDPOINT"]
 service_name = os.environ["SERVICE_NAME"]
@@ -18,10 +18,13 @@ sqs_queue_url = os.environ['QUEUE_URL']
 max_messages_to_read = 10
 wait_time_seconds = 20
 
-@metric_scope
-def create_emf_log(service_name, metric_name, metric_value, metrics):
-    metrics.set_dimensions({"ServiceName": service_name})
-    metrics.put_metric(metric_name, metric_value)
+
+async def create_emf_log(service_name, metric_name, metric_value):
+    logger = create_metrics_logger()
+    logger.set_dimensions({"ServiceName": service_name})
+    logger.put_metric(metric_name, metric_value)
+    await logger.flush()
+
 
 def receive_message_from_sqs(queue_url, max_messages=5):
     response = sqs_client.receive_message(
@@ -58,7 +61,7 @@ def calculate_order_total(product_ids, authorization):
     return total_price
 
 
-if __name__ == '__main__':
+async def main():
     while True:
         messages = receive_message_from_sqs(sqs_queue_url, max_messages=max_messages_to_read)
             
@@ -79,10 +82,14 @@ if __name__ == '__main__':
             total_price = calculate_order_total(product_ids, authorization)
             sqs_client.delete_message(QueueUrl=sqs_queue_url, ReceiptHandle=message['ReceiptHandle'])
             
-            create_emf_log(service_name, "InvoiceTotalPrice", total_price)
+            await create_emf_log(service_name, "InvoiceTotalPrice", total_price)
+            # await create_emf_log_with_tenant_context(service_name, tenant_context, "InvoiceTotalPrice", total_price) # todo: remove me after updating narrative
             message_dict = {
                 'message': f"Invoice created for order {order['order_id']} with total price {total_price}",
                 'tenantTier': tenant_context.tenant_tier,
                 'tenantId': tenant_context.tenant_id
             }
             logger.info(json.dumps(message_dict))
+
+if __name__ == '__main__':
+    asyncio.run(main())
