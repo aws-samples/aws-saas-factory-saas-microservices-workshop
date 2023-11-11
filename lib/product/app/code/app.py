@@ -105,7 +105,7 @@ async def postProduct():
 
         app.logger.debug("Product created: " + str(product.product_id))
         await create_emf_log(service_name, "ProductCreated", 1)
-        await create_emf_log_with_tenant_context(service_name, tenant_context, "ProductCreated", 1)
+        # await create_emf_log_with_tenant_context(service_name, tenant_context, "ProductCreated", 1) # todo: remove me after updating narrative
         return {"msg": "Product created", "product": product.__dict__}, 201
 
     except Exception as e:
