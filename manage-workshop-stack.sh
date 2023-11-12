@@ -72,7 +72,7 @@ elif [ "$STACK_OPERATION" == "delete" ]; then
         --output text \
         --query "Parameter.Value" 2>/dev/null || echo "None")
 
-    if [[ "$C9_PID" == "None" ]]; then
+    if [[ "$C9_PID" != "None" ]]; then
         run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh"
     fi
 
