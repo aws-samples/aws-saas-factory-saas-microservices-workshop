@@ -70,9 +70,9 @@ elif [ "$STACK_OPERATION" == "delete" ]; then
     C9_PID=$(aws ssm get-parameter \
         --name "$CLOUD9_INSTANCE_ID_PARAMETER_NAME" \
         --output text \
-        --query "Parameter.Value" 2>/dev/null) #suppress error if C9 has not been created
+        --query "Parameter.Value" 2>/dev/null || "None")
 
-    if [ -n "$C9_PID" ]; then
+    if [[ "$C9_PID" == "None" ]]; then
         run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh"
     fi
 
