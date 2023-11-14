@@ -4,7 +4,7 @@ import random
 import boto3
 # from shared.helper_functions import get_tenant_context
 from botocore.exceptions import ClientError
-from aws_embedded_metrics import metric_scope
+from aws_embedded_metrics.logger.metrics_logger_factory import create_metrics_logger
 from flask import Flask, request
 app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
@@ -24,10 +24,13 @@ class Product():
         self.description = product_json.get('description', '')
         self.price = str(float(product_json['price']))
 
-@metric_scope
-def create_emf_log(service_name, metric_name, metric_value, metrics):
-    metrics.set_dimensions({"ServiceName": service_name})
-    metrics.put_metric(metric_name, metric_value)
+
+async def create_emf_log(service_name, metric_name, metric_value):
+    logger = create_metrics_logger()
+    logger.set_dimensions({"ServiceName": service_name})
+    logger.put_metric(metric_name, metric_value)
+    await logger.flush()
+
 
 @app.route("/products/health")
 def health():
@@ -67,7 +70,7 @@ def getProduct(product_id):
 
 
 @app.route("/products", methods=['POST'])
-def postProduct():
+async def postProduct():
 
     # PASTE: LAB1 (post tenant context)
 
@@ -101,7 +104,8 @@ def postProduct():
         # REPLACE END: LAB1 (DynamoDB put_item with tenant context)
 
         app.logger.debug("Product created: " + str(product.product_id))
-        create_emf_log(service_name, "ProductCreated", 1)
+        await create_emf_log(service_name, "ProductCreated", 1)
+        # await create_emf_log_with_tenant_context(service_name, tenant_context, "ProductCreated", 1) # todo: remove me after updating narrative
         return {"msg": "Product created", "product": product.__dict__}, 201
 
     except Exception as e:

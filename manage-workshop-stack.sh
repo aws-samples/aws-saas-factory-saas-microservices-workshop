@@ -36,7 +36,7 @@ STACK_OPERATION=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 CLOUD9_INSTANCE_ID_PARAMETER_NAME="/workshop/cloud9InstanceId"
 GIT_REPO=$REPO_URL
 GIT_BRANCH=$REPO_BRANCH_NAME
-CDK_VERSION="2.91.0"
+CDK_VERSION="2.106.0"
 
 # TARGET_USER="ec2-user"
 TARGET_USER="ubuntu"
@@ -60,7 +60,7 @@ if [[ "$STACK_OPERATION" == "create" || "$STACK_OPERATION" == "update" ]]; then
             --output text \
             --query "Parameter.Value")
 
-        run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment && git clone --single-branch --branch $GIT_BRANCH $GIT_REPO"
+        run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment && git clone --single-branch --branch $GIT_BRANCH $GIT_REPO || echo 'Repo already exists.'"
         run_ssm_command "$TARGET_USER" "$C9_PID" "rm -vf ~/.aws/credentials"
         run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./setup.sh"
         run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./deploy.sh"
@@ -70,9 +70,9 @@ elif [ "$STACK_OPERATION" == "delete" ]; then
     C9_PID=$(aws ssm get-parameter \
         --name "$CLOUD9_INSTANCE_ID_PARAMETER_NAME" \
         --output text \
-        --query "Parameter.Value" 2>/dev/null) #suppress error if C9 has not been created
+        --query "Parameter.Value" 2>/dev/null || echo "None")
 
-    if [ -n "$C9_PID" ]; then
+    if [[ "$C9_PID" != "None" ]]; then
         run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh"
     fi
 

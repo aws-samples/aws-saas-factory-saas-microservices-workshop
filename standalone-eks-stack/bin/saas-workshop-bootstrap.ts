@@ -23,7 +23,7 @@ const region = process.env.CDK_DEFAULT_REGION;
 const participantAssumedRoleArn = process.env.PARTICIPANT_ASSUMED_ROLE_ARN;
 const workshopSSMPrefix = "/workshop";
 const cloud9ConnectionType = "CONNECT_SSM";
-const cloud9InstanceType = "m5.large";
+const cloud9InstanceTypes = ["m5.large", "m4.large"];
 const cloud9ImageId = "ubuntu-22.04-x86_64";
 
 export class LogGroupResourceProvider implements ResourceProvider<ILogGroup> {
@@ -112,7 +112,7 @@ new Cloud9Resources(blueprint, "Cloud9Resources", {
   workshopSSMPrefix: workshopSSMPrefix,
   cloud9MemberArn: participantAssumedRoleArn,
   cloud9ConnectionType: cloud9ConnectionType,
-  cloud9InstanceType: cloud9InstanceType,
+  cloud9InstanceTypes: cloud9InstanceTypes,
   cloud9ImageId: cloud9ImageId,
 });
 

@@ -2,16 +2,18 @@ import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
 import { Construct } from "constructs";
 import * as cdk from "aws-cdk-lib";
 
+interface WorkshopDashboardStackProps extends cdk.StackProps {
+  namespace: string;
+  workshopSSMPrefix: string;
+}
+
 export class WorkshopDashboardStack extends cdk.Stack {
   constructor(
     scope: Construct,
     id: string,
-    props: {
-      namespace: string;
-      workshopSSMPrefix: string;
-    }
+    props: WorkshopDashboardStackProps
   ) {
-    super(scope, id);
+    super(scope, id, props);
     const namespace = props.namespace;
     const workshopSSMPrefix = props.workshopSSMPrefix.replace("/", "");
     const period = cdk.Duration.hours(2);

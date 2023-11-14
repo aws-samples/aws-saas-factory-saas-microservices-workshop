@@ -40,10 +40,12 @@ const baseStack = new BaseStack(app, "SaaSMicroserviceBaseStack", {
 
 const tokenVendorStack = new TokenVendorStack(app, "TokenVendorStack", {
   env: { account, region },
+  stackName: "TokenVendorStack",
 });
 
 const basicStack = new ApplicationStack(app, "PoolBasicStack", {
   env: { account, region },
+  stackName: "PoolBasicStack",
   baseStack: baseStack,
   tenantTier: TenantTier.Basic,
   sideCarImageAsset: tokenVendorStack.tokenVendorImage,
@@ -55,6 +57,7 @@ basicStack.node.addDependency(baseStack);
 
 const tenantBstack = new ApplicationAdvancedTierStack(app, "tenantBstack", {
   env: { account, region },
+  stackName: "tenantBstack",
   baseStack: baseStack,
   basicStack: basicStack,
   namespace: basicStack.namespace,
@@ -68,6 +71,7 @@ tenantBstack.node.addDependency(basicStack);
 
 const tenantEstack = new ApplicationAdvancedTierStack(app, "tenantEstack", {
   env: { account, region },
+  stackName: "tenantEstack",
   baseStack: baseStack,
   basicStack: basicStack,
   namespace: basicStack.namespace,
@@ -81,6 +85,7 @@ tenantEstack.node.addDependency(basicStack);
 
 const tenantCstack = new ApplicationStack(app, "tenantCstack", {
   env: { account, region },
+  stackName: "tenantCstack",
   baseStack: baseStack,
   basicStack: basicStack,
   tenantId: "tenant-c",
@@ -98,6 +103,7 @@ const workshopDashboardStack = new WorkshopDashboardStack(
   {
     namespace: "workshop-metrics",
     workshopSSMPrefix: workshopSSMPrefix,
+    stackName: "workshopDashboardStack",
   }
 );
 
