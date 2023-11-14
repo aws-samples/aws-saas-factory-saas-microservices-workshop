@@ -19,4 +19,12 @@ Sample_JWTs.txt
 !.yarn/sdks
 !.yarn/versions
 
+standalone-eks-stack/.yarn/*
+!standalone-eks-stack/.yarn/cache
+!standalone-eks-stack/.yarn/patches
+!standalone-eks-stack/.yarn/plugins
+!standalone-eks-stack/.yarn/releases
+!standalone-eks-stack/.yarn/sdks
+!standalone-eks-stack/.yarn/versions
+
 *__pycache__*

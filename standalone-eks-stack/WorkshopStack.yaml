@@ -124,13 +124,22 @@ Resources:
               - codebuild:StopBuild
               - codebuild:BatchGetBuilds
             Effect: Allow
-            Resource: "*"
+            Resource: !GetAtt InstallWorkshopStack.Arn
           - Action:
               - logs:CreateLogGroup
               - logs:CreateLogStream
               - logs:PutLogEvents
             Effect: Allow
-            Resource: "*"
+            Resource:
+              - Fn::Join:
+                  - ""
+                  - - "arn:"
+                    - Ref: AWS::Partition
+                    - ":logs:"
+                    - Ref: AWS::Region
+                    - ":"
+                    - Ref: AWS::AccountId
+                    - ":log-group:/aws/lambda/*"
         Version: "2012-10-17"
       Description: role policy for lambda to trigger codebuild
       Path: /
@@ -212,6 +221,13 @@ Resources:
       TimeoutInMinutes: 60
   TriggerCodeBuild:
     Type: AWS::Lambda::Function
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W89
+            reason: 'VPC not needed for this sample'
+          - id: W58
+            reason: 'Permission to write CloudWatch Logs added to role'
     Properties:
       Code:
         ZipFile: |-
@@ -266,6 +282,7 @@ Resources:
       Handler: index.lambda_handler
       Runtime: python3.11
       Timeout: 900
+      ReservedConcurrentExecutions: 1
     DependsOn:
       - CodeBuildTriggerLambdaRole
   CustomProvisioningResource:

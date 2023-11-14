@@ -3,7 +3,6 @@ import json
 import time
 
 ec2_client = boto3.client('ec2')
-ssm_client = boto3.client('ssm')
 cloud9_client = boto3.client('cloud9')
 iam_client = boto3.client('iam')
 
@@ -108,41 +107,48 @@ def on_create(event):
     new_instance_profile_name = props['instanceProfileName']
     instance_tag_key = props['instanceTagKey']
     instance_tag_value = props['instanceTagValue']
-    ssm_instance_id_parameter_name = props['ssmInstanceIdParameterName']
-    ssm_env_id_parameter_name = props['ssmEnvIdParameterName']
+    instance_id_data_name = props['instanceIdDataName']
+    env_id_data_name = props['envIdDataName']
     member_arn = props.get('memberArn')
     connection_type = props.get('connectionType')
-    instance_type = props.get('instanceType')
+    instance_types = props.get('instanceTypes')
     image_id = props.get('imageId')
 
     # create AWSCloud9SSMAccessRole and resources if necessary
     _create_cloud9_iam_resources_if_necessary()
 
-    create_environment_ec2_response = cloud9_client.create_environment_ec2(
-        instanceType=instance_type,
-        connectionType=connection_type,
-        imageId=image_id,
-        description="Cloud9 Instance for SaaS Microservices Workshop.",
-        name=c9_name,
-        automaticStopTimeMinutes=120,
-        tags=[
-            {
-                'Key': instance_tag_key,
-                'Value': instance_tag_value
-            },
-        ],
-        # ownerArn -> set to lambda role. This is so we can update the c9 environment
-    )
+    c9_created = False
+    for instance_type in instance_types:
+        try:
+            print(
+                f"attempting to create cloud9 environment using {instance_type}")
+            create_environment_ec2_response = cloud9_client.create_environment_ec2(
+                instanceType=instance_type,
+                connectionType=connection_type,
+                imageId=image_id,
+                description="Cloud9 Instance for SaaS Microservices Workshop.",
+                name=c9_name,
+                automaticStopTimeMinutes=120,
+                tags=[
+                    {
+                        'Key': instance_tag_key,
+                        'Value': instance_tag_value
+                    },
+                ],
+                # ownerArn -> set to lambda role. This is so we can update the c9 environment
+            )
+            print(f"created cloud9 environment using {instance_type}")
+            c9_created = True
+            break
+        except cloud9_client.exceptions.ConflictException as e:
+            print(e)
+            print(f"failed to create cloud9 environment using {instance_type}")
+
+    if c9_created == False:
+        raise Exception("Unable to create cloud9 environment.")
 
     print(create_environment_ec2_response)
     cloud9_environment_id = create_environment_ec2_response['environmentId']
-    ssm_client.put_parameter(
-        Name=ssm_env_id_parameter_name,
-        Value=cloud9_environment_id,
-        Type='String',
-        Overwrite=True,
-    )
-
     if (member_arn):
         cloud9_response = cloud9_client.create_environment_membership(
             environmentId=cloud9_environment_id,
@@ -185,12 +191,6 @@ def on_create(event):
         for instance in response['Reservations'][0]['Instances']:
             instance_id = instance['InstanceId']
             print(f"updating instance: {instance_id}")
-            ssm_client.put_parameter(
-                Name=ssm_instance_id_parameter_name,
-                Value=instance_id,
-                Type='String',
-                Overwrite=True,
-            )
             response = ec2_client.describe_iam_instance_profile_associations(
                 Filters=[
                     {
@@ -217,7 +217,11 @@ def on_create(event):
 
             return {
                 "PhysicalResourceId": cloud9_environment_id,
-                "Data": {"status": f"successfully deployed physical_id: {cloud9_environment_id}"}
+                "Data": {
+                    "status": f"successfully deployed physical_id: {cloud9_environment_id}",
+                    instance_id_data_name: instance_id,
+                    env_id_data_name: cloud9_environment_id,
+                }
             }
         else:
             raise Exception(
@@ -235,20 +239,6 @@ def on_update(event):
 
 
 def on_delete(event):
-    props = event["ResourceProperties"]
-    ssm_instance_id_parameter_name = props['ssmInstanceIdParameterName']
-    ssm_env_id_parameter_name = props['ssmEnvIdParameterName']
-    for ssm_parameter in [ssm_instance_id_parameter_name, ssm_env_id_parameter_name]:
-        try:
-            print(f"deleting ssm_parameter: {ssm_parameter}")
-            delete_parameter_response = ssm_client.delete_parameter(
-                Name=ssm_parameter
-            )
-            print(delete_parameter_response)
-        except ssm_client.exceptions.ParameterNotFound as e:
-            print(f"caught error: {e}")
-            print(f"ssm_parameter: {ssm_parameter} not found.")
-
     physical_id = event["PhysicalResourceId"]
     try:
         cloud9_client.delete_environment(

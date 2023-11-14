@@ -51,7 +51,7 @@ kubectl completion bash >>~/.bash_completion
 cd $CWD
 
 # overwrite any existing cdk versions
-CDK_VERSION="2.91.0"
+CDK_VERSION="2.106.0"
 npm install --force --global aws-cdk@$CDK_VERSION
 
 INSTANCE_ROLE_NAME=$(aws ssm get-parameter --name "/workshop/cloud9InstanceRoleName" --region "$AWS_REGION" --query 'Parameter.Value' --output text)
