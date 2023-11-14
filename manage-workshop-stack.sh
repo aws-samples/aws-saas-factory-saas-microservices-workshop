@@ -36,12 +36,12 @@ STACK_OPERATION=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 CLOUD9_INSTANCE_ID_PARAMETER_NAME="/workshop/cloud9InstanceId"
 GIT_REPO=$REPO_URL
 GIT_BRANCH=$REPO_BRANCH_NAME
-CDK_VERSION="2.106.0"
+CDK_VERSION="2.106.1"
 
 # TARGET_USER="ec2-user"
 TARGET_USER="ubuntu"
-corepack enable
-corepack prepare yarn@3.6.4 --activate
+corepack enable || echo "default to yarn v1"
+corepack prepare yarn@3.6.4 --activate || echo "default to yarn v1"
 
 cd standalone-eks-stack
 yarn install

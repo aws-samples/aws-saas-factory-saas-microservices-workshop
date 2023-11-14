@@ -33,6 +33,7 @@ test -n "$AWS_REGION" && echo AWS_REGION is "$AWS_REGION" || echo AWS_REGION is 
 echo "export ACCOUNT_ID=${ACCOUNT_ID}" | tee -a ~/.bash_profile
 echo "export AWS_REGION=${AWS_REGION}" | tee -a ~/.bash_profile
 echo "export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" | tee -a ~/.bash_profile
+echo "export CDK_DISABLE_VERSION_CHECK=true" | tee -a ~/.bash_profile
 aws configure set default.region ${AWS_REGION}
 aws configure get default.region
 aws configure set cli_pager ""
@@ -51,7 +52,7 @@ kubectl completion bash >>~/.bash_completion
 cd $CWD
 
 # overwrite any existing cdk versions
-CDK_VERSION="2.106.0"
+CDK_VERSION="2.106.1"
 npm install --force --global aws-cdk@$CDK_VERSION
 
 INSTANCE_ROLE_NAME=$(aws ssm get-parameter --name "/workshop/cloud9InstanceRoleName" --region "$AWS_REGION" --query 'Parameter.Value' --output text)

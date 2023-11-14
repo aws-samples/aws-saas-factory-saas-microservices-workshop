@@ -131,18 +131,21 @@ Resources:
               - logs:PutLogEvents
             Effect: Allow
             Resource:
-              - Fn::Join:
-                  - ""
-                  - - "arn:"
-                    - Ref: AWS::Partition
-                    - ":logs:"
-                    - Ref: AWS::Region
-                    - ":"
-                    - Ref: AWS::AccountId
-                    - ":log-group:/aws/lambda/*"
+              - !GetAtt TriggerCodeBuildLogGroup.Arn
         Version: "2012-10-17"
       Description: role policy for lambda to trigger codebuild
       Path: /
+  TriggerCodeBuildLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        RetentionInDays: 7
+      DeletionPolicy: 'Delete'
+      UpdateReplacePolicy: 'Delete'
+      Metadata:
+        cfn_nag:
+          rules_to_suppress:
+            - id: W84
+              reason: 'Default encryption (not AWS KMS) used for this sample'
   InstallWorkshopStack:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -229,6 +232,8 @@ Resources:
           - id: W58
             reason: 'Permission to write CloudWatch Logs added to role'
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref TriggerCodeBuildLogGroup
       Code:
         ZipFile: |-
           import boto3
