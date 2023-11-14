@@ -5,13 +5,14 @@ run_ssm_command() {
     C9_PID="$2"
     SSM_COMMAND="$3"
     parameters=$(jq -n --arg cm "runuser -l \"$TARGET_USER\" -c \"$SSM_COMMAND\"" '{executionTimeout:["600"], commands: [$cm]}')
+    comment=$(echo "$SSM_COMMAND" | cut -c1-100)
     # send ssm command to instance id in C9_PID
     sh_command_id=$(aws ssm send-command \
         --targets "Key=InstanceIds,Values=$C9_PID" \
         --document-name "AWS-RunShellScript" \
         --parameters "$parameters" \
         --timeout-seconds 600 \
-        --comment "$(echo \"$SSM_COMMAND\" | cut -c1-100)" \
+        --comment "$comment" \
         --output text \
         --query "Command.CommandId")
 
@@ -60,7 +61,7 @@ main() {
                 --output text \
                 --query "Parameter.Value")
 
-            run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment && git clone --single-branch --branch $GIT_BRANCH $GIT_REPO || echo 'Repo already exists.'"
+            run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment ; git clone --single-branch --branch $GIT_BRANCH $GIT_REPO || echo 'Repo already exists.'"
             run_ssm_command "$TARGET_USER" "$C9_PID" "rm -vf ~/.aws/credentials"
             run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./setup.sh"
             run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./deploy.sh"
@@ -73,7 +74,7 @@ main() {
             --query "Parameter.Value" 2>/dev/null || echo "None")
 
         if [[ "$C9_PID" != "None" ]]; then
-            run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh"
+            run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh || echo 'Not required.'"
         fi
 
         echo "Starting cdk destroy..."
@@ -89,7 +90,10 @@ STACK_OPERATION=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 
 for i in {1..5}; do
     echo "iteration number: $i"
-    main "$STACK_OPERATION" && break
-    sleep 15
+    if main "$STACK_OPERATION"; then
+        break
+    else
+        sleep 15
+    fi
 done
 
