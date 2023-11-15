@@ -2,28 +2,26 @@ import * as cdk from "aws-cdk-lib";
 import * as eks from "aws-cdk-lib/aws-eks";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
+import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { FulfillmentMicroserviceAdvancedTierStackProps } from "../../interface/fulfillment-microservice-advanced-tier-props";
+import { MicroserviceStack } from "../../abstract-class/microservice-stack";
+var path = require("path");
 
-export class FulfillmentAdvancedTierStack extends Construct {
+export class FulfillmentAdvancedTierStack extends MicroserviceStack {
   public readonly eventSource: string;
   public readonly eventDetailType: string;
+  public readonly fulfillmentDockerImageAsset: DockerImageAsset;
+  public serviceName: string = "fulfillment";
   constructor(
     scope: Construct,
     id: string,
     props: FulfillmentMicroserviceAdvancedTierStackProps
   ) {
-    super(scope, id);
-
-    if (props?.cluster == undefined) {
-      throw new Error("props.clusterInfo must be defined!");
-    }
+    super(scope, id, props);
 
     const cluster = props.cluster;
-    const fulfillmentDockerImageAsset = props.fulfillmentDockerImageAsset;
-    const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
-    const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
-    const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
     const eventBus = props.eventBus;
+    const baseImage = props.baseImage;
 
     const tenantTier = props.tenantTier;
     const tenantId = props.tenantId;
@@ -33,13 +31,29 @@ export class FulfillmentAdvancedTierStack extends Construct {
       ...(tenantId && { tenantId: tenantId }),
     };
 
-    const serviceName = tenantId
-      ? `${tenantId}-fulfillment`
-      : `${tenantTier}-fulfillment`;
-    const serviceType = "webapp";
-
     this.eventSource = "fulfillment-service";
     this.eventDetailType = "order-fulfilled";
+
+    if (props.applicationImageAsset) {
+      this.fulfillmentDockerImageAsset = props.applicationImageAsset;
+    } else {
+      const image = new DockerImageAsset(
+        this,
+        "saas-microservices-fulfillment-image",
+        {
+          directory: path.join(__dirname, "../app"),
+          ...(baseImage && {
+            buildArgs: {
+              BASE_IMAGE: baseImage,
+            },
+          }),
+        }
+      );
+      new cdk.CfnOutput(this, "image", {
+        value: image.imageUri,
+      });
+      this.fulfillmentDockerImageAsset = image;
+    }
 
     const fulfillmentServiceAccount = cluster.addServiceAccount(
       "FulfillmentAdvServiceAccount",
@@ -101,7 +115,7 @@ export class FulfillmentAdvancedTierStack extends Construct {
               containers: [
                 {
                   name: "fulfillment-app",
-                  image: fulfillmentDockerImageAsset.imageUri,
+                  image: this.fulfillmentDockerImageAsset.imageUri,
                   resources: {
                     requests: {
                       cpu: "100m",
@@ -134,54 +148,14 @@ export class FulfillmentAdvancedTierStack extends Construct {
                     failureThreshold: 3,
                     periodSeconds: 10,
                   },
-                  env: [
+                  env: this.combineWithBaseContainerEnvs([
                     {
                       name: "EVENT_BUS_NAME",
                       value: eventBus.eventBusName,
                     },
                     { name: "EVENT_SOURCE", value: this.eventSource },
                     { name: "EVENT_DETAIL_TYPE", value: this.eventDetailType },
-                    {
-                      name: "AWS_DEFAULT_REGION",
-                      value: cdk.Stack.of(this).region,
-                    },
-                    {
-                      name: "AWS_XRAY_DAEMON_ADDRESS",
-                      value: xrayServiceDNSAndPort,
-                    },
-                    {
-                      name: "AWS_EMF_AGENT_ENDPOINT",
-                      value: cloudwatchAgentLogEndpoint,
-                    },
-                    {
-                      name: "AWS_EMF_LOG_GROUP_NAME",
-                      value: cloudwatchAgentLogGroupName,
-                    },
-                    {
-                      name: "AWS_EMF_LOG_STREAM_NAME",
-                      valueFrom: {
-                        fieldRef: {
-                          fieldPath: "metadata.name",
-                        },
-                      },
-                    },
-                    {
-                      name: "POD_NAMESPACE",
-                      valueFrom: {
-                        fieldRef: {
-                          fieldPath: "metadata.namespace",
-                        },
-                      },
-                    },
-                    {
-                      name: "SERVICE_NAME",
-                      value: serviceName,
-                    },
-                    {
-                      name: "SERVICE_TYPE",
-                      value: serviceType,
-                    },
-                  ],
+                  ]),
                   ports: [
                     {
                       containerPort: 8088,

@@ -16,7 +16,7 @@ export class Cloud9Resources extends Construct {
       workshopSSMPrefix: string;
       cloud9MemberArn?: string;
       cloud9ConnectionType: string;
-      cloud9InstanceType: string;
+      cloud9InstanceTypes: string[];
       cloud9ImageId: string;
     }
   ) {
@@ -25,7 +25,7 @@ export class Cloud9Resources extends Construct {
     const createCloud9Instance = props.createCloud9Instance;
     const workshopSSMPrefix = props.workshopSSMPrefix;
     const cloud9ConnectionType = props.cloud9ConnectionType;
-    const cloud9InstanceType = props.cloud9InstanceType;
+    const cloud9InstanceTypes = props.cloud9InstanceTypes;
     const cloud9ImageId = props.cloud9ImageId;
 
     if (createCloud9Instance) {
@@ -53,20 +53,12 @@ export class Cloud9Resources extends Construct {
         }
       );
 
-      const cloud9InstanceIdSSMParameterName = `${workshopSSMPrefix}/cloud9InstanceId`;
-      const cloud9InstanceEnvIdSSMParameterName = `${workshopSSMPrefix}/cloud9EnvironmentId`;
-      // const cloud9InstanceProfileName = `${workshopSSMPrefix}/cloud9InstanceProfileName`;
       const cloud9InstanceRoleName = `${workshopSSMPrefix}/cloud9InstanceRoleName`;
 
       new ssm.StringParameter(this, "cloud9InstanceRoleNameSSMParameter", {
         parameterName: cloud9InstanceRoleName,
         stringValue: cloud9Role.roleName,
       });
-
-      // new ssm.StringParameter(this, "cloud9InstanceProfileNameSSMParameter", {
-      //   parameterName: cloud9InstanceProfileName,
-      //   stringValue: cloud9InstanceProfile.instanceProfileName,
-      // });
 
       const onEventLambdaCloud9InstanceUpdater = new aws_lambda.Function(
         this,
@@ -98,8 +90,6 @@ export class Cloud9Resources extends Construct {
             new iam.PolicyStatement({
               actions: [
                 "ec2:DescribeInstances",
-                "ssm:PutParameter",
-                "ssm:DeleteParameter",
                 "iam:GetRole",
                 "iam:GetInstanceProfile",
                 "ec2:DescribeIamInstanceProfileAssociations",
@@ -145,23 +135,43 @@ export class Cloud9Resources extends Construct {
         }
       );
 
-      new cdk.CustomResource(this, "Cloud9InstanceUpdaterCustomResource", {
-        serviceToken: customResourceProvider.serviceToken,
-        resourceType: "Custom::cloud9InstanceUpdater",
-        properties: {
-          name: `workshop-instance-${this.node.addr}`,
-          instanceProfileName: cloud9InstanceProfile.instanceProfileName,
-          instanceTagKey: cloud9TagKey,
-          instanceTagValue: cloud9TagValue,
-          ssmInstanceIdParameterName: cloud9InstanceIdSSMParameterName,
-          ssmEnvIdParameterName: cloud9InstanceEnvIdSSMParameterName,
-          connectionType: cloud9ConnectionType,
-          instanceType: cloud9InstanceType,
-          imageId: cloud9ImageId,
-          ...(props.cloud9MemberArn && {
-            memberArn: props.cloud9MemberArn,
-          }),
-        },
+      const cloud9InstanceIdSSMParameterName = `${workshopSSMPrefix}/cloud9InstanceId`;
+      const cloud9InstanceEnvIdSSMParameterName = `${workshopSSMPrefix}/cloud9EnvironmentId`;
+      const cloud9InstanceUpdaterCustomResource = new cdk.CustomResource(
+        this,
+        "Cloud9InstanceUpdaterCustomResource",
+        {
+          serviceToken: customResourceProvider.serviceToken,
+          resourceType: "Custom::cloud9InstanceUpdater",
+          properties: {
+            name: `workshop-instance-${this.node.addr}`,
+            instanceProfileName: cloud9InstanceProfile.instanceProfileName,
+            instanceTagKey: cloud9TagKey,
+            instanceTagValue: cloud9TagValue,
+            instanceIdDataName: cloud9InstanceIdSSMParameterName,
+            envIdDataName: cloud9InstanceEnvIdSSMParameterName,
+            connectionType: cloud9ConnectionType,
+            instanceTypes: cloud9InstanceTypes,
+            imageId: cloud9ImageId,
+            ...(props.cloud9MemberArn && {
+              memberArn: props.cloud9MemberArn,
+            }),
+          },
+        }
+      );
+
+      new ssm.StringParameter(this, "cloud9InstanceIdSSMParameterName", {
+        parameterName: cloud9InstanceIdSSMParameterName,
+        stringValue: cloud9InstanceUpdaterCustomResource.getAttString(
+          cloud9InstanceIdSSMParameterName
+        ),
+      });
+
+      new ssm.StringParameter(this, "cloud9InstanceEnvIdSSMParameterName", {
+        parameterName: cloud9InstanceEnvIdSSMParameterName,
+        stringValue: cloud9InstanceUpdaterCustomResource.getAttString(
+          cloud9InstanceEnvIdSSMParameterName
+        ),
       });
     }
   }

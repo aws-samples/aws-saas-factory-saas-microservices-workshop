@@ -2,6 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import * as aws_events from "aws-cdk-lib/aws-events";
 import * as aws_events_targets from "aws-cdk-lib/aws-events-targets";
 import * as logs from "aws-cdk-lib/aws-logs";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 import { Construct } from "constructs";
 import { ProductStack } from "../product/infrastructure/product-stack";
 import { FulfillmentStack } from "../fulfillment/infrastructure/fulfillment-stack";
@@ -11,6 +12,7 @@ import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { TenantTier } from "../enums/tenant-tier";
 import { EksCluster } from "../eks/eks-blueprint-stack";
 import { InvoiceStack } from "../invoice/infrastructure/invoice-stack";
+
 
 export class ApplicationStack extends cdk.Stack {
   public readonly fulfillmentServiceDNS: string;
@@ -34,20 +36,15 @@ export class ApplicationStack extends cdk.Stack {
 
     const deploymentMode = props.deploymentMode;
     const workshopSSMPrefix = props.workshopSSMPrefix;
+    const baseImageUri = props.helperLibraryBaseImageUri
 
     const eksCluster = new EksCluster(this, "EksCluster", {
       workshopSSMPrefix: workshopSSMPrefix,
     });
     const cluster = eksCluster.cluster;
-    const xrayServiceDNSAndPort =
-      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentXrayEndpoint;
-    const cloudwatchAgentLogEndpoint =
-      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogEndpoint;
-    const cloudwatchAgentLogGroupName =
-      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogGroup
-        .logGroupName;
-    const istioIngressGateway =
-      props.baseStack.istioResources.istioIngressGateway;
+    const cloudwatchAgentLogEndpoint = props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogEndpoint;
+    const cloudwatchAgentLogGroupName = props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogGroup.logGroupName;
+    const istioIngressGateway = props.baseStack.istioResources.istioIngressGateway;
 
     const tenantTier = props.tenantTier;
     const tenantId = props.tenantId;
@@ -111,11 +108,10 @@ export class ApplicationStack extends cdk.Stack {
       namespace: this.namespace,
       tenantTier: tenantTier,
       tenantId: tenantId,
-      xrayServiceDNSAndPort: xrayServiceDNSAndPort,
       cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
       cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       namespaceConstruct: stackNamespace,
-      baseImage: props.baseStack.baseImage,
+      baseImage: baseImageUri
     });
     productStack.node.addDependency(stackNamespace);
     this.productServiceDNS = productStack.productServiceDNS;
@@ -131,12 +127,11 @@ export class ApplicationStack extends cdk.Stack {
         namespace: this.namespace,
         tenantTier: tenantTier,
         tenantId: tenantId,
-        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
         eventBus: eventBus,
-        baseImage: props.baseStack.baseImage,
+        baseImage: baseImageUri
       });
       fulfillmentStack.node.addDependency(stackNamespace);
       this.fulfillmentServicePort = fulfillmentStack.fulfillmentServicePort;
@@ -154,11 +149,10 @@ export class ApplicationStack extends cdk.Stack {
         sideCarImageAsset: sideCarImageAsset,
         tenantTier: tenantTier,
         tenantId: tenantId,
-        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
-        baseImage: props.baseStack.baseImage,
+        baseImage: baseImageUri
       });
       orderStack.node.addDependency(stackNamespace);
       orderStack.node.addDependency(fulfillmentStack);
@@ -175,11 +169,10 @@ export class ApplicationStack extends cdk.Stack {
         sideCarImageAsset: sideCarImageAsset,
         tenantTier: tenantTier,
         tenantId: tenantId,
-        xrayServiceDNSAndPort: xrayServiceDNSAndPort,
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
-        baseImage: props.baseStack.baseImage,
+        baseImage: baseImageUri,
         eventBus: eventBus,
         fulfillmentEventDetailType: fulfillmentStack.eventDetailType,
         fulfillmentEventSource: fulfillmentStack.eventSource,

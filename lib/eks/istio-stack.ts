@@ -14,7 +14,7 @@ export class IstioResources extends Construct {
     const tlsKey = props.tlsKey;
 
     const istioHelmRepo = "https://istio-release.storage.googleapis.com/charts";
-    const istioVersion = "1.18.1";
+    const istioVersion = "1.18.2";
     const istioSystemNamespaceName = "istio-system";
     const istioIngressNamespaceName = "istio-ingress";
     const ingressGatewayName = "gateway";
@@ -52,7 +52,7 @@ export class IstioResources extends Construct {
             issuer: issuer,
             jwksUri: jwksUri,
             forwardOriginalToken: true,
-            outputClaimToHeaders: [ // todo: decide if we want to keep this or remove it
+            outputClaimToHeaders: [
               {
                 header: "x-jwt-tenant-id",
                 claim: "custom:tenant_id",

@@ -4,47 +4,37 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { Construct } from "constructs";
 import { MicroserviceStackProps } from "../../interface/microservice-props";
+import { MicroserviceStack } from "../../abstract-class/microservice-stack";
 
 var path = require("path");
 
-export class ProductStack extends Construct {
+export class ProductStack extends MicroserviceStack {
   public readonly productServiceDNS: string;
   public readonly productServicePort: number;
   public readonly productImageAsset: DockerImageAsset;
+  public readonly serviceName: string = "product";
   constructor(scope: Construct, id: string, props: MicroserviceStackProps) {
-    super(scope, id);
+    super(scope, id, props);
 
     const istioIngressGateway = props.istioIngressGateway;
-    const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
-    const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
-    const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
     const baseImage = props.baseImage;
 
-    const tenantTier = props.tenantTier;
-    const tenantId = props.tenantId;
-    const namespace = props.namespace; // from the ApplicationStack
-    const multiTenantLabels = {
-      tenantTier: tenantTier,
-      ...(tenantId && { tenantId: tenantId }),
-    };
-
-    const serviceName = tenantId
-      ? `${tenantId}-product`
-      : `${tenantTier}-product`;
-    const serviceType = "webapp";
+    // REPLACE START: LAB1 (namespace)
+    const namespace = "default";
+    const multiTenantLabels = {};
+    // REPLACE END: LAB1 (namespace)
 
     // PASTE: LAB1(tenant context tags)
-    cdk.Tags.of(this).add("SaaS-Microservices:ServiceName", serviceName);
+    cdk.Tags.of(this).add("SaaS-Microservices:ServiceName", this.serviceName);
 
     // REPLACE START: LAB1 (product table)
     const productTable = new dynamodb.Table(this, "ProductTable", {
-      partitionKey: { name: "tenantId", type: dynamodb.AttributeType.STRING }, // tenant-id partition key
-      sortKey: { name: "productId", type: dynamodb.AttributeType.STRING },
+      partitionKey: { name: "productId", type: dynamodb.AttributeType.STRING },
       readCapacity: 5,
       writeCapacity: 5,
       billingMode: dynamodb.BillingMode.PROVISIONED,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      tableName: `SaaSMicroservices-Products-${namespace}`, // namespace appended to the table name
+      tableName: `SaaSMicroservices-Products`,
     });
     // REPLACE END: LAB1 (product table)
 
@@ -58,7 +48,7 @@ export class ProductStack extends Construct {
           directory: path.join(__dirname, "../app"),
           ...(baseImage && {
             buildArgs: {
-              BASE_IMAGE: baseImage,
+              BASE_IMAGE: baseImage,  // baseImage assigned from process.env.HELPER_LIBRARY_BASE_IMAGE
             },
           }),
         }
@@ -78,37 +68,20 @@ export class ProductStack extends Construct {
         namespace: namespace,
       }
     );
-    // ensure that namespace is created before productServiceAccount
-    productServiceAccount.node.children.forEach((child) => {
+    
+    productServiceAccount.node.children.forEach((child) => {   // ensure that namespace is created before productServiceAccount
       if (props.namespaceConstruct) {
         child.node.addDependency(props.namespaceConstruct);
       }
     });
 
     // REPLACE START: LAB2 (IAM resources)
-    const accessRole = new iam.Role(this, "access-role", {
-      assumedBy: productServiceAccount.role.grantPrincipal,
-    });
-    accessRole.assumeRolePolicy?.addStatements(
-      new iam.PolicyStatement({
-        principals: [productServiceAccount.role.grantPrincipal],
-        actions: ["sts:TagSession"],
-        conditions: {
-          StringLike: { [`aws:RequestTag/TenantID`]: "*" },
-        },
-      })
-    );
-    accessRole.attachInlinePolicy(
-      new iam.Policy(this, "ProductServiceAccessPolicy", {
+    productServiceAccount.role.attachInlinePolicy(
+      new iam.Policy(this, "ProductServicePolicy", {
         statements: [
           new iam.PolicyStatement({
             actions: ["dynamodb:query", "dynamodb:PutItem"],
             resources: [productTable.tableArn],
-            conditions: {
-              "ForAllValues:StringLike": {
-                "dynamodb:LeadingKeys": [`\${aws:PrincipalTag/TenantID}`],
-              },
-            },
           }),
         ],
       })
@@ -134,10 +107,11 @@ export class ProductStack extends Construct {
         replicas: 1,
         template: {
           metadata: {
+            /* // REMOVE THIS LINE: LAB2 (annotation)
             annotations: {
               "eks.amazonaws.com/skip-containers": "product-app",
             },
-
+            */ // REMOVE THIS LINE: LAB2 (annotation)
             labels: {
               app: "product-app",
               ...multiTenantLabels,
@@ -181,7 +155,7 @@ export class ProductStack extends Construct {
                   failureThreshold: 3,
                   periodSeconds: 10,
                 },
-                env: [
+                env: this.combineWithBaseContainerEnvs([
                   {
                     name: "TOKEN_VENDOR_ENDPOINT_PORT",
                     value: "8081",
@@ -190,47 +164,7 @@ export class ProductStack extends Construct {
                     name: "TABLE_NAME",
                     value: productTable.tableName,
                   },
-                  {
-                    name: "AWS_DEFAULT_REGION",
-                    value: cdk.Stack.of(this).region,
-                  },
-                  {
-                    name: "AWS_XRAY_DAEMON_ADDRESS",
-                    value: xrayServiceDNSAndPort,
-                  },
-                  {
-                    name: "AWS_EMF_AGENT_ENDPOINT",
-                    value: cloudwatchAgentLogEndpoint,
-                  },
-                  {
-                    name: "AWS_EMF_LOG_GROUP_NAME",
-                    value: cloudwatchAgentLogGroupName,
-                  },
-                  {
-                    name: "AWS_EMF_LOG_STREAM_NAME",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.name",
-                      },
-                    },
-                  },
-                  {
-                    name: "POD_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.namespace",
-                      },
-                    },
-                  },
-                  {
-                    name: "SERVICE_NAME",
-                    value: serviceName,
-                  },
-                  {
-                    name: "SERVICE_TYPE",
-                    value: serviceType,
-                  },
-                ],
+                ]),
                 ports: [
                   {
                     containerPort: 8080,
@@ -238,7 +172,7 @@ export class ProductStack extends Construct {
                   },
                 ],
               },
-
+              /* // REMOVE THIS LINE: LAB2 (sidecar app)
               {
                 name: "sidecar-app",
                 image: props.sideCarImageAsset?.imageUri,
@@ -272,7 +206,7 @@ export class ProductStack extends Construct {
                   failureThreshold: 3,
                   periodSeconds: 10,
                 },
-                env: [
+                env: this.combineWithBaseContainerEnvs([
                   {
                     name: "ROLE_ARN",
                     value: accessRole.roleArn,
@@ -285,43 +219,7 @@ export class ProductStack extends Construct {
                     name: "TENANT_TAG_KEY",
                     value: "TenantID",
                   },
-                  {
-                    name: "AWS_DEFAULT_REGION",
-                    value: cdk.Stack.of(this).region,
-                  },
-                  {
-                    name: "AWS_XRAY_DAEMON_ADDRESS",
-                    value: xrayServiceDNSAndPort,
-                  },
-                  {
-                    name: "AWS_EMF_AGENT_ENDPOINT",
-                    value: cloudwatchAgentLogEndpoint,
-                  },
-                  {
-                    name: "AWS_EMF_LOG_GROUP_NAME",
-                    value: cloudwatchAgentLogGroupName,
-                  },
-                  {
-                    name: "AWS_EMF_LOG_STREAM_NAME",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.name",
-                      },
-                    },
-                  },
-                  {
-                    name: "SERVICE_NAME",
-                    value: serviceName,
-                  },
-                  {
-                    name: "POD_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.namespace",
-                      },
-                    },
-                  },
-                ],
+                ]),
                 ports: [
                   {
                     containerPort: 8081,
@@ -329,6 +227,7 @@ export class ProductStack extends Construct {
                   },
                 ],
               },
+              */ // REMOVE THIS LINE: LAB2 (sidecar app)
             ],
           },
         },
@@ -384,7 +283,7 @@ export class ProductStack extends Construct {
                 uri: {
                   prefix: "/products",
                 },
-
+                /* // LAB4: REMOVE THIS LINE (routing)
                 headers: {
                   "@request.auth.claims.custom:tenant_tier": {
                     regex: tenantTier,
@@ -395,6 +294,7 @@ export class ProductStack extends Construct {
                     },
                   }),
                 },
+                */ // LAB4: REMOVE THIS LINE (routing)
               },
             ],
             route: [

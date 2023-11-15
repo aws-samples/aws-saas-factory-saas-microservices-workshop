@@ -5,7 +5,6 @@ import { AddOnStackProps } from "../interface/addon-props";
 
 export class CloudwatchAgentAddOnStack extends Construct {
   public readonly cloudwatchAgentLogEndpoint: string;
-  public readonly cloudwatchAgentXrayEndpoint: string;
   public readonly cloudwatchAgentLogGroup: logs.LogGroup;
 
   constructor(scope: Construct, id: string, props: AddOnStackProps) {
@@ -15,12 +14,10 @@ export class CloudwatchAgentAddOnStack extends Construct {
 
     const cloudwatchAgentPort = 25888;
     const cloudwatchAgentProtocol = "TCP";
-    const xrayPort = 2000;
     const cloudwatchAgentNamespaceName = "amazon-cloudwatch";
     const cloudwatchAgentServiceName = "cloudwatch-agent-service";
     const cloudwatchAgentConfigMapName = "cloudwatch-agent-config-map";
     this.cloudwatchAgentLogEndpoint = `http://${cloudwatchAgentServiceName}.${cloudwatchAgentNamespaceName}:${cloudwatchAgentPort}`;
-    this.cloudwatchAgentXrayEndpoint = `${cloudwatchAgentServiceName}.${cloudwatchAgentNamespaceName}:${xrayPort}`;
 
     this.cloudwatchAgentLogGroup = new logs.LogGroup(
       this,
@@ -50,9 +47,6 @@ export class CloudwatchAgentAddOnStack extends Construct {
 
     sa.role.addManagedPolicy(
       iam.ManagedPolicy.fromAwsManagedPolicyName("CloudWatchAgentServerPolicy")
-    );
-    sa.role.addManagedPolicy(
-      iam.ManagedPolicy.fromAwsManagedPolicyName("AWSXRayDaemonWriteAccess")
     );
 
     sa.node.addDependency(cloudwatchAgentNamespace);
@@ -159,16 +153,6 @@ export class CloudwatchAgentAddOnStack extends Construct {
               port: cloudwatchAgentPort,
               protocol: cloudwatchAgentProtocol,
             },
-            {
-              name: "xrayudp",
-              port: xrayPort,
-              protocol: "UDP",
-            },
-            {
-              name: "xraytcp",
-              port: xrayPort,
-              protocol: "TCP",
-            },
           ],
         },
       }
@@ -194,17 +178,7 @@ export class CloudwatchAgentAddOnStack extends Construct {
                 },
               },
               force_flush_interval: 5,
-            },
-            traces: {
-              traces_collected: {
-                xray: {
-                  bind_address: `0.0.0.0:${xrayPort}`,
-                  tcp_proxy: {
-                    bind_address: `0.0.0.0:${xrayPort}`,
-                  },
-                },
-              },
-            },
+            }
           }),
         },
         kind: "ConfigMap",

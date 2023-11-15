@@ -4,30 +4,25 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { Construct } from "constructs";
 import { OrderMicroserviceStackProps } from "../../interface/order-microservice-props";
+import { MicroserviceStack } from "../../abstract-class/microservice-stack";
 
 var path = require("path");
 
-export class OrderStack extends Construct {
+export class OrderStack extends MicroserviceStack {
   public readonly orderServiceDNS: string;
   public readonly orderServicePort: number;
   public readonly orderDockerImageAsset: DockerImageAsset;
+  public readonly serviceName: string = "order";
   constructor(
     scope: Construct,
     id: string,
     props: OrderMicroserviceStackProps
   ) {
-    super(scope, id);
-
-    if (props.cluster == undefined) {
-      throw new Error("props.clusterInfo must be defined!");
-    }
+    super(scope, id, props);
 
     const cluster = props.cluster;
     const istioIngressGateway = props.istioIngressGateway;
-    const fulfillmentServiceDNS = props.fulfillmentServiceDNS;
-    const xrayServiceDNSAndPort = props.xrayServiceDNSAndPort;
-    const cloudwatchAgentLogEndpoint = props.cloudwatchAgentLogEndpoint;
-    const cloudwatchAgentLogGroupName = props.cloudwatchAgentLogGroupName;
+    const fulfillmentServiceDNS = props.fulfillmentServiceDNS;    
     const baseImage = props.baseImage;
 
     const tenantTier = props.tenantTier;
@@ -37,9 +32,6 @@ export class OrderStack extends Construct {
       tenantTier: tenantTier,
       ...(tenantId && { tenantId: tenantId }),
     };
-
-    const serviceName = tenantId ? `${tenantId}-order` : `${tenantTier}-order`;
-    const serviceType = "webapp";
 
     if (props.applicationImageAsset) {
       this.orderDockerImageAsset = props.applicationImageAsset;
@@ -79,9 +71,8 @@ export class OrderStack extends Construct {
         namespace: namespace,
       }
     );
-
-    // ensure that namespace is created before orderServiceAccount
-    orderServiceAccount.node.children.forEach((child) => {
+    
+    orderServiceAccount.node.children.forEach((child) => {   // ensure that namespace is created before orderServiceAccount
       if (props.namespaceConstruct) {
         child.node.addDependency(props.namespaceConstruct);
       }
@@ -180,7 +171,7 @@ export class OrderStack extends Construct {
                   failureThreshold: 3,
                   periodSeconds: 10,
                 },
-                env: [
+                env: this.combineWithBaseContainerEnvs([
                   {
                     name: "TOKEN_VENDOR_ENDPOINT_PORT",
                     value: "8081",
@@ -190,50 +181,10 @@ export class OrderStack extends Construct {
                     value: orderTable.tableName,
                   },
                   {
-                    name: "AWS_DEFAULT_REGION",
-                    value: cdk.Stack.of(this).region,
-                  },
-                  {
-                    name: "AWS_XRAY_DAEMON_ADDRESS",
-                    value: xrayServiceDNSAndPort,
-                  },
-                  {
-                    name: "AWS_EMF_AGENT_ENDPOINT",
-                    value: cloudwatchAgentLogEndpoint,
-                  },
-                  {
-                    name: "AWS_EMF_LOG_GROUP_NAME",
-                    value: cloudwatchAgentLogGroupName,
-                  },
-                  {
-                    name: "AWS_EMF_LOG_STREAM_NAME",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.name",
-                      },
-                    },
-                  },
-                  {
                     name: "FULFILLMENT_ENDPOINT",
                     value: fulfillmentServiceDNS,
                   },
-                  {
-                    name: "POD_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.namespace",
-                      },
-                    },
-                  },
-                  {
-                    name: "SERVICE_NAME",
-                    value: serviceName,
-                  },
-                  {
-                    name: "SERVICE_TYPE",
-                    value: serviceType,
-                  },
-                ],
+                ]),
                 ports: [
                   {
                     containerPort: 8080,
@@ -274,7 +225,7 @@ export class OrderStack extends Construct {
                   failureThreshold: 3,
                   periodSeconds: 10,
                 },
-                env: [
+                env: this.combineWithBaseContainerEnvs([
                   {
                     name: "ROLE_ARN",
                     value: accessRole.roleArn,
@@ -287,43 +238,7 @@ export class OrderStack extends Construct {
                     name: "TENANT_TAG_KEY",
                     value: "TenantID",
                   },
-                  {
-                    name: "AWS_DEFAULT_REGION",
-                    value: cdk.Stack.of(this).region,
-                  },
-                  {
-                    name: "AWS_XRAY_DAEMON_ADDRESS",
-                    value: xrayServiceDNSAndPort,
-                  },
-                  {
-                    name: "AWS_EMF_AGENT_ENDPOINT",
-                    value: cloudwatchAgentLogEndpoint,
-                  },
-                  {
-                    name: "AWS_EMF_LOG_GROUP_NAME",
-                    value: cloudwatchAgentLogGroupName,
-                  },
-                  {
-                    name: "AWS_EMF_LOG_STREAM_NAME",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.name",
-                      },
-                    },
-                  },
-                  {
-                    name: "POD_NAMESPACE",
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: "metadata.namespace",
-                      },
-                    },
-                  },
-                  {
-                    name: "SERVICE_NAME",
-                    value: serviceName,
-                  },
-                ],
+                ]),
                 ports: [
                   {
                     containerPort: 8081,
@@ -386,7 +301,7 @@ export class OrderStack extends Construct {
                 uri: {
                   prefix: "/orders",
                 },
-
+                /* // LAB4: REMOVE THIS LINE (routing)
                 headers: {
                   "@request.auth.claims.custom:tenant_tier": {
                     regex: tenantTier,
@@ -397,6 +312,7 @@ export class OrderStack extends Construct {
                     },
                   }),
                 },
+                */ // LAB4: REMOVE THIS LINE (routing)
               },
             ],
             route: [

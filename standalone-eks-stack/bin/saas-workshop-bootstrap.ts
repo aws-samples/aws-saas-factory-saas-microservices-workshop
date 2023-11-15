@@ -10,7 +10,6 @@ import { CapacityType, KubernetesVersion } from "aws-cdk-lib/aws-eks";
 import { Cloud9Resources } from "../lib/cloud9-resources";
 import { DestroyPolicySetter } from "../lib/cdk-aspect/destroy-policy-setter";
 import { SSMResources } from "../lib/ssm-resources";
-import { SharedStack } from "../lib/shared/infrastructure/shared-stack";
 import { ILogGroup } from "aws-cdk-lib/aws-logs";
 import {
   ResourceProvider,
@@ -21,11 +20,10 @@ import { MyCustomAwsForFluentBitAddOn } from "../lib/fluentbit";
 const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;
 const region = process.env.CDK_DEFAULT_REGION;
-const isWorkshopStudioEnv = process.env.IS_WORKSHOP_STUDIO_ENV || "no";
 const participantAssumedRoleArn = process.env.PARTICIPANT_ASSUMED_ROLE_ARN;
-const workshopSSMPrefix = "/saas-workshop";
+const workshopSSMPrefix = "/workshop";
 const cloud9ConnectionType = "CONNECT_SSM";
-const cloud9InstanceType = "m5.large";
+const cloud9InstanceTypes = ["m5.large", "m4.large"];
 const cloud9ImageId = "ubuntu-22.04-x86_64";
 
 export class LogGroupResourceProvider implements ResourceProvider<ILogGroup> {
@@ -65,14 +63,15 @@ const blueprint = blueprints.EksBlueprint.builder()
       minSize: 2,
       desiredSize: 2,
       maxSize: 4,
-      nodeGroupCapacityType: CapacityType.SPOT,
-      // nodeGroupCapacityType: CapacityType.ON_DEMAND,
+      nodeGroupCapacityType: CapacityType.ON_DEMAND,
       amiType: eks.NodegroupAmiType.BOTTLEROCKET_X86_64,
       instanceTypes: [
         new ec2.InstanceType("m6i.xlarge"),
         new ec2.InstanceType("r6i.xlarge"),
+        new ec2.InstanceType("m5.xlarge"),
         new ec2.InstanceType("m4.xlarge"),
         new ec2.InstanceType("c4.xlarge"),
+        new ec2.InstanceType("c5.xlarge"),
       ],
     })
   )
@@ -103,12 +102,9 @@ if (kubectlRole) {
   );
 }
 
-const sharedStack = new SharedStack(blueprint, "SharedStack");
-
 new SSMResources(blueprint, "SSMResources", {
   clusterInfo: blueprint.getClusterInfo(),
   workshopSSMPrefix: workshopSSMPrefix,
-  sharedImageAsset: sharedStack.sharedImageAsset,
 });
 
 new Cloud9Resources(blueprint, "Cloud9Resources", {
@@ -116,7 +112,7 @@ new Cloud9Resources(blueprint, "Cloud9Resources", {
   workshopSSMPrefix: workshopSSMPrefix,
   cloud9MemberArn: participantAssumedRoleArn,
   cloud9ConnectionType: cloud9ConnectionType,
-  cloud9InstanceType: cloud9InstanceType,
+  cloud9InstanceTypes: cloud9InstanceTypes,
   cloud9ImageId: cloud9ImageId,
 });
 

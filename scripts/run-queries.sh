@@ -6,7 +6,7 @@ echo "Hostname: $LB_HOSTNAME"
 echo "JWT_FILE: $JWT_FILE"
 
 echo "Starting..."
-for i in {1..1}; do
+for i in {1..20}; do
     echo "Iteration: $i"
     for tenant_id in "tenant-a" "tenant-b" "tenant-c" "tenant-d" "tenant-e"; do
         echo "################# Running queries for tenant: ${tenant_id}... #################"

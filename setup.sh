@@ -33,6 +33,7 @@ test -n "$AWS_REGION" && echo AWS_REGION is "$AWS_REGION" || echo AWS_REGION is 
 echo "export ACCOUNT_ID=${ACCOUNT_ID}" | tee -a ~/.bash_profile
 echo "export AWS_REGION=${AWS_REGION}" | tee -a ~/.bash_profile
 echo "export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" | tee -a ~/.bash_profile
+echo "export CDK_DISABLE_VERSION_CHECK=true" | tee -a ~/.bash_profile
 aws configure set default.region ${AWS_REGION}
 aws configure get default.region
 aws configure set cli_pager ""
@@ -50,7 +51,11 @@ kubectl completion bash >>~/.bash_completion
 
 cd $CWD
 
-INSTANCE_ROLE_NAME=$(aws ssm get-parameter --name "/saas-workshop/cloud9InstanceRoleName" --region "$AWS_REGION" --query 'Parameter.Value' --output text)
-aws sts get-caller-identity --query Arn | grep "$INSTANCE_ROLE_NAME" -q && \
-  echo "IAM role valid. Proceed." || \
+# overwrite any existing cdk versions
+CDK_VERSION="2.106.1"
+npm install --force --global aws-cdk@$CDK_VERSION
+
+INSTANCE_ROLE_NAME=$(aws ssm get-parameter --name "/workshop/cloud9InstanceRoleName" --region "$AWS_REGION" --query 'Parameter.Value' --output text)
+aws sts get-caller-identity --query Arn | grep "$INSTANCE_ROLE_NAME" -q &&
+  echo "IAM role valid. Proceed." ||
   echo "IAM role NOT valid. Do not proceed with creating the EKS Cluster or you won't be able to authenticate. Ensure you assigned the role to your EC2 instance as detailed in the workshop instructions"
