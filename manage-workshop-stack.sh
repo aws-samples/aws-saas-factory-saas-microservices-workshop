@@ -38,6 +38,7 @@ main() {
     GIT_REPO=$REPO_URL
     GIT_BRANCH=$REPO_BRANCH_NAME
     CDK_VERSION="2.106.1"
+    npm install --force --global aws-cdk@$CDK_VERSION
 
     # TARGET_USER="ec2-user"
     TARGET_USER="ubuntu"
@@ -46,11 +47,11 @@ main() {
 
     cd standalone-eks-stack
     yarn install
-    npx -y cdk@$CDK_VERSION bootstrap
+    cdk bootstrap
 
     if [[ "$STACK_OPERATION" == "create" || "$STACK_OPERATION" == "update" ]]; then
         echo "Starting cdk deploy..."
-        npx cdk@$CDK_VERSION deploy SaaSWorkshopBootstrap \
+        cdk deploy SaaSWorkshopBootstrap \
             --require-approval never
         echo "Done cdk deploy!"
 
@@ -78,7 +79,7 @@ main() {
         fi
 
         echo "Starting cdk destroy..."
-        npx cdk@$CDK_VERSION destroy --all --force
+        cdk destroy --all --force
         echo "Done cdk destroy!"
     else
         echo "Invalid stack operation!"
@@ -88,7 +89,7 @@ main() {
 
 STACK_OPERATION=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 
-for i in {1..5}; do
+for i in {1..3}; do
     echo "iteration number: $i"
     if main "$STACK_OPERATION"; then
         break
@@ -96,4 +97,3 @@ for i in {1..5}; do
         sleep 15
     fi
 done
-
