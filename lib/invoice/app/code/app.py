@@ -83,7 +83,6 @@ async def main():
             sqs_client.delete_message(QueueUrl=sqs_queue_url, ReceiptHandle=message['ReceiptHandle'])
             
             await create_emf_log(service_name, "InvoiceTotalPrice", total_price)
-            # await create_emf_log_with_tenant_context(service_name, tenant_context, "InvoiceTotalPrice", total_price) # todo: remove me after updating narrative
             message_dict = {
                 'message': f"Invoice created for order {order['order_id']} with total price {total_price}",
                 'tenantTier': tenant_context.tenant_tier,
