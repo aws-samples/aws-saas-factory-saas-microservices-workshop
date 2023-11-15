@@ -18,13 +18,3 @@ from aws_embedded_metrics.logger.metrics_logger_factory import create_metrics_lo
 
 
 # IMPLEMENT ME: LAB5 (create_emf_log_with_tenant_context)
-# todo: remove lines below after updating narrative
-# async def create_emf_log_with_tenant_context(service_name, tenant_context, metric_name, metric_value):
-#     logger = create_metrics_logger()
-#     logger.set_dimensions(
-#         {"ServiceName": service_name},
-#         {"ServiceName": service_name, "Tenant": tenant_context.tenant_id},
-#         {"ServiceName": service_name, "Tier": tenant_context.tenant_tier},
-#     )
-#     logger.put_metric(metric_name, metric_value)
-#     await logger.flush()
