@@ -63,7 +63,7 @@ main() {
                 --query "Parameter.Value")
 
             aws ec2 start-instances --instance-ids "$C9_ID"
-            sleep 10
+            aws ec2 wait instance-running --instance-ids "$C9_ID"
             run_ssm_command "$TARGET_USER" "$C9_ID" "cd ~/environment ; git clone --depth 1 --branch $GIT_BRANCH $GIT_REPO || echo 'Repo already exists.'"
             run_ssm_command "$TARGET_USER" "$C9_ID" "rm -vf ~/.aws/credentials"
             run_ssm_command "$TARGET_USER" "$C9_ID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./setup.sh"
@@ -77,7 +77,7 @@ main() {
             --query "Parameter.Value" 2>/dev/null || echo "None")
 
         aws ec2 start-instances --instance-ids "$C9_ID"
-        sleep 10
+        aws ec2 wait instance-running --instance-ids "$C9_ID"
         if [[ "$C9_ID" != "None" ]]; then
             run_ssm_command "$TARGET_USER" "$C9_ID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh || echo 'Not required.'"
         fi
