@@ -1,4 +1,4 @@
-#!/bin/bash -xe
+#!/bin/bash -x
 
 run_ssm_command() {
     TARGET_USER="$1"
