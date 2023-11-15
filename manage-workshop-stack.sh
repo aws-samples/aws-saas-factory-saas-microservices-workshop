@@ -62,7 +62,7 @@ main() {
                 --output text \
                 --query "Parameter.Value")
 
-            run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment ; git clone --single-branch --branch $GIT_BRANCH $GIT_REPO || echo 'Repo already exists.'"
+            run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment ; git clone --depth 1 --branch $GIT_BRANCH $GIT_REPO || echo 'Repo already exists.'"
             run_ssm_command "$TARGET_USER" "$C9_PID" "rm -vf ~/.aws/credentials"
             run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./setup.sh"
             run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./deploy.sh"
