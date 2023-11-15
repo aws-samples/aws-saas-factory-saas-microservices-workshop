@@ -2,13 +2,13 @@
 
 run_ssm_command() {
     TARGET_USER="$1"
-    C9_PID="$2"
+    C9_ID="$2"
     SSM_COMMAND="$3"
     parameters=$(jq -n --arg cm "runuser -l \"$TARGET_USER\" -c \"$SSM_COMMAND\"" '{executionTimeout:["600"], commands: [$cm]}')
     comment=$(echo "$SSM_COMMAND" | cut -c1-100)
-    # send ssm command to instance id in C9_PID
+    # send ssm command to instance id in C9_ID
     sh_command_id=$(aws ssm send-command \
-        --targets "Key=InstanceIds,Values=$C9_PID" \
+        --targets "Key=InstanceIds,Values=$C9_ID" \
         --document-name "AWS-RunShellScript" \
         --parameters "$parameters" \
         --timeout-seconds 600 \
@@ -21,7 +21,7 @@ run_ssm_command() {
         sleep 30
         command_invocation=$(aws ssm get-command-invocation \
             --command-id "$sh_command_id" \
-            --instance-id "$C9_PID")
+            --instance-id "$C9_ID")
         echo -E "$command_invocation" | jq # for debugging purposes
         command_status=$(echo -E "$command_invocation" | jq -r '.Status')
     done
@@ -57,25 +57,29 @@ main() {
 
         if [[ "$STACK_OPERATION" == "create" ]]; then
             # get cloud9 instance id from ssm parameter store
-            C9_PID=$(aws ssm get-parameter \
+            C9_ID=$(aws ssm get-parameter \
                 --name "$CLOUD9_INSTANCE_ID_PARAMETER_NAME" \
                 --output text \
                 --query "Parameter.Value")
 
-            run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment ; git clone --depth 1 --branch $GIT_BRANCH $GIT_REPO || echo 'Repo already exists.'"
-            run_ssm_command "$TARGET_USER" "$C9_PID" "rm -vf ~/.aws/credentials"
-            run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./setup.sh"
-            run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./deploy.sh"
-            aws ec2 reboot-instances --instance-ids "$C9_PID"
+            aws ec2 start-instances --instance-ids "$C9_ID"
+            sleep 10
+            run_ssm_command "$TARGET_USER" "$C9_ID" "cd ~/environment ; git clone --depth 1 --branch $GIT_BRANCH $GIT_REPO || echo 'Repo already exists.'"
+            run_ssm_command "$TARGET_USER" "$C9_ID" "rm -vf ~/.aws/credentials"
+            run_ssm_command "$TARGET_USER" "$C9_ID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./setup.sh"
+            run_ssm_command "$TARGET_USER" "$C9_ID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./deploy.sh"
+            aws ec2 reboot-instances --instance-ids "$C9_ID"
         fi
     elif [ "$STACK_OPERATION" == "delete" ]; then
-        C9_PID=$(aws ssm get-parameter \
+        C9_ID=$(aws ssm get-parameter \
             --name "$CLOUD9_INSTANCE_ID_PARAMETER_NAME" \
             --output text \
             --query "Parameter.Value" 2>/dev/null || echo "None")
 
-        if [[ "$C9_PID" != "None" ]]; then
-            run_ssm_command "$TARGET_USER" "$C9_PID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh || echo 'Not required.'"
+        aws ec2 start-instances --instance-ids "$C9_ID"
+        sleep 10
+        if [[ "$C9_ID" != "None" ]]; then
+            run_ssm_command "$TARGET_USER" "$C9_ID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh || echo 'Not required.'"
         fi
 
         echo "Starting cdk destroy..."
