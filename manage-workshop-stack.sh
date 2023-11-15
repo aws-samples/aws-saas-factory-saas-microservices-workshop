@@ -17,7 +17,7 @@ run_ssm_command() {
         --query "Command.CommandId")
 
     command_status="InProgress" # seed status var
-    while [ "$command_status" == "InProgress" ]; do
+    while [[ "$command_status" == "InProgress" || "$command_status" == "Pending" || "$command_status" == "Delayed" ]]; do
         sleep 30
         command_invocation=$(aws ssm get-command-invocation \
             --command-id "$sh_command_id" \
