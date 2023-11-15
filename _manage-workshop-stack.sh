@@ -4,14 +4,14 @@ run_ssm_command() {
     TARGET_USER="$1"
     C9_ID="$2"
     SSM_COMMAND="$3"
-    parameters=$(jq -n --arg cm "runuser -l \"$TARGET_USER\" -c \"$SSM_COMMAND\"" '{executionTimeout:["600"], commands: [$cm]}')
+    parameters=$(jq -n --arg cm "runuser -l \"$TARGET_USER\" -c \"$SSM_COMMAND\"" '{executionTimeout:["1200"], commands: [$cm]}')
     comment=$(echo "$SSM_COMMAND" | cut -c1-100)
     # send ssm command to instance id in C9_ID
     sh_command_id=$(aws ssm send-command \
         --targets "Key=InstanceIds,Values=$C9_ID" \
         --document-name "AWS-RunShellScript" \
         --parameters "$parameters" \
-        --timeout-seconds 600 \
+        --timeout-seconds 1200 \
         --comment "$comment" \
         --output text \
         --query "Command.CommandId")
@@ -34,11 +34,13 @@ run_ssm_command() {
 }
 
 main() {
-    CLOUD9_INSTANCE_ID_PARAMETER_NAME="/workshop/cloud9InstanceId"
-    GIT_REPO=$REPO_URL
-    GIT_BRANCH=$REPO_BRANCH_NAME
     STACK_OPERATION=$1
+    GIT_REPO=$2
+    GIT_BRANCH=$3
+
+    CLOUD9_INSTANCE_ID_PARAMETER_NAME="/workshop/cloud9InstanceId"
     CDK_VERSION="2.106.1"
+
     npm install --force --global aws-cdk@$CDK_VERSION
 
     # TARGET_USER="ec2-user"
@@ -93,4 +95,6 @@ main() {
 }
 
 STACK_OPERATION=$(echo "$1" | tr '[:upper:]' '[:lower:]')
-main "$STACK_OPERATION"
+GIT_REPO=$2
+GIT_BRANCH=$3
+main "$STACK_OPERATION" "$GIT_REPO" "$GIT_BRANCH"
