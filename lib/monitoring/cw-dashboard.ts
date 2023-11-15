@@ -115,53 +115,6 @@ export class WorkshopDashboardStack extends cdk.Stack {
     widgets.push([orderCountByTenantGraph, invoiceTotalByTenantGraph]);
     */ // End LAB5 - Tenant-aware widgets
 
-    /*  // StartLAB5 - Challenge - Tenant-aware widgets
-    const tenantTiers = ["basic", "advanced", "premium"];
-    const orderCountByTierGraph = new cloudwatch.GraphWidget({
-      view: cloudwatch.GraphWidgetView.PIE,
-      statistic: cloudwatch.Stats.SUM,
-      period: period,
-      height: 11,
-      width: 12,
-      title: "COUNT(OrderCreated) by Tier",
-    });
-    tenantTiers.forEach((tenantTier) => {
-      orderCountByTierGraph.addRightMetric(
-        new cloudwatch.Metric({
-          namespace: namespace,
-          metricName: "OrderCreated",
-          dimensionsMap: {
-            Tier: tenantTier,
-            ServiceName: "order",
-          },
-        })
-      );
-    });
-
-    const invoiceTotalByTierGraph = new cloudwatch.GraphWidget({
-      view: cloudwatch.GraphWidgetView.PIE,
-      statistic: cloudwatch.Stats.SUM,
-      period: period,
-      height: 11,
-      width: 12,
-      title: "SUM(InvoiceTotalPrice) by Tier",
-    });
-
-    tenantTiers.forEach((tenantTier) => {
-      invoiceTotalByTierGraph.addRightMetric(
-        new cloudwatch.Metric({
-          namespace: namespace,
-          metricName: "InvoiceTotalPrice",
-          dimensionsMap: {
-            Tier: tenantTier,
-            ServiceName: "invoice",
-          },
-        })
-      );
-    });
-    widgets.push([orderCountByTierGraph, invoiceTotalByTierGraph]);
-    */ // End LAB5 - Challenge - Tenant-aware widgets
-
     new cloudwatch.Dashboard(this, "Dashboard", {
       dashboardName: `${workshopSSMPrefix}-dashboard`,
       widgets: widgets, // https://github.com/aws/aws-cdk/issues/8938#issuecomment-849178914
