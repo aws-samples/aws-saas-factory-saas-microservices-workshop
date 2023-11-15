@@ -52,7 +52,7 @@ export class IstioResources extends Construct {
             issuer: issuer,
             jwksUri: jwksUri,
             forwardOriginalToken: true,
-            outputClaimToHeaders: [ // todo: decide if we want to keep this or remove it
+            outputClaimToHeaders: [
               {
                 header: "x-jwt-tenant-id",
                 claim: "custom:tenant_id",

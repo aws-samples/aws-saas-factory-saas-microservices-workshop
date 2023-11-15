@@ -144,7 +144,6 @@ async def postOrder():
         )
         submitFulfillment(order, authorization, tenant_context, fulfillment_endpoint)        
         await create_emf_log(service_name, "OrderCreated", 1)
-        # await create_emf_log_with_tenant_context(service_name, tenant_context, "OrderCreated", 1) # todo: remove me after updating narrative
         app.logger.debug("Order created: " + str(order.order_id) + ", tenant:" + str(tenant_context.tenant_id))
         return {"msg": "Order created", "order": order.__dict__}, 200
     except Exception as e:
