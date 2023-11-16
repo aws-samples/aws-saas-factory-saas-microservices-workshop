@@ -4,14 +4,14 @@ run_ssm_command() {
     TARGET_USER="$1"
     C9_ID="$2"
     SSM_COMMAND="$3"
-    parameters=$(jq -n --arg cm "runuser -l \"$TARGET_USER\" -c \"$SSM_COMMAND\"" '{executionTimeout:["1200"], commands: [$cm]}')
+    parameters=$(jq -n --arg cm "runuser -l \"$TARGET_USER\" -c \"$SSM_COMMAND\"" '{executionTimeout:["3600"], commands: [$cm]}')
     comment=$(echo "$SSM_COMMAND" | cut -c1-100)
     # send ssm command to instance id in C9_ID
     sh_command_id=$(aws ssm send-command \
         --targets "Key=InstanceIds,Values=$C9_ID" \
         --document-name "AWS-RunShellScript" \
         --parameters "$parameters" \
-        --timeout-seconds 1200 \
+        --timeout-seconds 3600 \
         --comment "$comment" \
         --output text \
         --query "Command.CommandId")
