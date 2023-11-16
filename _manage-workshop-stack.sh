@@ -92,6 +92,7 @@ main() {
         echo "Invalid stack operation!"
         exit 1
     fi
+    exit 1
 }
 
 STACK_OPERATION=$(echo "$1" | tr '[:upper:]' '[:lower:]')
