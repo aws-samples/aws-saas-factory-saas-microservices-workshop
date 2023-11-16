@@ -4,7 +4,7 @@ STACK_OPERATION="$1"
 
 for i in {1..3}; do
     echo "iteration number: $i"
-    if bash -e _manage-workshop-stack.sh "$STACK_OPERATION" "$REPO_URL" "$REPO_BRANCH_NAME"; then
+    if bash -xe _manage-workshop-stack.sh "$STACK_OPERATION" "$REPO_URL" "$REPO_BRANCH_NAME"; then
         echo "successfully completed execution"
         exit 0
     else

@@ -79,9 +79,9 @@ main() {
             --output text \
             --query "Parameter.Value" 2>/dev/null || echo "None")
 
-        aws ec2 start-instances --instance-ids "$C9_ID"
-        aws ec2 wait instance-status-ok --instance-ids "$C9_ID"
         if [[ "$C9_ID" != "None" ]]; then
+            aws ec2 start-instances --instance-ids "$C9_ID"
+            aws ec2 wait instance-status-ok --instance-ids "$C9_ID"
             run_ssm_command "$TARGET_USER" "$C9_ID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh || echo 'Not required.'"
         fi
 
