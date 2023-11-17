@@ -1,3 +1,5 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
 import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import * as eks from "aws-cdk-lib/aws-eks";
 import { TenantTier } from "../enums/tenant-tier";
