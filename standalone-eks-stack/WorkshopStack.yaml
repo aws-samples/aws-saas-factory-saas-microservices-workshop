@@ -1,3 +1,5 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
 Parameters:
   RepoUrl:
     Type: String
@@ -47,21 +49,6 @@ Resources:
             - - "arn:"
               - Ref: AWS::Partition
               - :iam::aws:policy/AdministratorAccess
-  WSCodeBuildServiceRoleDefaultPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action:
-              - logs:CreateLogGroup
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-            Effect: Allow
-            Resource: !GetAtt InstallWorkshopStackLogGroup.Arn
-        Version: "2012-10-17"
-      PolicyName: WSCodeBuildServiceRoleDefaultPolicy
-      Roles:
-        - Ref: WSCodeBuildServiceRole
   CodeBuildTriggerLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -99,18 +86,6 @@ Resources:
       Type: AWS::Logs::LogGroup
       Properties:
         LogGroupName: "/aws/lambda/trigger-codebuild-function"
-        RetentionInDays: 7
-      DeletionPolicy: 'Delete'
-      UpdateReplacePolicy: 'Delete'
-      Metadata:
-        cfn_nag:
-          rules_to_suppress:
-            - id: W84
-              reason: 'Default encryption (not AWS KMS) used for this sample'
-  InstallWorkshopStackLogGroup:
-      Type: AWS::Logs::LogGroup
-      Properties:
-        LogGroupName: "/aws/codebuild/install-workshop-stack-codebuild"
         RetentionInDays: 7
       DeletionPolicy: 'Delete'
       UpdateReplacePolicy: 'Delete'
@@ -175,7 +150,7 @@ Resources:
               "build": {
                 "commands": [
                   "mkdir workshop && cd workshop",
-                  "git clone --single-branch --branch $REPO_BRANCH_NAME $REPO_URL .",
+                  "git clone --depth 1 --branch $REPO_BRANCH_NAME $REPO_URL .",
                   "echo $EVENT_REQUEST_TYPE",
                   "./manage-workshop-stack.sh $EVENT_REQUEST_TYPE"
                 ]

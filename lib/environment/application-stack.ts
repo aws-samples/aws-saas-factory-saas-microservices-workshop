@@ -1,3 +1,5 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
 import * as cdk from "aws-cdk-lib";
 import * as aws_events from "aws-cdk-lib/aws-events";
 import * as aws_events_targets from "aws-cdk-lib/aws-events-targets";

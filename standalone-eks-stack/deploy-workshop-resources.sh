@@ -1,4 +1,6 @@
 #!/bin/bash -e
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
 
 # This script is meant to be run as part of the
 # "on-your-own" flow of the saas microservices workshop.

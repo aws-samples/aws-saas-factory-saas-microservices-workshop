@@ -1,4 +1,6 @@
 #!/bin/bash -x
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
 
 POOLNAME="saas-microservices-workshop-user-pool"
 POOLID=$(aws cognito-idp list-user-pools --max-results 30 --query "UserPools[?Name=='${POOLNAME}'].Id" --output text)
