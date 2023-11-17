@@ -1,6 +1,7 @@
+#!/usr/bin/env node
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
-#!/usr/bin/env node
+
 import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
 import { TokenVendorStack } from "../lib/token-vendor/infrastructure/token-vendor-stack";
