@@ -35,8 +35,8 @@ export CDK_PARAM_TLS_KEY_ISTIO="$KEY" # cdk stack params
 
 echo "Starting cdk deploy..."
 yarn install
-npx cdk bootstrap
-npx --yes cdk deploy SaaSMicroserviceBaseStack \
+cdk bootstrap
+cdk deploy SaaSMicroserviceBaseStack \
     --require-approval never \
     --no-rollback
 

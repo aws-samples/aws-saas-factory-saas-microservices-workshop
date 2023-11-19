@@ -7,8 +7,8 @@ export CDK_PARAM_TLS_KEY_ISTIO="ready to delete"
 
 echo "Destroying stacks..."
 yarn install
-npx cdk bootstrap
-npx cdk destroy --all --force
+cdk bootstrap
+cdk destroy --all --force
 
 if [ -d "certs" ]; then
     rm -rf certs/
