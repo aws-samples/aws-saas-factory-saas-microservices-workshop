@@ -84,10 +84,10 @@ async def postProduct():
 
     try:
         dynamodb_resource = boto3.resource("dynamodb")
-        order_table = dynamodb_resource.Table(table_name)
+        product_table = dynamodb_resource.Table(table_name)
 
         # REPLACE START: LAB1 (DynamoDB put_item with tenant context)
-        order_table.put_item(
+        product_table.put_item(
             Item={
                 'productId': product.product_id,
                 'name': product.name,
