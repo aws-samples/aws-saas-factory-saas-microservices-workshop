@@ -4,13 +4,13 @@ import boto3
 import json
 import time
 
-ec2_client = boto3.client('ec2')
-cloud9_client = boto3.client('cloud9')
-iam_client = boto3.client('iam')
+ec2_client = boto3.client("ec2")
+cloud9_client = boto3.client("cloud9")
+iam_client = boto3.client("iam")
 
 
 def _create_cloud9_ssm_role(role_name):
-    role_path = '/service-role/'
+    role_path = "/service-role/"
     assume_role_policy_document = {
         "Version": "2012-10-17",
         "Statement": [
@@ -34,7 +34,7 @@ def _create_cloud9_ssm_role(role_name):
 
 def _create_cloud9_iam_resources_if_necessary():
     # Check if the IAM role already exists
-    role_name = 'AWSCloud9SSMAccessRole'
+    role_name = "AWSCloud9SSMAccessRole"
     try:
         iam_client.get_role(RoleName=role_name)
         print(f"{role_name} role already exists")
@@ -43,13 +43,13 @@ def _create_cloud9_iam_resources_if_necessary():
         _create_cloud9_ssm_role(role_name)
 
     # Define the policy ARN
-    policy_arn = 'arn:aws:iam::aws:policy/AWSCloud9SSMInstanceProfile'
+    policy_arn = "arn:aws:iam::aws:policy/AWSCloud9SSMInstanceProfile"
 
     # Check if the policy is already attached to the IAM role
     attached_policies = iam_client.list_attached_role_policies(
         RoleName=role_name)
-    attached_policy_arns = [policy['PolicyArn']
-                            for policy in attached_policies['AttachedPolicies']]
+    attached_policy_arns = [policy["PolicyArn"]
+                            for policy in attached_policies["AttachedPolicies"]]
     if policy_arn not in attached_policy_arns:
         # The policy is not attached, so attach it
         iam_client.attach_role_policy(
@@ -58,8 +58,8 @@ def _create_cloud9_iam_resources_if_necessary():
         )
 
     # Define the instance profile name and path
-    instance_profile_name = 'AWSCloud9SSMInstanceProfile'
-    instance_profile_path = '/cloud9/'
+    instance_profile_name = "AWSCloud9SSMInstanceProfile"
+    instance_profile_path = "/cloud9/"
 
     # Check if the instance profile already exists
     try:
@@ -77,8 +77,8 @@ def _create_cloud9_iam_resources_if_necessary():
     # Check if the IAM role is already added to the instance profile
     instance_profile = iam_client.get_instance_profile(
         InstanceProfileName=instance_profile_name)
-    instance_profile_roles = instance_profile['InstanceProfile']['Roles']
-    instance_profile_role_names = [role['RoleName']
+    instance_profile_roles = instance_profile["InstanceProfile"]["Roles"]
+    instance_profile_role_names = [role["RoleName"]
                                    for role in instance_profile_roles]
     if role_name not in instance_profile_role_names:
         print(f"{role_name} is not added to {instance_profile_name}. Adding...")
@@ -93,28 +93,28 @@ def _create_cloud9_iam_resources_if_necessary():
 
 def on_event(event, context):
     print(event)
-    request_type = event['RequestType']
-    if request_type == 'Create':
+    request_type = event["RequestType"]
+    if request_type == "Create":
         return on_create(event)
-    if request_type == 'Update':
+    if request_type == "Update":
         return on_update(event)
-    if request_type == 'Delete':
+    if request_type == "Delete":
         return on_delete(event)
     raise Exception("Invalid request type: %s" % request_type)
 
 
 def on_create(event):
     props = event["ResourceProperties"]
-    c9_name = props['name']
-    new_instance_profile_name = props['instanceProfileName']
-    instance_tag_key = props['instanceTagKey']
-    instance_tag_value = props['instanceTagValue']
-    instance_id_data_name = props['instanceIdDataName']
-    env_id_data_name = props['envIdDataName']
-    member_arn = props.get('memberArn')
-    connection_type = props.get('connectionType')
-    instance_types = props.get('instanceTypes')
-    image_id = props.get('imageId')
+    c9_name = props["name"]
+    new_instance_profile_name = props["instanceProfileName"]
+    instance_tag_key = props["instanceTagKey"]
+    instance_tag_value = props["instanceTagValue"]
+    instance_id_data_name = props["instanceIdDataName"]
+    env_id_data_name = props["envIdDataName"]
+    member_arn = props.get("memberArn")
+    connection_type = props.get("connectionType")
+    instance_types = props.get("instanceTypes")
+    image_id = props.get("imageId")
 
     # create AWSCloud9SSMAccessRole and resources if necessary
     _create_cloud9_iam_resources_if_necessary()
@@ -133,8 +133,8 @@ def on_create(event):
                 automaticStopTimeMinutes=120,
                 tags=[
                     {
-                        'Key': instance_tag_key,
-                        'Value': instance_tag_value
+                        "Key": instance_tag_key,
+                        "Value": instance_tag_value
                     },
                 ],
                 # ownerArn -> set to lambda role. This is so we can update the c9 environment
@@ -150,12 +150,12 @@ def on_create(event):
         raise Exception("Unable to create cloud9 environment.")
 
     print(create_environment_ec2_response)
-    cloud9_environment_id = create_environment_ec2_response['environmentId']
+    cloud9_environment_id = create_environment_ec2_response["environmentId"]
     if (member_arn):
         cloud9_response = cloud9_client.create_environment_membership(
             environmentId=cloud9_environment_id,
             userArn=member_arn,
-            permissions='read-write'
+            permissions="read-write"
         )
         print(cloud9_response)
     else:
@@ -167,50 +167,50 @@ def on_create(event):
             environmentId=cloud9_environment_id
         )
         print(describe_environment_status_response)
-        if describe_environment_status_response.get('status') == 'ready':
+        if describe_environment_status_response.get("status") == "ready":
             break
 
     cloud9_update_env_response = cloud9_client.update_environment(
         environmentId=cloud9_environment_id,
-        managedCredentialsAction='DISABLE'
+        managedCredentialsAction="DISABLE"
     )
     print(cloud9_update_env_response)
 
     response = ec2_client.describe_instances(
         Filters=[
             {
-                'Name': f'tag:{instance_tag_key}',
-                'Values': [instance_tag_value],
+                "Name": f"tag:{instance_tag_key}",
+                "Values": [instance_tag_value],
             },
             {
-                'Name': 'instance-state-name',
-                'Values': ['running'],
+                "Name": "instance-state-name",
+                "Values": ["running"],
             },
         ],
     )
 
-    if 'Reservations' in response and len(response['Reservations']) > 0:
-        for instance in response['Reservations'][0]['Instances']:
-            instance_id = instance['InstanceId']
+    if "Reservations" in response and len(response["Reservations"]) > 0:
+        for instance in response["Reservations"][0]["Instances"]:
+            instance_id = instance["InstanceId"]
             print(f"updating instance: {instance_id}")
             response = ec2_client.describe_iam_instance_profile_associations(
                 Filters=[
                     {
-                        'Name': 'instance-id',
-                        'Values': [instance_id],
+                        "Name": "instance-id",
+                        "Values": [instance_id],
                     },
                 ],
             )
 
-            if 'IamInstanceProfileAssociations' in response and len(response['IamInstanceProfileAssociations']) > 0:
-                current_association_id = response['IamInstanceProfileAssociations'][0]['AssociationId']
+            if "IamInstanceProfileAssociations" in response and len(response["IamInstanceProfileAssociations"]) > 0:
+                current_association_id = response["IamInstanceProfileAssociations"][0]["AssociationId"]
 
                 print(
                     f"updating instance: {instance_id} with profile: {new_instance_profile_name}")
                 ec2_client.replace_iam_instance_profile_association(
                     AssociationId=current_association_id,
                     IamInstanceProfile={
-                        'Name': new_instance_profile_name,
+                        "Name": new_instance_profile_name,
                     },
                 )
 
@@ -258,7 +258,7 @@ def on_delete(event):
                 environmentId=physical_id
             )
             print(describe_environment_status_response)
-            if describe_environment_status_response.get('status') != 'deleting':
+            if describe_environment_status_response.get("status") != "deleting":
                 break
     except cloud9_client.exceptions.NotFoundException as e:
         print(f"caught error: {e}")

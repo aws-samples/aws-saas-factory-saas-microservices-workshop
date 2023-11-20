@@ -14,7 +14,7 @@ from aws_embedded_metrics.logger.metrics_logger_factory import create_metrics_lo
 def get_boto3_resource(service, authorization=None): # todo: remove me after updating narrative
     token_vendor_endpoint = "127.0.0.1"
     token_vendor_endpoint_port = os.environ["TOKEN_VENDOR_ENDPOINT_PORT"]
-    url = "http://" + token_vendor_endpoint + ":" + token_vendor_endpoint_port
+    url = f"http://{token_vendor_endpoint}:{token_vendor_endpoint_port}"
     response = requests.get(
         url,
         headers={
@@ -32,6 +32,7 @@ def get_boto3_resource(service, authorization=None): # todo: remove me after upd
         aws_secret_access_key=secret_key,
         aws_session_token=session_token
     )
+
 
 # IMPLEMENT ME: LAB3 (get_message_detail_with_tenant_context)
 

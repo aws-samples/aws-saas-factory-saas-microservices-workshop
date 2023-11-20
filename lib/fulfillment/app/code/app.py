@@ -11,7 +11,7 @@ from shared.helper_functions import get_tenant_context
 from aws_embedded_metrics.logger.metrics_logger_factory import create_metrics_logger
 from flask import Flask, request
 
-logging.getLogger('boto').setLevel(logging.CRITICAL)
+logging.getLogger("boto").setLevel(logging.CRITICAL)
 app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
 event_bus_name = os.environ["EVENT_BUS_NAME"]
@@ -32,34 +32,36 @@ def health():
     return {"Status": "OK!"}
 
 
-@app.route("/fulfillments/<order_id>", methods=['POST'])
+@app.route("/fulfillments/<order_id>", methods=["POST"])
 async def postOrderFulfillment(order_id):
     try:
         authorization = request.headers.get("Authorization", None)
         tenant_context = get_tenant_context(authorization)
         if tenant_context.tenant_id is None:
-            return {"msg": "Unable to read 'tenantId' claim from JWT."}, 400
+            return {"msg": "Unable to read \"tenantId\" claim from JWT."}, 400
 
         # IMPLEMENT BELOW: LAB3 assign me to message with tenant context
         message_detail = None
         
-        event_bus_client = boto3.client('events')
+        event_bus_client = boto3.client("events")
         event_bus_client.put_events(
             Entries=[
                 {
-                    'Source': event_source,
-                    'DetailType': event_detail_type,
-                    'Detail': message_detail,
-                    'EventBusName': event_bus_name
+                    "Source": event_source,
+                    "DetailType": event_detail_type,
+                    "Detail": message_detail,
+                    "EventBusName": event_bus_name
                 }
             ]
         )
-        
-        app.logger.debug("Message sent to event bus: " + str(order_id) + ", tenant:" + str(tenant_context.tenant_id))
-        app.logger.debug("Fulfillment complete: " + str(order_id) + ", tenant:" + str(tenant_context.tenant_id))
+
+        app.logger.debug(
+            f"Message sent to event bus: {order_id}, tenant: {tenant_context.tenant_id}")
+        app.logger.debug(
+            f"Fulfillment complete: {order_id}, tenant: {tenant_context.tenant_id}")
         await create_emf_log(service_name, "FulfillmentComplete", 1)
         return {"msg": "Fulfillment successful", "order_id": order_id}, 200
 
     except Exception as e:
-        app.logger.error("Exception raised! " + str(e))
+        app.logger.error(f"Exception raised! {e}")
         return {"msg": "Unable to submit fulfillment request!"}, 500

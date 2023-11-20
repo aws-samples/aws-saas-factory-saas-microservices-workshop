@@ -22,10 +22,10 @@ class Product():
     price: str
 
     def __init__(self, product_json):
-        self.product_id = "prod-" + str(random.randint(10000, 99999))
-        self.name = product_json['name']
-        self.description = product_json.get('description', '')
-        self.price = str(float(product_json['price']))
+        self.product_id = f"prod-{random.randint(10000, 99999)}"
+        self.name = product_json["name"]
+        self.description = product_json.get("description", "")
+        self.price = str(float(product_json["price"]))
 
 
 async def create_emf_log(service_name, metric_name, metric_value):
@@ -51,27 +51,27 @@ def getProduct(product_id):
 
         # REPLACE START: LAB1 (query DynamoDB with tenant context)
         resp = product_table.query(
-            KeyConditionExpression=Key('productId').eq(product_id)
+            KeyConditionExpression=Key("productId").eq(product_id)
         )
         # REPLACE END: LAB1 (query DynamoDB with tenant context)
 
-        if len(resp['Items']) < 1:
+        if len(resp["Items"]) < 1:
             return {"msg": "Product not found!", "product_id": product_id}, 404
 
         product_dict = {
-            'productId': product_id,
-            'name': resp['Items'][0]['name'],
-            'description': resp['Items'][0]['description'],
-            'price': resp['Items'][0]['price'],
+            "productId": product_id,
+            "name": resp["Items"][0]["name"],
+            "description": resp["Items"][0]["description"],
+            "price": resp["Items"][0]["price"],
         }
         return {"msg": "GET successful!", "product": product_dict}, 200
 
     except Exception as e:
-        app.logger.error("Exception: " + str(e))
+        app.logger.error(f"Exception: {e}")
         return {"msg": "Unable to get product!", "product_id": product_id}, 500
 
 
-@app.route("/products", methods=['POST'])
+@app.route("/products", methods=["POST"])
 async def postProduct():
 
     # PASTE: LAB1 (post tenant context)
@@ -79,7 +79,7 @@ async def postProduct():
     try:
         product = Product(request.get_json())
     except Exception as e:
-        app.logger.error("Exception: " + str(e))
+        app.logger.error(f"Exception: {e}")
         return {"message": "Error reading product!"}, 400
 
     try:
@@ -89,20 +89,20 @@ async def postProduct():
         # REPLACE START: LAB1 (DynamoDB put_item with tenant context)
         product_table.put_item(
             Item={
-                'productId': product.product_id,
-                'name': product.name,
-                'description': product.description,
-                'price': str(product.price),
+                "productId": product.product_id,
+                "name": product.name,
+                "description": product.description,
+                "price": str(product.price),
             },
         )
         # REPLACE END: LAB1 (DynamoDB put_item with tenant context)
 
-        app.logger.debug("Product created: " + str(product.product_id))
+        app.logger.debug(f"Product created: {product.product_id}")
         await create_emf_log(service_name, "ProductCreated", 1)
         return {"msg": "Product created", "product": product.__dict__}, 201
 
     except Exception as e:
-        app.logger.error("Exception: " + str(e))
+        app.logger.error(f"Exception: {e}")
         return {"msg": "Unable to create product", "product": product.__dict__}, 500
 
 # IMPLEMENT ME: LAB1 (GET /products)
@@ -113,30 +113,30 @@ def getAllProduct():
         authorization = request.headers.get("Authorization", None)
         tenant_context = get_tenant_context(authorization)
         if tenant_context.tenant_id is None:
-            return {"msg": "Unable to read 'tenantId' claim from JWT."}, 400
+            return {"msg": "Unable to read \"tenantId\" claim from JWT."}, 400
 
         dynamodb_resource = boto3.resource("dynamodb")
         product_table = dynamodb_resource.Table(table_name)
 
         resp = product_table.query(
             # REPLACE LINE BELOW: LAB2 (bug)
-            KeyConditionExpression=Key('tenantId').eq(tenant_context.tenant_id)
+            KeyConditionExpression=Key("tenantId").eq(tenant_context.tenant_id)
         )
 
         product_list = []
-        for item in resp['Items']:
+        for item in resp["Items"]:
             product_list.append({
-                'productId': item['productId'],
-                'name': item['name'],
-                'description': item['description'],
-                'price': item['price'],
+                "productId": item["productId"],
+                "name": item["name"],
+                "description": item["description"],
+                "price": item["price"],
             })
         return {"products": product_list}, 200
 
     except ClientError as e:
-        app.logger.error("ClientError: " + str(e.response['Error']['Message']))
+        app.logger.error(f"ClientError: {str(e.response['Error']['Message'])}")
         return {"msg": "Unable to get products!"}, 500
 
     except Exception as e:
-        app.logger.error("Exception: " + str(e))
+        app.logger.error(f"Exception: {e}")
         return {"msg": "Unable to get products!"}, 500
