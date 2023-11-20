@@ -88,8 +88,7 @@ def getOrder(order_id):
         dynamodb_resource = get_boto3_resource("dynamodb", authorization)
         order_table = dynamodb_resource.Table(table_name)
         resp = order_table.query(
-            KeyConditionExpression=Key("tenantId").eq(
-                tenant_context.tenant_id) & Key("order_id").eq(order_id),
+            KeyConditionExpression=Key("tenantId").eq(tenant_context.tenant_id) & Key("order_id").eq(order_id),
         )
 
         if len(resp["Items"]) < 1:
