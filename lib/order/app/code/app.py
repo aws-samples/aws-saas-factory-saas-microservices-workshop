@@ -7,9 +7,10 @@ import os
 import logging
 import requests
 import random
-from shared.helper_functions import get_tenant_context, get_boto3_client
+from shared.helper_functions import get_tenant_context, get_boto3_resource
 from aws_embedded_metrics.logger.metrics_logger_factory import create_metrics_logger
 from flask import Flask, request
+from boto3.dynamodb.conditions import Key
 
 app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
@@ -52,13 +53,10 @@ def getAllOrder():
         return {"msg": "Unable to read 'tenantId' claim from JWT."}, 400
 
     try:
-        dynamodb_client = get_boto3_client("dynamodb", authorization)
-        resp = dynamodb_client.query(
-            TableName=table_name,
-            KeyConditionExpression='tenantId = :t_id',
-            ExpressionAttributeValues={
-                ':t_id': {'S': tenant_context.tenant_id}
-            }
+        dynamodb_resource = get_boto3_resource("dynamodb", authorization)
+        order_table = dynamodb_resource.Table(table_name)
+        resp = order_table.query(
+            KeyConditionExpression=Key('tenantId').eq(tenant_context.tenant_id)
         )
 
         items = resp['Items']
@@ -66,10 +64,10 @@ def getAllOrder():
 
         for item in items:
             list.append({
-                'order_id': item['orderId']['S'],
-                'name': item['name']['S'],
-                'description': item['description']['S'],
-                'products': item['products']['SS']
+                'order_id': item['orderId'],
+                'name': item['name'],
+                'description': item['description'],
+                'products': item['products']
             })
 
         return {"msg": "GET successful! ", "orders": list}, 200
@@ -87,14 +85,11 @@ def getOrder(order_id):
         if tenant_context.tenant_id is None:
             return {"msg": "Unable to read 'tenantId' claim from JWT."}, 400
 
-        dynamodb_client = get_boto3_client("dynamodb", authorization)
-        resp = dynamodb_client.query(
-            TableName=table_name,
-            KeyConditionExpression='tenantId=:t_id AND order_id=:o_id',
-            ExpressionAttributeValues={
-                ':t_id': {'S': tenant_context.tenant_id},
-                ':o_id': {'S': order_id}
-            }
+        dynamodb_resource = get_boto3_resource("dynamodb", authorization)
+        order_table = dynamodb_resource.Table(table_name)
+        resp = order_table.query(
+            KeyConditionExpression=Key('tenantId').eq(
+                tenant_context.tenant_id) & Key('order_id').eq(order_id),
         )
 
         if len(resp['Items']) < 1:
@@ -102,9 +97,9 @@ def getOrder(order_id):
 
         order_dict = {
             'order_id': order_id,
-            'name': resp['Items'][0]['name']['S'],
-            'description': resp['Items'][0]['description']['S'],
-            'products': resp['Items'][0]['products']['SS']
+            'name': resp['Items'][0]['name'],
+            'description': resp['Items'][0]['description'],
+            'products': resp['Items'][0]['products']
         }
 
         return {"msg": "GET successful! ", "order_id": order_dict}, 200
@@ -123,26 +118,16 @@ async def postOrder():
             return {"message": "Unable to read 'tenant_id' claim from JWT."}, 400
 
         order = Order(request.get_json())
-        dynamodb_client = get_boto3_client("dynamodb", authorization)
-        dynamodb_client.put_item(
+        dynamodb_resource = get_boto3_resource("dynamodb", authorization)
+        order_table = dynamodb_resource.Table(table_name)
+        order_table.put_item(
             Item={
-                'tenantId': {
-                    'S': tenant_context.tenant_id,
-                },
-                'orderId': {
-                    'S': order.order_id,
-                },
-                'name': {
-                    'S': order.name,
-                },
-                'description': {
-                    'S': order.description,
-                },
-                'products': {
-                    'SS': order.products,
-                },
+                'tenantId': tenant_context.tenant_id,
+                'orderId': order.order_id,
+                'name': order.name,
+                'description': order.description,
+                'products': order.products,
             },
-            TableName=table_name,
         )
         submitFulfillment(order, authorization, tenant_context, fulfillment_endpoint)        
         await create_emf_log(service_name, "OrderCreated", 1)
