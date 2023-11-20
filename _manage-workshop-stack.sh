@@ -85,6 +85,10 @@ main() {
             aws ec2 start-instances --instance-ids "$C9_ID"
             aws ec2 wait instance-status-ok --instance-ids "$C9_ID"
             run_ssm_command "$TARGET_USER" "$C9_ID" "cd ~/environment/aws-saas-factory-saas-microservices-workshop && ./destroy.sh || echo 'Not required.'"
+        else
+            cd ..
+            ./destroy.sh
+            cd standalone-eks-stack
         fi
 
         echo "Starting cdk destroy..."
