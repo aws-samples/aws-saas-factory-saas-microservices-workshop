@@ -42,7 +42,6 @@ def health():
 
 @app.route("/products/<product_id>")
 def getProduct(product_id):
-
     # PASTE: LAB1 (GET route tenant context)
 
     try:
@@ -73,7 +72,6 @@ def getProduct(product_id):
 
 @app.route("/products", methods=["POST"])
 async def postProduct():
-
     # PASTE: LAB1 (post tenant context)
 
     try:
@@ -106,37 +104,3 @@ async def postProduct():
         return {"msg": "Unable to create product", "product": product.__dict__}, 500
 
 # IMPLEMENT ME: LAB1 (GET /products)
-# todo: remove me after updating narrative
-@app.route("/products")
-def getAllProduct():
-    try:
-        authorization = request.headers.get("Authorization", None)
-        tenant_context = get_tenant_context(authorization)
-        if tenant_context.tenant_id is None:
-            return {"msg": "Unable to read \"tenantId\" claim from JWT."}, 400
-
-        dynamodb_resource = boto3.resource("dynamodb")
-        product_table = dynamodb_resource.Table(table_name)
-
-        resp = product_table.query(
-            # REPLACE LINE BELOW: LAB2 (bug)
-            KeyConditionExpression=Key("tenantId").eq(tenant_context.tenant_id)
-        )
-
-        product_list = []
-        for item in resp["Items"]:
-            product_list.append({
-                "productId": item["productId"],
-                "name": item["name"],
-                "description": item["description"],
-                "price": item["price"],
-            })
-        return {"products": product_list}, 200
-
-    except ClientError as e:
-        app.logger.error(f"ClientError: {str(e.response['Error']['Message'])}")
-        return {"msg": "Unable to get products!"}, 500
-
-    except Exception as e:
-        app.logger.error(f"Exception: {e}")
-        return {"msg": "Unable to get products!"}, 500

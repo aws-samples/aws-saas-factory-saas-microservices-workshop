@@ -46,7 +46,7 @@ def health():
 
 
 @app.route("/orders")
-def getAllOrder():
+def getAllOrders():
     authorization = request.headers.get("Authorization", None)
     tenant_context = get_tenant_context(authorization)
     if tenant_context.tenant_id is None:
