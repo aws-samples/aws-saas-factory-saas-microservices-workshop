@@ -10,7 +10,7 @@ from aws_embedded_metrics.logger.metrics_logger_factory import create_metrics_lo
 # IMPLEMENT ME: LAB1 (TenantContext and get_tenant_context)
 
 
-# IMPLEMENT ME: LAB2 (get_boto3_client)
+# IMPLEMENT ME: LAB2 (get_boto3_resource)
 
 
 # IMPLEMENT ME: LAB3 (get_message_detail_with_tenant_context)

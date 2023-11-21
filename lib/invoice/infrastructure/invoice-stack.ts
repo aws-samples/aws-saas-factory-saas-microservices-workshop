@@ -126,7 +126,7 @@ export class InvoiceStack extends MicroserviceStack {
       apiVersion: "keda.sh/v1alpha1",
       kind: "ScaledJob",
       metadata: {
-        name: `${namespace}-aws-sqs-queue-scaled-job`,
+        name: `${namespace}-invoice-service`,
         namespace: namespace,
       },
       spec: {
