@@ -26,8 +26,8 @@ export class ProductStack extends MicroserviceStack {
     const multiTenantLabels = {};
     // REPLACE END: LAB1 (namespace)
 
-    // PASTE: LAB1(tenant context tags)
     cdk.Tags.of(this).add("SaaS-Microservices:ServiceName", this.serviceName);
+    // PASTE: LAB1(tenant context tags)
 
     // REPLACE START: LAB1 (product table)
     const productTable = new dynamodb.Table(this, "ProductTable", {
