@@ -102,6 +102,109 @@ export class ApplicationStack extends cdk.Stack {
       },
     });
 
+    //Namespace authorization envoy filters
+    //Authorization resource: cluster proxy route so filter can call the sidecar on localhost:8081
+    const localhostCluster = cluster.addManifest(`LocalhostClusterManifest`, {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "EnvoyFilter",
+      metadata: {
+        name: "sidecar-localhost", 
+        namespace: this.namespace
+      },
+      spec: {        
+        configPatches: [{
+          applyTo: "CLUSTER",
+          patch: {
+            operation: "ADD",
+            value: {
+              name: "outbound|8081||localhost",
+              connect_timeout: "1.00s",
+              type: "STRICT_DNS",
+              lb_policy: "ROUND_ROBIN",
+              load_assignment: {
+                cluster_name: "outbound|8081||localhost",
+                endpoints: [{
+                  lb_endpoints: [{
+                    endpoint: {
+                      address: {
+                        socket_address: {
+                          address: "127.0.0.1",
+                          port_value: 8081
+                        }
+                      }
+                    }
+                  }]
+                }]
+              }
+            }
+          }
+        }]
+      }
+    });
+    localhostCluster.node.addDependency(stackNamespace);    
+
+    //Authorization resources: filter that calls the sidecar to authorize requests
+    const authFilter = cluster.addManifest(`AuthFilterManifest`, {
+      apiVersion: "networking.istio.io/v1alpha3",
+      kind: "EnvoyFilter",
+      metadata: {
+        name: "auth-filter",
+        namespace: this.namespace
+      },
+      spec: {
+        workloadSelector: {
+          labels: {
+            authorization: "enabled"
+          }
+        },
+        configPatches: [{
+          applyTo: "HTTP_FILTER",
+          match: {
+            context: "SIDECAR_INBOUND",
+            listener: {
+              filterChain: {
+                filter: {
+                  name: "envoy.filters.network.http_connection_manager",
+                  subFilter: {
+                    name: "envoy.filters.http.router"
+                  }
+                }
+              }
+            }
+          },
+          patch: {
+            operation: "INSERT_FIRST",
+            value: {
+              name: "envoy.filters.http.ext_authz",
+              typed_config: {
+                "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz",
+                http_service: {
+                  server_uri: {
+                    uri: "http://127.0.0.1:8081",
+                    cluster: "outbound|8081||localhost",
+                    timeout: "1.00s"
+                  },
+                  path_prefix: "/authorize",
+                  authorization_request: {
+                    headers_to_add: [{
+                      key: "x-auth-request-path",
+                      value: "%REQ(:path)%"
+                    },
+                    {
+                      key: "x-auth-request-method",
+                      value: "%REQ(:method)%"
+                    }]
+                  },
+                  failure_mode_allow: false
+                }
+              }
+            }
+          }
+        }]
+      }
+    });
+    authFilter.node.addDependency(stackNamespace);
+
     const productStack = new ProductStack(this, `ProductStack`, {
       cluster: cluster,
       istioIngressGateway: istioIngressGateway,

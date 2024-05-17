@@ -116,6 +116,7 @@ export class ProductStack extends MicroserviceStack {
             */ // REMOVE THIS LINE: LAB2 (annotation)
             labels: {
               app: "product-app",
+              // authorization: "enabled",
               ...multiTenantLabels,
             },
           },
@@ -220,6 +221,10 @@ export class ProductStack extends MicroserviceStack {
                   {
                     name: "TENANT_TAG_KEY",
                     value: "TenantID",
+                  },
+                  {
+                    name: "AUTH_RESOURCE",
+                    value: "Product",
                   },
                 ]),
                 ports: [

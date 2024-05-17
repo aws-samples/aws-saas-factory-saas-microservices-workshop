@@ -132,6 +132,7 @@ export class OrderStack extends MicroserviceStack {
           metadata: {
             labels: {
               app: "order-app",
+              // authorization: "enabled",
               ...multiTenantLabels,
             },
           },
@@ -239,6 +240,10 @@ export class OrderStack extends MicroserviceStack {
                   {
                     name: "TENANT_TAG_KEY",
                     value: "TenantID",
+                  },
+                  {
+                    name: "AUTH_RESOURCE",
+                    value: "Order",
                   },
                 ]),
                 ports: [
