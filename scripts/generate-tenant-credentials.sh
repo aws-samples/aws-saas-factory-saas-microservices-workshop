@@ -14,10 +14,24 @@ if [ -d "tmp" ]; then
 fi
 mkdir ./tmp
 
+tenant_properties=(
+    "tenant-a,basic,admin"
+    "tenant-b,advanced,admin"
+    "tenant-c,premium,admin"
+    "tenant-d,basic,admin"
+    "tenant-e,advanced,admin"
+    "tenant-a,basic,buyer"
+    "tenant-a,basic,seller"
+    "tenant-b,advanced,buyer"
+    "tenant-b,advanced,seller"
+    "tenant-c,premium,buyer"
+    "tenant-c,premium,seller"
+)
+
 echo "=================================================================================" >./tmp/Sample_JWTs.txt
-echo "Tenant Id, Tenant Tier, JWT" >>./tmp/Sample_JWTs.txt
+echo "Tenant Id, Tenant Tier, Role, JWT" >>./tmp/Sample_JWTs.txt
 echo "=================================================================================" >>./tmp/Sample_JWTs.txt
-for ((u = 1; u <= 5; u++)); do
+for ((u = 1; u <= 11; u++)); do
     USER="user"${u}@example.com
     echo "Refreshing token for user: ${USER}"
 
@@ -27,23 +41,8 @@ for ((u = 1; u <= 5; u++)); do
     dig=$(tr -dc '0-9' </dev/urandom | head -c2)
     PASSWORD=$(echo "${upp}_${low}@${dig}")
 
-    case ${u} in
-    "1") tier="basic" ;;
-    "2") tier="advanced" ;;
-    "3") tier="premium" ;;
-    "4") tier="basic" ;;
-    "5") tier="advanced" ;;
-    *) tier="none" ;;
-    esac
-
-    case ${u} in
-    "1") tenant_id="tenant-a" ;;
-    "2") tenant_id="tenant-b" ;;
-    "3") tenant_id="tenant-c" ;;
-    "4") tenant_id="tenant-d" ;;
-    "5") tenant_id="tenant-e" ;;
-    *) tenant_id="none" ;;
-    esac
+    prop=${tenant_properties[u-1]}    
+    IFS=',' read -r tenant_id tier role <<< "$prop"
 
     aws cognito-idp admin-set-user-password \
         --user-pool-id ${POOLID} \
@@ -62,16 +61,32 @@ for ((u = 1; u <= 5; u++)); do
             xargs
     )
 
-    echo "${tenant_id}, ${tier}, ${JWT_TOKEN}" >>./tmp/Sample_JWTs.txt
+    echo "${tenant_id}, ${tier}, ${role}, ${JWT_TOKEN}" >>./tmp/Sample_JWTs.txt
     echo "=================================================================================" >>./tmp/Sample_JWTs.txt
 done
 
 echo "Sample JWTs are generated in ./tmp/Sample_JWTs.txt"
 
-export JWT_TOKEN_TENANT_A=$(awk -v ten=tenant-a '$0~ten {print $3}' ${JWT_FILE})
-export JWT_TOKEN_TENANT_B=$(awk -v ten=tenant-b '$0~ten {print $3}' ${JWT_FILE})
-export JWT_TOKEN_TENANT_C=$(awk -v ten=tenant-c '$0~ten {print $3}' ${JWT_FILE})
-export JWT_TOKEN_TENANT_D=$(awk -v ten=tenant-d '$0~ten {print $3}' ${JWT_FILE})
-export JWT_TOKEN_TENANT_E=$(awk -v ten=tenant-e '$0~ten {print $3}' ${JWT_FILE})
+# set token environment variables
+while IFS=',' read -r tenant_id tenant_tier role jwt; do
+    # Remove leading and trailing whitespace
+    tenant_id=$(echo "$tenant_id" | tr '-' '_' | xargs)
+    tenant_tier=$(echo "$tenant_tier" | xargs)
+    role=$(echo "$role" | xargs)
+    jwt=$(echo "$jwt" | xargs)
+    
+    if [ -z "$jwt" ]; then  #skip separator lines
+        continue;
+    fi
+
+    if [ "$role" == "admin" ]; then 
+        var="JWT_TOKEN_${tenant_id^^}"
+    else
+        var="JWT_TOKEN_${tenant_id^^}_${role^^}"
+    fi        
+    
+    export "${var}"="${jwt}"
+
+done < <(tail -n +4 "$JWT_FILE" | head -n -1)
 
 echo "Token variables loaded"

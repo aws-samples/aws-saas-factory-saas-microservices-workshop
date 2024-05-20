@@ -8,6 +8,7 @@ CLIENT_NAME="saas-workshop-client"
 POOLID=$(aws cognito-idp list-user-pools --max-results 30 --query "UserPools[?Name=='${POOLNAME}'].Id" --output text)
 USER_ATTR=Name="custom:tenant_id"
 USER_ATTR2=Name="custom:tenant_tier"
+USER_ATTR3=Name="custom:role"
 CLIENTID=$(aws cognito-idp list-user-pool-clients --user-pool-id "${POOLID}" --query "UserPoolClients[?ClientName=='$CLIENT_NAME'].ClientId" --output text)
 CLIENTSECRET=$(aws cognito-idp describe-user-pool-client --user-pool-id "${POOLID}" --client-id "${CLIENTID}" --query "UserPoolClient.ClientSecret" --output text)
 
@@ -17,10 +18,24 @@ fi
 
 mkdir ./tmp
 
+tenant_properties=(
+    "tenant-a,basic,admin"
+    "tenant-b,advanced,admin"
+    "tenant-c,premium,admin"
+    "tenant-d,basic,admin"
+    "tenant-e,advanced,admin"
+    "tenant-a,basic,buyer"
+    "tenant-a,basic,seller"
+    "tenant-b,advanced,buyer"
+    "tenant-b,advanced,seller"
+    "tenant-c,premium,buyer"
+    "tenant-c,premium,seller"
+)
+
 echo "=================================================================================" >./tmp/Sample_JWTs.txt
-echo "Tenant Id, Tenant Tier, JWT" >>./tmp/Sample_JWTs.txt
+echo "Tenant Id, Tenant Tier, Role, JWT" >>./tmp/Sample_JWTs.txt
 echo "=================================================================================" >>./tmp/Sample_JWTs.txt
-for ((u = 1; u <= 5; u++)); do
+for ((u = 1; u <= 11; u++)); do
     USER="user"${u}@example.com
     echo "Creating ${USER} in ${POOLNAME}"
 
@@ -30,28 +45,13 @@ for ((u = 1; u <= 5; u++)); do
     dig=$(tr -dc '0-9' </dev/urandom | head -c2)
     PASSWORD=$(echo "${upp}_${low}@${dig}")
 
-    case ${u} in
-    "1") tier="basic" ;;
-    "2") tier="advanced" ;;
-    "3") tier="premium" ;;
-    "4") tier="basic" ;;
-    "5") tier="advanced" ;;
-    *) tier="none" ;;
-    esac
-
-    case ${u} in
-    "1") tenant_id="tenant-a" ;;
-    "2") tenant_id="tenant-b" ;;
-    "3") tenant_id="tenant-c" ;;
-    "4") tenant_id="tenant-d" ;;
-    "5") tenant_id="tenant-e" ;;
-    *) tenant_id="none" ;;
-    esac
+    prop=${tenant_properties[u-1]}    
+    IFS=',' read -r tenant_id tier role <<< "$prop"
 
     aws cognito-idp admin-create-user \
         --user-pool-id ${POOLID} \
         --username ${USER} \
-        --user-attributes Name=email,Value=${USER} ${USER_ATTR},Value="${tenant_id}" ${USER_ATTR2},Value="${tier}" \
+        --user-attributes Name=email,Value=${USER} ${USER_ATTR},Value="${tenant_id}" ${USER_ATTR2},Value="${tier}" ${USER_ATTR3},Value="${role}" \
         --no-paginate \
         --no-cli-pager
 
@@ -81,7 +81,7 @@ for ((u = 1; u <= 5; u++)); do
             xargs
     )
 
-    echo "${tenant_id}, ${tier}, ${JWT_TOKEN}" >>./tmp/Sample_JWTs.txt
+    echo "${tenant_id}, ${tier}, ${role}, ${JWT_TOKEN}" >>./tmp/Sample_JWTs.txt
     echo "=================================================================================" >>./tmp/Sample_JWTs.txt
 done
 
