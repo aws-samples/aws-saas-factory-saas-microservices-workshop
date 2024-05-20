@@ -41,7 +41,7 @@ export class CognitoResources extends Construct {
     const userPoolClient = userPool.addClient("app-client", {
       userPoolClientName: "saas-workshop-client",
       readAttributes: new cognito.ClientAttributes()
-        .withCustomAttributes("custom:tenant_tier", "custom:tenant_id")
+        .withCustomAttributes("custom:tenant_tier", "custom:tenant_id", "custom:role")        
         .withStandardAttributes({ email: true }),
       generateSecret: true,
       preventUserExistenceErrors: true,

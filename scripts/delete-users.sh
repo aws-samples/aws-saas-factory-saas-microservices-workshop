@@ -5,7 +5,7 @@
 POOLNAME="saas-microservices-workshop-user-pool"
 POOLID=$(aws cognito-idp list-user-pools --max-results 30 --query "UserPools[?Name=='${POOLNAME}'].Id" --output text)
 
-for ((u = 1; u <= 5; u++)); do
+for ((u = 1; u <= 11; u++)); do
     USER="user"${u}@example.com
     echo "Deleting ${USER} in ${POOLNAME}"
 
