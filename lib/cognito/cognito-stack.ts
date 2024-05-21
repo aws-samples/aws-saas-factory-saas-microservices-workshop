@@ -34,6 +34,11 @@ export class CognitoResources extends Construct {
           maxLen: 15,
           mutable: false,
         }),
+        role: new cognito.StringAttribute({
+          minLen: 1,
+          maxLen: 15,
+          mutable: true,
+        }),
       },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
