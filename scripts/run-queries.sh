@@ -12,7 +12,8 @@ for i in {1..20}; do
     echo "Iteration: $i"
     for tenant_id in "tenant-a" "tenant-b" "tenant-c" "tenant-d" "tenant-e"; do
         echo "################# Running queries for tenant: ${tenant_id}... #################"
-        JWT_TOKEN=$(awk -v tenant_id=$tenant_id '$0~tenant_id {print $3}' ${JWT_FILE})
+        token_var="JWT_TOKEN_$(echo "${tenant_id^^}" | tr '-' '_')"
+        JWT_TOKEN=${!token_var}
 
         echo "Creating new product..."
         DESCRIPTION="this is a description with a random number: ${RANDOM}"
