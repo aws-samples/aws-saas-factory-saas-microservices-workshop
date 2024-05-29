@@ -224,6 +224,7 @@ export class ApplicationStack extends cdk.Stack {
       cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
       cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       namespaceConstruct: stackNamespace,
+      // PASTE: LAB6(Policy store reference)
       baseImage: baseImageUri
     });
     productStack.node.addDependency(stackNamespace);
@@ -265,6 +266,7 @@ export class ApplicationStack extends cdk.Stack {
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
+        // PASTE: LAB6(Policy store reference)
         baseImage: baseImageUri
       });
       orderStack.node.addDependency(stackNamespace);

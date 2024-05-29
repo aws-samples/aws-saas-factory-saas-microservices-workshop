@@ -17,4 +17,6 @@ export interface MicroserviceStackProps {
   namespaceConstruct?: eks.KubernetesManifest;
   tenantTier: TenantTier;
   tenantId?: string;
+  policyStoreArn?: string;
+  policyStoreId?: string;
 }
