@@ -26,6 +26,7 @@ export class OrderStack extends MicroserviceStack {
     const istioIngressGateway = props.istioIngressGateway;
     const fulfillmentServiceDNS = props.fulfillmentServiceDNS;    
     const baseImage = props.baseImage;
+    // PASTE: LAB6 (Get policy store reference)
 
     const tenantTier = props.tenantTier;
     const tenantId = props.tenantId;
@@ -110,6 +111,9 @@ export class OrderStack extends MicroserviceStack {
         ],
       })
     );
+
+    // PASTE: LAB6 (IAM permissions to access policy store)
+
 
     const orderDeployment = cluster.addManifest("OrderDeployment", {
       apiVersion: "apps/v1",

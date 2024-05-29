@@ -20,6 +20,7 @@ export class ProductStack extends MicroserviceStack {
 
     const istioIngressGateway = props.istioIngressGateway;
     const baseImage = props.baseImage;
+    // PASTE: LAB6 (Get policy store reference)
 
     // REPLACE START: LAB1 (namespace)
     const namespace = "default";
@@ -89,6 +90,10 @@ export class ProductStack extends MicroserviceStack {
       })
     );
     // REPLACE END: LAB2 (IAM resources)
+
+
+    // PASTE: LAB6 (IAM permissions to access policy store)
+
 
     const productDeployment = cluster.addManifest(`ProductDeployment`, {
       apiVersion: "apps/v1",
