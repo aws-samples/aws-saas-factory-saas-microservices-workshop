@@ -5,6 +5,7 @@ import * as aws_events from "aws-cdk-lib/aws-events";
 import * as aws_events_targets from "aws-cdk-lib/aws-events-targets";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as ssm from "aws-cdk-lib/aws-ssm";
+import * as verifiedpermissions from 'aws-cdk-lib/aws-verifiedpermissions';
 import { Construct } from "constructs";
 import { ProductStack } from "../product/infrastructure/product-stack";
 import { FulfillmentStack } from "../fulfillment/infrastructure/fulfillment-stack";
@@ -86,6 +87,13 @@ export class ApplicationStack extends cdk.Stack {
       )
     );
     // EVENT WATCHER END
+
+    
+    // PASTE: LAB6 (Policy store)
+
+
+    // PASTE: LAB6 (Policies)
+
 
     const stackNamespace = cluster.addManifest(`StackNamespaceManifest`, {
       apiVersion: "v1",
