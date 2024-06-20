@@ -26,7 +26,6 @@ export class OrderStack extends MicroserviceStack {
     const istioIngressGateway = props.istioIngressGateway;
     const fulfillmentServiceDNS = props.fulfillmentServiceDNS;    
     const baseImage = props.baseImage;
-    // PASTE: LAB6 (Get policy store reference)
 
     const tenantTier = props.tenantTier;
     const tenantId = props.tenantId;
@@ -112,7 +111,18 @@ export class OrderStack extends MicroserviceStack {
       })
     );
 
-    // PASTE: LAB6 (IAM permissions to access policy store)
+    if(props.policyStoreArn) {
+      orderServiceAccount.role.attachInlinePolicy(
+        new iam.Policy(this, "AccessPolicyStoreFromSideCar", {
+          statements: [
+            new iam.PolicyStatement({
+              actions: ["verifiedpermissions:IsAuthorized"],
+              resources: [props.policyStoreArn!],
+            }),
+          ],
+        })
+      );
+    }
 
 
     const orderDeployment = cluster.addManifest("OrderDeployment", {
@@ -136,7 +146,9 @@ export class OrderStack extends MicroserviceStack {
           metadata: {
             labels: {
               app: "order-app",
-              // authorization: "enabled",
+              ...(props.policyStoreId ? {
+                authorization: "enabled",
+              } : {}),
               ...multiTenantLabels,
             },
           },
@@ -249,6 +261,10 @@ export class OrderStack extends MicroserviceStack {
                     name: "AUTH_RESOURCE",
                     value: "Order",
                   },
+                  ...(props.policyStoreId ? [{
+                      name: "POLICY_STORE_ID",
+                      value: props.policyStoreId,
+                  }] : []),
                 ]),
                 ports: [
                   {
