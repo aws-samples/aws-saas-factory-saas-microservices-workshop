@@ -121,6 +121,7 @@ export class ProductStack extends MicroserviceStack {
             */ // REMOVE THIS LINE: LAB2 (annotation)
             labels: {
               app: "product-app",
+              // UNCOMMENT: LAB6 (uncomment the line below)
               // authorization: "enabled",
               ...multiTenantLabels,
             },
@@ -231,6 +232,7 @@ export class ProductStack extends MicroserviceStack {
                     name: "AUTH_RESOURCE",
                     value: "Product",
                   },
+                  // PASTE: LAB6 (add policy store reference to sidecar)
                 ]),
                 ports: [
                   {
