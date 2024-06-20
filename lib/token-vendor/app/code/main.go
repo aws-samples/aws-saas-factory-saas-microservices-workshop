@@ -19,6 +19,7 @@ var tagKey string = os.Getenv("TENANT_TAG_KEY")
 var tokenVendorEndpointPort string = os.Getenv("TOKEN_VENDOR_ENDPOINT_PORT")
 var awsRegion string = os.Getenv("AWS_DEFAULT_REGION")
 var authorizationResource = os.Getenv("AUTH_RESOURCE")
+var policyStoreId = os.Getenv("POLICY_STORE_ID")
 // var authorizationMapString = os.Getenv("AUTH_MAP")
 var authorizationMapString = `[
 	{"Pattern": "^POST \\/products\\/?$", "Action": "CreateProducts"},
@@ -127,10 +128,75 @@ func authorizeAction(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Auth action: %s\n", action)
 	log.Printf("Auth resource: %s\n", authorizationResource)
 
+
 	//Make AVP call here
-	if claims.TenantID != "tenant-a" {
-		w.WriteHeader(http.StatusOK) //TEST: return denied for tenant-a
+	// Initialize a session that the SDK uses to load
+	log.Printf("Initialize SDK session")
+	mySession, err := session.NewSession(&aws.Config{
+		Region: &awsRegion,
+	})
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(createJsonResponse("msg", "Failed getting AVP!"))
+		log.Fatalf("Failed getting new session for AVP! Err: %s", err)
 		return
+	}
+
+	// Create a new instance of the AWS Verified Permissions service client
+	svc := verifiedpermissions.New(mySession)
+
+	// Define the input parameters for the IsAuthorized request
+	input := &verifiedpermissions.IsAuthorizedInput{
+		PolicyStoreId: aws.String(policyStoreId),
+		Principal: &verifiedpermissions.EntityIdentifier{
+			EntityType: aws.String("User"),
+			EntityId:   aws.String(claims.Sub),
+		},
+		Action: &verifiedpermissions.ActionIdentifier{
+			ActionType: aws.String("Action"),
+			ActionId:   aws.String(action),
+		},
+		Resource: &verifiedpermissions.EntityIdentifier{
+			EntityType: aws.String(authorizationResource),
+			EntityId:   aws.String(requestPath),     // TODO: add product identifier
+		},
+		Entities: &verifiedpermissions.EntitiesDefinition{
+			EntityList: []*verifiedpermissions.EntityItem{
+				{
+					Identifier: &verifiedpermissions.EntityIdentifier{
+						EntityType: aws.String("User"),
+						EntityId:   aws.String(claims.Sub),
+					},
+					Parents: []*verifiedpermissions.EntityIdentifier{
+						{
+							EntityType: aws.String("Role"),
+							EntityId:   aws.String(claims.Role),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Call the IsAuthorized method
+	output, err := svc.IsAuthorized(input)
+	if err != nil {
+		log.Printf("Error calling IsAuthorized:", err)
+		return
+	}
+
+	// Print the response
+	log.Printf("IsAuthorized response:", output)
+
+	// Check the response
+	if *output.Decision == "ALLOW" { // DecisionAllow
+		log.Printf("Result: ALLOW")
+		w.WriteHeader(http.StatusOK) 
+		return
+	} else {
+		log.Printf("Result: DENY")
 	}
 
 	//return denied
