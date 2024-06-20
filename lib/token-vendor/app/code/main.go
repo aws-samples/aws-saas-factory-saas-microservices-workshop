@@ -22,10 +22,10 @@ var authorizationResource = os.Getenv("AUTH_RESOURCE")
 var policyStoreId = os.Getenv("POLICY_STORE_ID")
 // var authorizationMapString = os.Getenv("AUTH_MAP")
 var authorizationMapString = `[
-	{"Pattern": "^POST \\/products\\/?$", "Action": "CreateProducts"},
-	{"Pattern": "^GET \\/products(?:\\/.*)?", "Action": "ViewProducts"},
-	{"Pattern": "^POST \\/orders\\/?$", "Action": "CreateOrders"},
-	{"Pattern": "^GET \\/orders(?:\\/.*)?", "Action": "ViewOrders"}
+	{"Pattern": "^POST \\/products\\/?$", "Action": "CreateProduct"},
+	{"Pattern": "^GET \\/products(?:\\/.*)?", "Action": "ViewProduct"},
+	{"Pattern": "^POST \\/orders\\/?$", "Action": "CreateOrder"},
+	{"Pattern": "^GET \\/orders(?:\\/.*)?", "Action": "ViewOrder"}
 ]`
 var authMaps []AuthorizationMap
 
@@ -160,7 +160,7 @@ func authorizeAction(w http.ResponseWriter, r *http.Request) {
 		},
 		Resource: &verifiedpermissions.EntityIdentifier{
 			EntityType: aws.String(authorizationResource),
-			EntityId:   aws.String(requestPath),     // TODO: add product identifier
+			EntityId:   aws.String(requestPath),     
 		},
 		Entities: &verifiedpermissions.EntitiesDefinition{
 			EntityList: []*verifiedpermissions.EntityItem{
