@@ -20,7 +20,6 @@ export class ProductStack extends MicroserviceStack {
 
     const istioIngressGateway = props.istioIngressGateway;
     const baseImage = props.baseImage;
-    // PASTE: LAB6 (Get policy store reference)
 
     // REPLACE START: LAB1 (namespace)
     const namespace = "default";
