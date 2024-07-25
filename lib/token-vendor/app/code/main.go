@@ -21,6 +21,7 @@ var tokenVendorEndpointPort string = os.Getenv("TOKEN_VENDOR_ENDPOINT_PORT")
 var awsRegion string = os.Getenv("AWS_DEFAULT_REGION")
 var authorizationResource = os.Getenv("AUTH_RESOURCE")
 var policyStoreId = os.Getenv("POLICY_STORE_ID")
+var verifiedPermissionsNamespace = "SaaSWorkshop"
 // var authorizationMapString = os.Getenv("AUTH_MAP")
 var authorizationMapString = `[
 	{"Pattern": "^POST \\/products\\/?$", "Action": "CreateProduct"},
@@ -152,27 +153,27 @@ func authorizeAction(w http.ResponseWriter, r *http.Request) {
 	input := &verifiedpermissions.IsAuthorizedInput{
 		PolicyStoreId: aws.String(policyStoreId),
 		Principal: &verifiedpermissions.EntityIdentifier{
-			EntityType: aws.String("User"),
+			EntityType: aws.String(verifiedPermissionsNamespace + "::" + "User"),
 			EntityId:   aws.String(claims.Sub),
 		},
 		Action: &verifiedpermissions.ActionIdentifier{
-			ActionType: aws.String("Action"),
+			ActionType: aws.String(verifiedPermissionsNamespace + "::" + "Action"),
 			ActionId:   aws.String(action),
 		},
 		Resource: &verifiedpermissions.EntityIdentifier{
-			EntityType: aws.String(authorizationResource),
+			EntityType: aws.String(verifiedPermissionsNamespace + "::" + authorizationResource),
 			EntityId:   aws.String(requestPath),     
 		},
 		Entities: &verifiedpermissions.EntitiesDefinition{
 			EntityList: []*verifiedpermissions.EntityItem{
 				{
 					Identifier: &verifiedpermissions.EntityIdentifier{
-						EntityType: aws.String("User"),
+						EntityType: aws.String(verifiedPermissionsNamespace + "::" + "User"),
 						EntityId:   aws.String(claims.Sub),
 					},
 					Parents: []*verifiedpermissions.EntityIdentifier{
 						{
-							EntityType: aws.String("Role"),
+							EntityType: aws.String(verifiedPermissionsNamespace + "::" + "Role"),
 							EntityId:   aws.String(claims.Role),
 						},
 					},
