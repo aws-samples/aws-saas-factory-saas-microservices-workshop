@@ -89,10 +89,10 @@ export class ApplicationStack extends cdk.Stack {
     // EVENT WATCHER END
 
     
-    // PASTE: LAB6 (Policy store)
+    // PASTE: LAB5 (Policy store)
 
 
-    // PASTE: LAB6 (Policies)
+    // PASTE: LAB5 (Policies)
 
 
     const stackNamespace = cluster.addManifest(`StackNamespaceManifest`, {
@@ -224,7 +224,7 @@ export class ApplicationStack extends cdk.Stack {
       cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
       cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       namespaceConstruct: stackNamespace,
-      // PASTE: LAB6 (Policy store reference for product stack)
+      // PASTE: LAB5 (Policy store reference for product stack)
       baseImage: baseImageUri
     });
     productStack.node.addDependency(stackNamespace);
@@ -266,7 +266,7 @@ export class ApplicationStack extends cdk.Stack {
         cloudwatchAgentLogEndpoint: cloudwatchAgentLogEndpoint,
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
-        // PASTE: LAB6 (Policy store reference for order stack)
+        // PASTE: LAB5 (Policy store reference for order stack)
         baseImage: baseImageUri
       });
       orderStack.node.addDependency(stackNamespace);

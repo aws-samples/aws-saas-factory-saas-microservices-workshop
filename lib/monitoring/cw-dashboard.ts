@@ -63,7 +63,7 @@ export class WorkshopDashboardStack extends cdk.Stack {
     });
     widgets.push([metricsCountGraph, invoiceTotalValue]);
 
-    /* // Start LAB5 - Tenant-aware widgets
+    /* // Start LAB6 - Tenant-aware widgets
     const tenantIds = [
       "tenant-a",
       "tenant-b",
@@ -115,7 +115,7 @@ export class WorkshopDashboardStack extends cdk.Stack {
       );
     });
     widgets.push([orderCountByTenantGraph, invoiceTotalByTenantGraph]);
-    */ // End LAB5 - Tenant-aware widgets
+    */ // End LAB6 - Tenant-aware widgets
 
     new cloudwatch.Dashboard(this, "Dashboard", {
       dashboardName: `${workshopSSMPrefix}-dashboard`,
