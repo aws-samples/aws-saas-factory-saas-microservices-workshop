@@ -19,4 +19,4 @@ from aws_embedded_metrics.logger.metrics_logger_factory import create_metrics_lo
 # IMPLEMENT ME: LAB3 (get_tenant_context_from_message_detail)
 
 
-# IMPLEMENT ME: LAB5 (create_emf_log_with_tenant_context)
+# IMPLEMENT ME: LAB6 (create_emf_log_with_tenant_context)

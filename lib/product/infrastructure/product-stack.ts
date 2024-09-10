@@ -91,7 +91,7 @@ export class ProductStack extends MicroserviceStack {
     // REPLACE END: LAB2 (IAM resources)
 
 
-    // PASTE: LAB6 (IAM permissions to access policy store)
+    // PASTE: LAB5 (IAM permissions to access policy store)
 
 
     const productDeployment = cluster.addManifest(`ProductDeployment`, {
@@ -120,7 +120,7 @@ export class ProductStack extends MicroserviceStack {
             */ // REMOVE THIS LINE: LAB2 (annotation)
             labels: {
               app: "product-app",
-              // UNCOMMENT: LAB6 (uncomment the line below)
+              // UNCOMMENT: LAB5 (uncomment the line below)
               // authorization: "enabled",
               ...multiTenantLabels,
             },
@@ -231,7 +231,7 @@ export class ProductStack extends MicroserviceStack {
                     name: "AUTH_RESOURCE",
                     value: "Product",
                   },
-                  // PASTE: LAB6 (add policy store reference to sidecar)
+                  // PASTE: 5 (add policy store reference to sidecar)
                 ]),
                 ports: [
                   {
