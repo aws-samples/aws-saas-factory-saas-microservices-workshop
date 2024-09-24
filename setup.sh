@@ -10,7 +10,7 @@ sudo curl --silent --no-progress-meter --location -o /usr/local/bin/kubectl \
 sudo chmod +x /usr/local/bin/kubectl
 kubectl version --short --client
 
-corepack enable
+sudo corepack enable
 corepack prepare yarn@3.6.4 --activate
 
 echo "Installing AWS CLI 2.x"
@@ -53,7 +53,7 @@ cd $CWD
 
 # overwrite any existing cdk versions
 CDK_VERSION="2.106.1"
-npm install --force --global aws-cdk@$CDK_VERSION
+sudo npm install --force --global aws-cdk@$CDK_VERSION
 
 INSTANCE_ROLE_NAME=$(aws ssm get-parameter --name "/workshop/cloud9InstanceRoleName" --region "$AWS_REGION" --query 'Parameter.Value' --output text)
 aws sts get-caller-identity --query Arn | grep "$INSTANCE_ROLE_NAME" -q &&
