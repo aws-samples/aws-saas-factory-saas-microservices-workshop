@@ -1,4 +1,4 @@
-ARG BASE_IMAGE="public.ecr.aws/docker/library/python:3.9.14-slim-bullseye"
+ARG BASE_IMAGE="public.ecr.aws/docker/library/python:3.11.9-slim-bookworm"
 FROM ${BASE_IMAGE}
 
 ENV APP_USER=app

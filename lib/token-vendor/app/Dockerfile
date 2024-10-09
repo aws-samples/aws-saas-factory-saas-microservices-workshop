@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/golang:1.20.7-bookworm AS build
+FROM public.ecr.aws/docker/library/golang:1.23.2-bookworm AS build
 WORKDIR /code
 COPY ./code /code
 
@@ -8,7 +8,7 @@ COPY ./code /code
 RUN go mod download
 RUN go build -o main main.go
 
-FROM public.ecr.aws/docker/library/golang:1.20.7-bookworm AS runtime
+FROM public.ecr.aws/docker/library/golang:1.23.2-bookworm AS runtime
 
 WORKDIR /code
 COPY --from=build /code/main .

@@ -3,15 +3,16 @@
 # SPDX-License-Identifier: MIT-0
 CWD=$(pwd)
 
+curl https://mise.run | sh
+echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
+source ~/.bashrc
+
 echo "Installing kubectl"
 sudo curl --silent --no-progress-meter --location -o /usr/local/bin/kubectl \
-  https://s3.us-west-2.amazonaws.com/amazon-eks/1.27.5/2023-09-14/bin/linux/amd64/kubectl
+  https://s3.us-west-2.amazonaws.com/amazon-eks/1.30.4/2024-09-11/bin/linux/amd64/kubectl
 
 sudo chmod +x /usr/local/bin/kubectl
 kubectl version --short --client
-
-sudo corepack enable
-corepack prepare yarn@3.6.4 --activate
 
 echo "Installing AWS CLI 2.x"
 curl --no-progress-meter "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -52,7 +53,7 @@ kubectl completion bash >>~/.bash_completion
 cd $CWD
 
 # overwrite any existing cdk versions
-CDK_VERSION="2.106.1"
+CDK_VERSION="2.147.3"
 sudo npm install --force --global aws-cdk@$CDK_VERSION
 
 INSTANCE_ROLE_NAME=$(aws ssm get-parameter --name "/workshop/cloud9InstanceRoleName" --region "$AWS_REGION" --query 'Parameter.Value' --output text)

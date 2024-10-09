@@ -22,6 +22,7 @@ var awsRegion string = os.Getenv("AWS_DEFAULT_REGION")
 var authorizationResource = os.Getenv("AUTH_RESOURCE")
 var policyStoreId = os.Getenv("POLICY_STORE_ID")
 var verifiedPermissionsNamespace = "SaaSWorkshop"
+
 // var authorizationMapString = os.Getenv("AUTH_MAP")
 var authorizationMapString = `[
 	{"Pattern": "^POST \\/products\\/?$", "Action": "CreateProduct"},
@@ -130,7 +131,6 @@ func authorizeAction(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Auth action: %s\n", action)
 	log.Printf("Auth resource: %s\n", authorizationResource)
 
-
 	//Make AVP call here
 	// Initialize a session that the SDK uses to load
 	log.Printf("Initialize SDK session")
@@ -162,7 +162,7 @@ func authorizeAction(w http.ResponseWriter, r *http.Request) {
 		},
 		Resource: &verifiedpermissions.EntityIdentifier{
 			EntityType: aws.String(verifiedPermissionsNamespace + "::" + authorizationResource),
-			EntityId:   aws.String(requestPath),     
+			EntityId:   aws.String(requestPath),
 		},
 		Entities: &verifiedpermissions.EntitiesDefinition{
 			EntityList: []*verifiedpermissions.EntityItem{
@@ -195,7 +195,7 @@ func authorizeAction(w http.ResponseWriter, r *http.Request) {
 	// Check the response
 	if *output.Decision == "ALLOW" { // DecisionAllow
 		log.Printf("Result: ALLOW")
-		w.WriteHeader(http.StatusOK) 
+		w.WriteHeader(http.StatusOK)
 		return
 	} else {
 		log.Printf("Result: DENY")

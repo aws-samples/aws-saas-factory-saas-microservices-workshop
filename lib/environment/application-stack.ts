@@ -5,7 +5,7 @@ import * as aws_events from "aws-cdk-lib/aws-events";
 import * as aws_events_targets from "aws-cdk-lib/aws-events-targets";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as ssm from "aws-cdk-lib/aws-ssm";
-import * as verifiedpermissions from 'aws-cdk-lib/aws-verifiedpermissions';
+import * as verifiedpermissions from "aws-cdk-lib/aws-verifiedpermissions";
 import { Construct } from "constructs";
 import { ProductStack } from "../product/infrastructure/product-stack";
 import { FulfillmentStack } from "../fulfillment/infrastructure/fulfillment-stack";
@@ -15,7 +15,6 @@ import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
 import { TenantTier } from "../enums/tenant-tier";
 import { EksCluster } from "../eks/eks-blueprint-stack";
 import { InvoiceStack } from "../invoice/infrastructure/invoice-stack";
-
 
 export class ApplicationStack extends cdk.Stack {
   public readonly fulfillmentServiceDNS: string;
@@ -39,15 +38,19 @@ export class ApplicationStack extends cdk.Stack {
 
     const deploymentMode = props.deploymentMode;
     const workshopSSMPrefix = props.workshopSSMPrefix;
-    const baseImageUri = props.helperLibraryBaseImageUri
+    const baseImageUri = props.helperLibraryBaseImageUri;
 
     const eksCluster = new EksCluster(this, "EksCluster", {
       workshopSSMPrefix: workshopSSMPrefix,
     });
     const cluster = eksCluster.cluster;
-    const cloudwatchAgentLogEndpoint = props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogEndpoint;
-    const cloudwatchAgentLogGroupName = props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogGroup.logGroupName;
-    const istioIngressGateway = props.baseStack.istioResources.istioIngressGateway;
+    const cloudwatchAgentLogEndpoint =
+      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogEndpoint;
+    const cloudwatchAgentLogGroupName =
+      props.baseStack.cloudwatchAgentAddOnStack.cloudwatchAgentLogGroup
+        .logGroupName;
+    const istioIngressGateway =
+      props.baseStack.istioResources.istioIngressGateway;
 
     const tenantTier = props.tenantTier;
     const tenantId = props.tenantId;
@@ -88,12 +91,9 @@ export class ApplicationStack extends cdk.Stack {
     );
     // EVENT WATCHER END
 
-    
     // PASTE: LAB5 (Policy store)
 
-
     // PASTE: LAB5 (Policies)
-
 
     const stackNamespace = cluster.addManifest(`StackNamespaceManifest`, {
       apiVersion: "v1",
@@ -116,40 +116,46 @@ export class ApplicationStack extends cdk.Stack {
       apiVersion: "networking.istio.io/v1alpha3",
       kind: "EnvoyFilter",
       metadata: {
-        name: "sidecar-localhost", 
-        namespace: this.namespace
+        name: "sidecar-localhost",
+        namespace: this.namespace,
       },
-      spec: {        
-        configPatches: [{
-          applyTo: "CLUSTER",
-          patch: {
-            operation: "ADD",
-            value: {
-              name: "outbound|8081||localhost",
-              connect_timeout: "1.00s",
-              type: "STRICT_DNS",
-              lb_policy: "ROUND_ROBIN",
-              load_assignment: {
-                cluster_name: "outbound|8081||localhost",
-                endpoints: [{
-                  lb_endpoints: [{
-                    endpoint: {
-                      address: {
-                        socket_address: {
-                          address: "127.0.0.1",
-                          port_value: 8081
-                        }
-                      }
-                    }
-                  }]
-                }]
-              }
-            }
-          }
-        }]
-      }
+      spec: {
+        configPatches: [
+          {
+            applyTo: "CLUSTER",
+            patch: {
+              operation: "ADD",
+              value: {
+                name: "outbound|8081||localhost",
+                connect_timeout: "1.00s",
+                type: "STRICT_DNS",
+                lb_policy: "ROUND_ROBIN",
+                load_assignment: {
+                  cluster_name: "outbound|8081||localhost",
+                  endpoints: [
+                    {
+                      lb_endpoints: [
+                        {
+                          endpoint: {
+                            address: {
+                              socket_address: {
+                                address: "127.0.0.1",
+                                port_value: 8081,
+                              },
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        ],
+      },
     });
-    localhostCluster.node.addDependency(stackNamespace);    
+    localhostCluster.node.addDependency(stackNamespace);
 
     //Authorization resources: filter that calls the sidecar to authorize requests
     const authFilter = cluster.addManifest(`AuthFilterManifest`, {
@@ -157,59 +163,64 @@ export class ApplicationStack extends cdk.Stack {
       kind: "EnvoyFilter",
       metadata: {
         name: "auth-filter",
-        namespace: this.namespace
+        namespace: this.namespace,
       },
       spec: {
         workloadSelector: {
           labels: {
-            authorization: "enabled"
-          }
-        },
-        configPatches: [{
-          applyTo: "HTTP_FILTER",
-          match: {
-            context: "SIDECAR_INBOUND",
-            listener: {
-              filterChain: {
-                filter: {
-                  name: "envoy.filters.network.http_connection_manager",
-                  subFilter: {
-                    name: "envoy.filters.http.router"
-                  }
-                }
-              }
-            }
+            authorization: "enabled",
           },
-          patch: {
-            operation: "INSERT_FIRST",
-            value: {
-              name: "envoy.filters.http.ext_authz",
-              typed_config: {
-                "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz",
-                http_service: {
-                  server_uri: {
-                    uri: "http://127.0.0.1:8081",
-                    cluster: "outbound|8081||localhost",
-                    timeout: "1.00s"
-                  },
-                  path_prefix: "/authorize",
-                  authorization_request: {
-                    headers_to_add: [{
-                      key: "x-auth-request-path",
-                      value: "%REQ(:path)%"
+        },
+        configPatches: [
+          {
+            applyTo: "HTTP_FILTER",
+            match: {
+              context: "SIDECAR_INBOUND",
+              listener: {
+                filterChain: {
+                  filter: {
+                    name: "envoy.filters.network.http_connection_manager",
+                    subFilter: {
+                      name: "envoy.filters.http.router",
                     },
-                    {
-                      key: "x-auth-request-method",
-                      value: "%REQ(:method)%"
-                    }]
                   },
-                  failure_mode_allow: false
-                }
-              }
-            }
-          }
-        }]
-      }
+                },
+              },
+            },
+            patch: {
+              operation: "INSERT_FIRST",
+              value: {
+                name: "envoy.filters.http.ext_authz",
+                typed_config: {
+                  "@type":
+                    "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz",
+                  http_service: {
+                    server_uri: {
+                      uri: "http://127.0.0.1:8081",
+                      cluster: "outbound|8081||localhost",
+                      timeout: "1.00s",
+                    },
+                    path_prefix: "/authorize",
+                    authorization_request: {
+                      headers_to_add: [
+                        {
+                          key: "x-auth-request-path",
+                          value: "%REQ(:path)%",
+                        },
+                        {
+                          key: "x-auth-request-method",
+                          value: "%REQ(:method)%",
+                        },
+                      ],
+                    },
+                    failure_mode_allow: false,
+                  },
+                },
+              },
+            },
+          },
+        ],
+      },
     });
     authFilter.node.addDependency(stackNamespace);
 
@@ -225,7 +236,7 @@ export class ApplicationStack extends cdk.Stack {
       cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
       namespaceConstruct: stackNamespace,
       // PASTE: LAB5 (Policy store reference for product stack)
-      baseImage: baseImageUri
+      baseImage: baseImageUri,
     });
     productStack.node.addDependency(stackNamespace);
     this.productServiceDNS = productStack.productServiceDNS;
@@ -245,7 +256,7 @@ export class ApplicationStack extends cdk.Stack {
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
         eventBus: eventBus,
-        baseImage: baseImageUri
+        baseImage: baseImageUri,
       });
       fulfillmentStack.node.addDependency(stackNamespace);
       this.fulfillmentServicePort = fulfillmentStack.fulfillmentServicePort;
@@ -267,7 +278,7 @@ export class ApplicationStack extends cdk.Stack {
         cloudwatchAgentLogGroupName: cloudwatchAgentLogGroupName,
         namespaceConstruct: stackNamespace,
         // PASTE: LAB5 (Policy store reference for order stack)
-        baseImage: baseImageUri
+        baseImage: baseImageUri,
       });
       orderStack.node.addDependency(stackNamespace);
       orderStack.node.addDependency(fulfillmentStack);
