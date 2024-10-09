@@ -244,7 +244,7 @@ export class CloudwatchAgentAddOnStack extends Construct {
                   },
                 ],
                 image:
-                  "public.ecr.aws/cloudwatch-agent/cloudwatch-agent:1.300028.1b210",
+                  "public.ecr.aws/cloudwatch-agent/cloudwatch-agent:1.300046.0b833",
                 imagePullPolicy: "Always",
                 name: "aws-cloudwatch-metrics",
                 resources: {

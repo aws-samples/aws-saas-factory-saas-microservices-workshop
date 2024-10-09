@@ -41,14 +41,12 @@ main() {
     GIT_BRANCH=$3
 
     CLOUD9_INSTANCE_ID_PARAMETER_NAME="/workshop/cloud9InstanceId"
-    CDK_VERSION="2.106.1"
+    CDK_VERSION="2.147.3"
 
     npm install --force --global aws-cdk@$CDK_VERSION
 
     # TARGET_USER="ec2-user"
     TARGET_USER="ubuntu"
-    corepack enable || echo "default to yarn v1"
-    corepack prepare yarn@3.6.4 --activate || echo "default to yarn v1"
 
     cd standalone-eks-stack
     yarn install

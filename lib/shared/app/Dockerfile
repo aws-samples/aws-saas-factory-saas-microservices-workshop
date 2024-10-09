@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/python:3.9.14-slim-bullseye
+FROM public.ecr.aws/docker/library/python:3.11.9-slim-bookworm
 
 ENV APP_USER=app
 ENV APP_DIR=/home/${APP_USER}/code
