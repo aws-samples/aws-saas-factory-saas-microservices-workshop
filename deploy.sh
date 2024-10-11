@@ -48,7 +48,7 @@ echo "Creating users..."
 
 echo "Setting up evironment variables..."
 SOURCE_PATH=$(pwd)
-echo "export SOURCE_PATH=${SOURCE_PATH}" | tee -a ~/.bash_profile
-echo "source ${SOURCE_PATH}/scripts/set-environment-variables.sh" >>~/.bash_profile
+echo "export SOURCE_PATH=${SOURCE_PATH}" >> ~/.bashrc
+echo "source ${SOURCE_PATH}/scripts/set-environment-variables.sh" >> ~/.bashrc
 
 echo "All done, please proceed!"

@@ -32,10 +32,10 @@ TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-meta
 export AWS_REGION=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 export AWS_DEFAULT_REGION=$AWS_REGION
 test -n "$AWS_REGION" && echo AWS_REGION is "$AWS_REGION" || echo AWS_REGION is not set
-echo "export ACCOUNT_ID=${ACCOUNT_ID}" | tee -a ~/.bash_profile
-echo "export AWS_REGION=${AWS_REGION}" | tee -a ~/.bash_profile
-echo "export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" | tee -a ~/.bash_profile
-echo "export CDK_DISABLE_VERSION_CHECK=true" | tee -a ~/.bash_profile
+echo "export ACCOUNT_ID=${ACCOUNT_ID}"  >> ~/.bashrc
+echo "export AWS_REGION=${AWS_REGION}"  >> ~/.bashrc
+echo "export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}"  >> ~/.bashrc
+echo "export CDK_DISABLE_VERSION_CHECK=true"  >> ~/.bashrc
 aws configure set default.region ${AWS_REGION}
 aws configure get default.region
 aws configure set cli_pager ""
