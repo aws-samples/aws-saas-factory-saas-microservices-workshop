@@ -45,7 +45,7 @@ main() {
 
     MISE_VERSION="v2024.10.2" # https://mise.jdx.dev/getting-started.html#alternate-installation-methods
     curl https://mise.run | sh
-    ~/.local/bin/mise activate bash
+    eval "$(~/.local/bin/mise activate bash)"
     mise install
 
     npm install --force --global aws-cdk@$CDK_VERSION
