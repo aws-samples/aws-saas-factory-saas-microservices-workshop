@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MIT-0
 CWD=$(pwd)
 
+MISE_VERSION="v2024.10.2" # https://mise.jdx.dev/getting-started.html#alternate-installation-methods
 curl https://mise.run | sh
 echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
 source ~/.bashrc
