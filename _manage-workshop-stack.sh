@@ -43,6 +43,11 @@ main() {
     CLOUD9_INSTANCE_ID_PARAMETER_NAME="/workshop/cloud9InstanceId"
     CDK_VERSION="2.147.3"
 
+    MISE_VERSION="v2024.10.2" # https://mise.jdx.dev/getting-started.html#alternate-installation-methods
+    curl https://mise.run | sh
+    ~/.local/bin/mise activate bash
+    mise install
+
     npm install --force --global aws-cdk@$CDK_VERSION
 
     # TARGET_USER="ec2-user"
