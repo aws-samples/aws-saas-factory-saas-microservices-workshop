@@ -72,6 +72,7 @@ export class BaseStack extends cdk.Stack {
       tlsCert: tlsCertIstio,
       tlsKey: tlsKeyIstio,
     });
+    istioResources.node.addDependency(eksCluster);
 
     const cloudwatchAgentAddOnStack = new CloudwatchAgentAddOnStack(
       this,
@@ -81,6 +82,7 @@ export class BaseStack extends cdk.Stack {
         workshopSSMPrefix: workshopSSMPrefix,
       }
     );
+    cloudwatchAgentAddOnStack.node.addDependency(eksCluster);
 
     this.eksCluster = eksCluster;
     this.cognitoResources = cognitoResources;
