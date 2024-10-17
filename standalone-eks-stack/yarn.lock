@@ -1618,9 +1618,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"aws-cdk@npm:2.147.3":
-  version: 2.147.3
-  resolution: "aws-cdk@npm:2.147.3"
+"aws-cdk@npm:2.148.1":
+  version: 2.148.1
+  resolution: "aws-cdk@npm:2.148.1"
   dependencies:
     fsevents: 2.3.2
   dependenciesMeta:
@@ -1628,7 +1628,7 @@ __metadata:
       optional: true
   bin:
     cdk: bin/cdk
-  checksum: 556a8e74122b53ba4fb2d4b1aa5efd4776a13e14172f1634924bbf8f2d4bdec56a78045a4cbbe25aad40fc7317b96c83a09a619f7101575c91ecb93b22db7cae
+  checksum: 5af9c520febf797db25951e7d3df8fc685c16b5e5ffedade94d986842b7428f4f37facbf0cf5fa4311a887952488b9ba3f0a65f93e092e0eeb603ddeba44b0d2
   languageName: node
   linkType: hard
 
@@ -3019,7 +3019,7 @@ __metadata:
   dependencies:
     "@aws-quickstart/eks-blueprints": ~1.15.1
     "@types/node": ^20.11.25
-    aws-cdk: 2.147.3
+    aws-cdk: 2.148.1
     aws-cdk-lib: 2.147.3
     constructs: ^10.3.0
     source-map-support: ^0.5.21
