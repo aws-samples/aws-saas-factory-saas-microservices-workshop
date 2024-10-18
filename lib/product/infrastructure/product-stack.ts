@@ -231,7 +231,7 @@ export class ProductStack extends MicroserviceStack {
                     name: "AUTH_RESOURCE",
                     value: "Product",
                   },
-                  // PASTE: 5 (add policy store reference to sidecar)
+                  // PASTE: LAB5 (add policy store reference to sidecar)
                 ]),
                 ports: [
                   {
