@@ -41,7 +41,7 @@ main() {
     GIT_BRANCH=$3
 
     CLOUD9_INSTANCE_ID_PARAMETER_NAME="/workshop/cloud9InstanceId"
-    CDK_VERSION="2.147.3"
+    CDK_VERSION="2.162.1"
 
     MISE_VERSION="v2024.10.2" # https://mise.jdx.dev/getting-started.html#alternate-installation-methods
     curl https://mise.run | sh
