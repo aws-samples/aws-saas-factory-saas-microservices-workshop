@@ -6,23 +6,33 @@ __metadata:
   cacheKey: 8
 
 "@aws-cdk/asset-awscli-v1@npm:^2.2.202":
-  version: 2.2.205
-  resolution: "@aws-cdk/asset-awscli-v1@npm:2.2.205"
-  checksum: c40fb36bd44c8cefae0c40f6d61f58f00ff07a644527bcec1e21248e2c66f718ef93cc3905a60f124b392a3e2b936190190e1b49323c7c401dfcae1be5450675
+  version: 2.2.208
+  resolution: "@aws-cdk/asset-awscli-v1@npm:2.2.208"
+  checksum: 617e93fc52f5f318541bae656b3c3e2bdf12d463f7968f9ff4a408a667bac0d0ed22c3edce809e315789d85b0f852b0d7829a63d55bafc0dbd368b1fb90bf79e
   languageName: node
   linkType: hard
 
 "@aws-cdk/asset-kubectl-v20@npm:^2.1.2":
-  version: 2.1.2
-  resolution: "@aws-cdk/asset-kubectl-v20@npm:2.1.2"
-  checksum: 987bce26f54ba64596b7d15adf0c09603814ed56f06b498d17dc4b8859f4708662c9c48f88bba2810d8fac04cf84b8f3e51806c93cf65aeb6148ad76bc250f84
+  version: 2.1.3
+  resolution: "@aws-cdk/asset-kubectl-v20@npm:2.1.3"
+  checksum: 3eb0c3144e13b72585b25cd8df97a161fd83a2dab4a286c07462f4ed9c200849da884ae6281762b384eeb3a461f9ac4f105b8508d527dc8ff963abc12e0f597a
   languageName: node
   linkType: hard
 
-"@aws-cdk/asset-node-proxy-agent-v6@npm:^2.0.3":
+"@aws-cdk/asset-node-proxy-agent-v6@npm:^2.1.0":
   version: 2.1.0
   resolution: "@aws-cdk/asset-node-proxy-agent-v6@npm:2.1.0"
   checksum: 71a2529aacba0425bf03b940715c42c5cfb5c84a79d3970fc2c11226d99b62de5e04d820568b82e52c7ed2dfbb8950116cffd04aaa9786825894f334c8dd58b2
+  languageName: node
+  linkType: hard
+
+"@aws-cdk/cloud-assembly-schema@npm:^38.0.0":
+  version: 38.0.1
+  resolution: "@aws-cdk/cloud-assembly-schema@npm:38.0.1"
+  dependencies:
+    jsonschema: ^1.4.1
+    semver: ^7.6.3
+  checksum: 3dc79baac9b0d81201b39f379e7d062cef532f22deb6d57811cd285ddea53d8d36c382476c758abea5cf165f8fd6dd668470052c6a645df350b7a795d04d0d80
   languageName: node
   linkType: hard
 
@@ -106,6 +116,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@aws-cdk/lambda-layer-kubectl-v31@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@aws-cdk/lambda-layer-kubectl-v31@npm:2.0.0"
+  peerDependencies:
+    aws-cdk-lib: ^2.94.0
+    constructs: ^10.0.5
+  checksum: f58c4cf6fbe3e329a82039094f97189418bef66356c6fc7871d90a6db78a8dcfc2a4937b336a5215f83fe46e6b8f84fc2dd30ee3a6dc5213267bcbc94fdfc828
+  languageName: node
+  linkType: hard
+
 "@aws-crypto/sha256-browser@npm:5.2.0":
   version: 5.2.0
   resolution: "@aws-crypto/sha256-browser@npm:5.2.0"
@@ -152,9 +172,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-quickstart/eks-blueprints@npm:~1.15.1":
-  version: 1.15.1
-  resolution: "@aws-quickstart/eks-blueprints@npm:1.15.1"
+"@aws-quickstart/eks-blueprints@npm:^1.16.0":
+  version: 1.16.0
+  resolution: "@aws-quickstart/eks-blueprints@npm:1.16.0"
   dependencies:
     "@aws-cdk/lambda-layer-kubectl-v23": ^2.0.8
     "@aws-cdk/lambda-layer-kubectl-v24": ^2.0.242
@@ -164,6 +184,7 @@ __metadata:
     "@aws-cdk/lambda-layer-kubectl-v28": ^2.2.0
     "@aws-cdk/lambda-layer-kubectl-v29": ^2.1.0
     "@aws-cdk/lambda-layer-kubectl-v30": ^2.0.0
+    "@aws-cdk/lambda-layer-kubectl-v31": ^2.0.0
     "@aws-sdk/client-eks": ^3.529.1
     "@aws-sdk/client-secrets-manager": ^3.529.1
     "@types/assert": ^1.5.10
@@ -182,12 +203,12 @@ __metadata:
     ts-deepmerge: ^7.0.0
     ts-md5: ^1.3.1
     tslog: ^4.9.2
-    uuid: ^9.0.1
+    uuid: ^10.0.0
     yaml: ^2.4.1
     zod: ^3.22.4
   peerDependencies:
-    aws-cdk: 2.147.3
-    aws-cdk-lib: 2.147.3
+    aws-cdk: 2.162.1
+    aws-cdk-lib: 2.162.1
   dependenciesMeta:
     "@aws-cdk/lambda-layer-kubectl-v23":
       optional: true
@@ -197,7 +218,7 @@ __metadata:
       optional: true
     "@aws-cdk/lambda-layer-kubectl-v26":
       optional: true
-  checksum: 3d69e79c0a9b8ed8f3467e03eeaa947929038a1a1e678b90bbfe48dde9e645b175b029828441187573bf3d9f28cc683044ad77227d9041656c94ee33c318b839
+  checksum: 5e777a016785d300f19c0b9ed9bb43e8ac115f31a5bdf3db52753f20697cfad36f8a844f2d28850652c79d1e90095403f4ce955954e8e479b033de80f03e54ae
   languageName: node
   linkType: hard
 
@@ -1407,12 +1428,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.11.25":
-  version: 20.16.10
-  resolution: "@types/node@npm:20.16.10"
+"@types/node@npm:^22.7.5":
+  version: 22.7.9
+  resolution: "@types/node@npm:22.7.9"
   dependencies:
     undici-types: ~6.19.2
-  checksum: 8b4d5a0af828871627e80da095df50ef8ae7ca458f39ccde1d060e3bf97b0bc76af9547bd5d75ce4ccb1dd80466804b2fe4f12553c11cb8691c6667effd9a9d7
+  checksum: 02671449e61f3f7c9898da44e18af272056fee0afbbc98b11dcff7cd7c4ed6c8a45353cfdde413208d9f597e247ee68d908c83a72cae4cbdd763b0e3a45ac0cd
   languageName: node
   linkType: hard
 
@@ -1594,33 +1615,34 @@ __metadata:
   languageName: node
   linkType: hard
 
-"aws-cdk-lib@npm:2.147.3":
-  version: 2.147.3
-  resolution: "aws-cdk-lib@npm:2.147.3"
+"aws-cdk-lib@npm:2.162.1":
+  version: 2.162.1
+  resolution: "aws-cdk-lib@npm:2.162.1"
   dependencies:
     "@aws-cdk/asset-awscli-v1": ^2.2.202
     "@aws-cdk/asset-kubectl-v20": ^2.1.2
-    "@aws-cdk/asset-node-proxy-agent-v6": ^2.0.3
+    "@aws-cdk/asset-node-proxy-agent-v6": ^2.1.0
+    "@aws-cdk/cloud-assembly-schema": ^38.0.0
     "@balena/dockerignore": ^1.0.2
     case: 1.6.3
     fs-extra: ^11.2.0
-    ignore: ^5.3.1
+    ignore: ^5.3.2
     jsonschema: ^1.4.1
     mime-types: ^2.1.35
     minimatch: ^3.1.2
     punycode: ^2.3.1
-    semver: ^7.6.2
+    semver: ^7.6.3
     table: ^6.8.2
     yaml: 1.10.2
   peerDependencies:
     constructs: ^10.0.0
-  checksum: cbe7980d3900991850d45c8ce0e106fc1a57ecfd92ea6550927c555c2369e3c80ece68b5204dc28882d6e1c625dfd1f363daea9c6b60c3f1f90e85f92f32e5c7
+  checksum: 099a027260212934c4cff01ea24cdc080a9b094868f275d4280542c22b892754cd6ecbb95ce9750f6643b306a115d659447c329a04277e359ac8b7c80898f29e
   languageName: node
   linkType: hard
 
-"aws-cdk@npm:2.147.3":
-  version: 2.147.3
-  resolution: "aws-cdk@npm:2.147.3"
+"aws-cdk@npm:2.162.1":
+  version: 2.162.1
+  resolution: "aws-cdk@npm:2.162.1"
   dependencies:
     fsevents: 2.3.2
   dependenciesMeta:
@@ -1628,7 +1650,7 @@ __metadata:
       optional: true
   bin:
     cdk: bin/cdk
-  checksum: 556a8e74122b53ba4fb2d4b1aa5efd4776a13e14172f1634924bbf8f2d4bdec56a78045a4cbbe25aad40fc7317b96c83a09a619f7101575c91ecb93b22db7cae
+  checksum: ac2a7746eefa924e0b725a8501bbb4e537f510c038e2230182e61e0d56beeb6b9dbae8451b47745d47c2999bd1137c9b3dea676181b7ceb37ec9fd54860c4a7c
   languageName: node
   linkType: hard
 
@@ -1957,9 +1979,9 @@ __metadata:
   linkType: hard
 
 "fast-uri@npm:^3.0.1":
-  version: 3.0.2
-  resolution: "fast-uri@npm:3.0.2"
-  checksum: ca00aadc84e0ab93a8a1700c386bc7cbeb49f47d9801083c258444eed31221fdf864d68fb48ea8acd7c512bf046b53c09e3aafd6d4bdb9449ed21be29d8d6f75
+  version: 3.0.3
+  resolution: "fast-uri@npm:3.0.3"
+  checksum: c52e6c86465f5c240e84a4485fb001088cc743d261a4b54b0050ce4758b1648bdbe53da1328ef9620149dca1435e3de64184f226d7c0a3656cb5837b3491e149
   languageName: node
   linkType: hard
 
@@ -2242,7 +2264,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ignore@npm:^5.3.1":
+"ignore@npm:^5.3.2":
   version: 5.3.2
   resolution: "ignore@npm:5.3.2"
   checksum: 2acfd32a573260ea522ea0bfeff880af426d68f6831f973129e2ba7363f422923cf53aab62f8369cbf4667c7b25b6f8a3761b34ecdb284ea18e87a5262a865be
@@ -2446,10 +2468,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "microservices-saas-workshop@workspace:."
   dependencies:
-    "@aws-quickstart/eks-blueprints": ~1.15.1
-    "@types/node": ^20.11.25
-    aws-cdk: 2.147.3
-    aws-cdk-lib: 2.147.3
+    "@aws-quickstart/eks-blueprints": ^1.16.0
+    "@types/node": ^22.7.5
+    aws-cdk: 2.162.1
+    aws-cdk-lib: 2.162.1
     constructs: ^10.3.0
     source-map-support: ^0.5.21
     ts-node: ^10.9.2
@@ -2899,7 +2921,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^7.6.0, semver@npm:^7.6.2":
+"semver@npm:^7.6.0, semver@npm:^7.6.3":
   version: 7.6.3
   resolution: "semver@npm:7.6.3"
   bin:
@@ -3302,6 +3324,15 @@ __metadata:
   version: 1.0.2
   resolution: "util-deprecate@npm:1.0.2"
   checksum: 474acf1146cb2701fe3b074892217553dfcf9a031280919ba1b8d651a068c9b15d863b7303cb15bd00a862b498e6cf4ad7b4a08fb134edd5a6f7641681cb54a2
+  languageName: node
+  linkType: hard
+
+"uuid@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "uuid@npm:10.0.0"
+  bin:
+    uuid: dist/bin/uuid
+  checksum: 4b81611ade2885d2313ddd8dc865d93d8dccc13ddf901745edca8f86d99bc46d7a330d678e7532e7ebf93ce616679fb19b2e3568873ac0c14c999032acb25869
   languageName: node
   linkType: hard
 
