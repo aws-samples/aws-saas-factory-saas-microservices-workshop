@@ -13,7 +13,7 @@ eval "$(mise activate bash --shims)" # use shims to initialize shell for script
 
 echo "Installing kubectl"
 sudo curl --silent --no-progress-meter --location -o /usr/local/bin/kubectl \
-  https://s3.us-west-2.amazonaws.com/amazon-eks/1.31.0/2024-09-12/bin/linux/amd64/kubectl
+  https://s3.us-west-2.amazonaws.com/amazon-eks/1.30.4/2024-09-11/bin/linux/amd64/kubectl
 
 sudo chmod +x /usr/local/bin/kubectl
 kubectl version --client

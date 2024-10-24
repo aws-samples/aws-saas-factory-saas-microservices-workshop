@@ -16,7 +16,7 @@ export class IstioResources extends Construct {
     const tlsKey = props.tlsKey;
 
     const istioHelmRepo = "https://istio-release.storage.googleapis.com/charts";
-    const istioVersion = "1.22.2"; // should match the version installed by IstioBasedAddOn
+    const istioVersion = "1.23.2"; // should match the version installed by IstioBasedAddOn
     const istioSystemNamespaceName = "istio-system";
     const istioIngressNamespaceName = "istio-ingress";
     const ingressGatewayName = "gateway";
