@@ -172,9 +172,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-quickstart/eks-blueprints@npm:1.16.1":
-  version: 1.16.1
-  resolution: "@aws-quickstart/eks-blueprints@npm:1.16.1"
+"@aws-quickstart/eks-blueprints@npm:1.16.2":
+  version: 1.16.2
+  resolution: "@aws-quickstart/eks-blueprints@npm:1.16.2"
   dependencies:
     "@aws-cdk/lambda-layer-kubectl-v23": ^2.0.8
     "@aws-cdk/lambda-layer-kubectl-v24": ^2.0.242
@@ -218,7 +218,7 @@ __metadata:
       optional: true
     "@aws-cdk/lambda-layer-kubectl-v26":
       optional: true
-  checksum: 9c878576eb11f142ae41808540765e9ac2a062a3605a4fb9b013314e782e206edbffa4f312736fdab3471a2508a4343f8719893d827f868774106f2bdd4a42bb
+  checksum: f1e38e02487734c776731965bf71bd8c441c7f573fafc00a9621de13db961d213e89f2ae57bc39f96ba5e7f5e4e5ad3f17412b0e08b06be207b3434e56629f15
   languageName: node
   linkType: hard
 
@@ -2468,7 +2468,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "microservices-saas-workshop@workspace:."
   dependencies:
-    "@aws-quickstart/eks-blueprints": 1.16.1
+    "@aws-quickstart/eks-blueprints": 1.16.2
     "@types/node": ^22.7.5
     aws-cdk: 2.162.1
     aws-cdk-lib: 2.162.1
