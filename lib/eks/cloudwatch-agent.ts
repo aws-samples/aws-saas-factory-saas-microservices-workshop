@@ -68,6 +68,11 @@ export class CloudwatchAgentAddOnStack extends Construct {
             verbs: ["list", "watch"],
           },
           {
+            apiGroups: [""],
+            resources: ["services"],
+            verbs: ["list", "watch"],
+          },
+          {
             apiGroups: ["apps"],
             resources: [
               "replicasets",
@@ -90,7 +95,7 @@ export class CloudwatchAgentAddOnStack extends Construct {
           {
             apiGroups: [""],
             resources: ["nodes/stats", "configmaps", "events"],
-            verbs: ["create"],
+            verbs: ["create", "get"],
           },
           {
             apiGroups: [""],
@@ -219,7 +224,6 @@ export class CloudwatchAgentAddOnStack extends Construct {
                     name: "HOST_IP",
                     valueFrom: {
                       fieldRef: {
-                        apiVersion: "v1",
                         fieldPath: "status.hostIP",
                       },
                     },
@@ -228,7 +232,6 @@ export class CloudwatchAgentAddOnStack extends Construct {
                     name: "HOST_NAME",
                     valueFrom: {
                       fieldRef: {
-                        apiVersion: "v1",
                         fieldPath: "spec.nodeName",
                       },
                     },
@@ -237,24 +240,26 @@ export class CloudwatchAgentAddOnStack extends Construct {
                     name: "K8S_NAMESPACE",
                     valueFrom: {
                       fieldRef: {
-                        apiVersion: "v1",
                         fieldPath: "metadata.namespace",
                       },
                     },
                   },
+                  {
+                    name: "CI_VERSION",
+                    value: "k8s/1.3.28",
+                  },
                 ],
                 image:
-                  "public.ecr.aws/cloudwatch-agent/cloudwatch-agent:1.300046.0b833",
-                imagePullPolicy: "Always",
+                  "public.ecr.aws/cloudwatch-agent/cloudwatch-agent:1.300048.1b904",
                 name: "aws-cloudwatch-metrics",
                 resources: {
                   limits: {
-                    cpu: "100m",
-                    memory: "100Mi",
+                    cpu: "400m",
+                    memory: "400Mi",
                   },
                   requests: {
-                    cpu: "100m",
-                    memory: "100Mi",
+                    cpu: "400m",
+                    memory: "400Mi",
                   },
                 },
                 volumeMounts: [
@@ -296,10 +301,12 @@ export class CloudwatchAgentAddOnStack extends Construct {
               },
             ],
             serviceAccountName: serviceAccountName,
+            nodeSelector: {
+              "kubernetes.io/os": "linux",
+            },
             volumes: [
               {
                 configMap: {
-                  defaultMode: 420,
                   name: cloudwatchAgentConfigMapName,
                 },
                 name: "cwagentconfig",
@@ -307,54 +314,42 @@ export class CloudwatchAgentAddOnStack extends Construct {
               {
                 hostPath: {
                   path: "/",
-                  type: "",
                 },
                 name: "rootfs",
               },
               {
                 hostPath: {
                   path: "/var/run/docker.sock",
-                  type: "",
                 },
                 name: "dockersock",
               },
               {
                 hostPath: {
                   path: "/var/lib/docker",
-                  type: "",
                 },
                 name: "varlibdocker",
               },
               {
                 hostPath: {
                   path: "/run/containerd/containerd.sock",
-                  type: "",
                 },
                 name: "containerdsock",
               },
               {
                 hostPath: {
                   path: "/sys",
-                  type: "",
                 },
                 name: "sys",
               },
               {
                 hostPath: {
                   path: "/dev/disk/",
-                  type: "",
                 },
                 name: "devdisk",
               },
             ],
+            terminationGracePeriodSeconds: 60,
           },
-        },
-        updateStrategy: {
-          rollingUpdate: {
-            maxSurge: 0,
-            maxUnavailable: 1,
-          },
-          type: "RollingUpdate",
         },
       },
     });

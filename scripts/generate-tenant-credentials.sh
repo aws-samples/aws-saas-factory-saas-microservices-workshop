@@ -26,12 +26,16 @@ tenant_properties=(
     "tenant-b,advanced,seller"
     "tenant-c,premium,buyer"
     "tenant-c,premium,seller"
+    "tenant-d,basic,buyer"
+    "tenant-d,basic,seller"
+    "tenant-e,advanced,buyer"
+    "tenant-e,advanced,seller"
 )
 
 echo "=================================================================================" >./tmp/Sample_JWTs.txt
 echo "Tenant Id, Tenant Tier, Role, JWT" >>./tmp/Sample_JWTs.txt
 echo "=================================================================================" >>./tmp/Sample_JWTs.txt
-for ((u = 1; u <= 11; u++)); do
+for ((u = 1; u <= 15; u++)); do
     USER="user"${u}@example.com
     echo "Refreshing token for user: ${USER}"
 
