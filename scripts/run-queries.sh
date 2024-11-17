@@ -12,8 +12,10 @@ for i in {1..20}; do
     echo "Iteration: $i"
     for tenant_id in "tenant-a" "tenant-b" "tenant-c" "tenant-d" "tenant-e"; do
         echo "################# Running queries for tenant: ${tenant_id}... #################"
-        token_var="JWT_TOKEN_$(echo "${tenant_id^^}" | tr '-' '_')"
-        JWT_TOKEN=${!token_var}
+        token_var_seller="JWT_TOKEN_$(echo "${tenant_id^^}" | tr '-' '_')_SELLER"
+        JWT_TOKEN_SELLER=${!token_var_seller}
+        token_var_buyer="JWT_TOKEN_$(echo "${tenant_id^^}" | tr '-' '_')_BUYER"
+        JWT_TOKEN_BUYER=${!token_var_buyer}
 
         echo "Creating new product..."
         DESCRIPTION="this is a description with a random number: ${RANDOM}"
@@ -24,13 +26,13 @@ for i in {1..20}; do
         fi
         RESP=$(curl --silent -k --location --request POST "${LB_HOSTNAME}/products" \
             --header "Host: ${HOST}" \
-            --header "Authorization: Bearer ${JWT_TOKEN}" \
+            --header "Authorization: Bearer ${JWT_TOKEN_SELLER}" \
             --header 'Content-Type: application/json' \
             --data-raw "{
-        \"name\": \"${tenant_id}-product-${RANDOM}\",
-        \"description\": \"${DESCRIPTION}\",
-        \"price\": \"${PRICE}\"
-    }")
+                \"name\": \"${tenant_id}-product-${RANDOM}\",
+                \"description\": \"${DESCRIPTION}\",
+                \"price\": \"${PRICE}\"
+            }")
 
         PRODUCT_ID=$(echo "${RESP}" | jq -r '.product.product_id')
         if [ -n "$PRODUCT_ID" ]; then
@@ -45,7 +47,7 @@ for i in {1..20}; do
         echo "Getting newly created product: ${PRODUCT_ID}..."
         RESP=$(curl --silent -k --location --request GET "${LB_HOSTNAME}/products/${PRODUCT_ID}" \
             --header "Host: ${HOST}" \
-            --header "Authorization: Bearer ${JWT_TOKEN}")
+            --header "Authorization: Bearer ${JWT_TOKEN_SELLER}")
 
         if [ "$DESCRIPTION" = "$(echo "${RESP}" | jq -r '.product.description')" ]; then
             echo "Successfully retrieved product!"
@@ -61,7 +63,7 @@ for i in {1..20}; do
                 echo "Submitting new order..."
                 RESP=$(curl --silent -k --location --request POST "${LB_HOSTNAME}/orders" \
                     --header "Host: ${HOST}" \
-                    --header "Authorization: Bearer ${JWT_TOKEN}" \
+                    --header "Authorization: Bearer ${JWT_TOKEN_BUYER}" \
                     --header 'Content-Type: application/json' \
                     --data-raw "{
               \"name\": \"${tenant_id}-order-${j}${RANDOM}\",
@@ -83,7 +85,7 @@ for i in {1..20}; do
             echo "Submitting new order..."
             RESP=$(curl --silent -k --location --request POST "${LB_HOSTNAME}/orders" \
                 --header "Host: ${HOST}" \
-                --header "Authorization: Bearer ${JWT_TOKEN}" \
+                --header "Authorization: Bearer ${JWT_TOKEN_BUYER}" \
                 --header 'Content-Type: application/json' \
                 --data-raw "{
             \"name\": \"${tenant_id}-order-${RANDOM}\",
