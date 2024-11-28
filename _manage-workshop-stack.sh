@@ -43,9 +43,9 @@ main() {
     CLOUD9_INSTANCE_ID_PARAMETER_NAME="/workshop/cloud9InstanceId"
     CDK_VERSION="2.162.1"
 
-    MISE_VERSION="v2024.10.2" # https://mise.jdx.dev/getting-started.html#alternate-installation-methods
-    curl https://mise.run | sh
+    curl https://mise.run | MISE_VERSION="v2024.10.2" sh # https://mise.jdx.dev/getting-started.html#alternate-installation-methods
     eval "$(~/.local/bin/mise activate bash)"
+    mise trust mise.toml
     mise install
 
     npm install --force --global aws-cdk@$CDK_VERSION
@@ -53,7 +53,7 @@ main() {
     # TARGET_USER="ec2-user"
     TARGET_USER="ubuntu"
 
-    cd standalone-eks-stack
+    cd standalone-eks-stack || exit
     yarn install
     cdk bootstrap
 
@@ -91,7 +91,7 @@ main() {
         else
             cd ..
             ./destroy.sh
-            cd standalone-eks-stack
+            cd standalone-eks-stack || exit
         fi
 
         echo "Starting cdk destroy..."

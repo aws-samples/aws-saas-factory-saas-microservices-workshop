@@ -3,10 +3,10 @@
 # SPDX-License-Identifier: MIT-0
 CWD=$(pwd)
 
-MISE_VERSION="v2024.10.2" # https://mise.jdx.dev/getting-started.html#alternate-installation-methods
-curl https://mise.run | sh
+curl https://mise.run | MISE_VERSION="v2024.11.32" sh # https://mise.jdx.dev/getting-started.html#alternate-installation-methods
 echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
 source ~/.bashrc
+mise trust mise.toml
 mise install
 
 eval "$(mise activate bash --shims)" # use shims to initialize shell for script
@@ -39,7 +39,7 @@ echo "export ACCOUNT_ID=${ACCOUNT_ID}"  >> ~/.bashrc
 echo "export AWS_REGION=${AWS_REGION}"  >> ~/.bashrc
 echo "export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}"  >> ~/.bashrc
 echo "export CDK_DISABLE_VERSION_CHECK=true"  >> ~/.bashrc
-aws configure set default.region ${AWS_REGION}
+aws configure set default.region "${AWS_REGION}"
 aws configure get default.region
 aws configure set cli_pager ""
 
@@ -54,7 +54,7 @@ kubectl completion bash >>~/.bash_completion
 . /etc/profile.d/bash_completion.sh
 . ~/.bash_completion
 
-cd $CWD
+cd "$CWD"
 
 # overwrite any existing cdk versions
 CDK_VERSION="2.162.1"
