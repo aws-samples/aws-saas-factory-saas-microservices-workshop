@@ -43,7 +43,7 @@ main() {
     CLOUD9_INSTANCE_ID_PARAMETER_NAME="/workshop/cloud9InstanceId"
     CDK_VERSION="2.162.1"
 
-    curl https://mise.run | MISE_VERSION="v2024.10.2" sh # https://mise.jdx.dev/getting-started.html#alternate-installation-methods
+    curl https://mise.run | MISE_VERSION="v2024.11.32" sh # https://mise.jdx.dev/getting-started.html#alternate-installation-methods
     eval "$(~/.local/bin/mise activate bash)"
     mise trust mise.toml
     mise install
