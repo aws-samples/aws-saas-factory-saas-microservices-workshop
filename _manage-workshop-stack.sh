@@ -40,7 +40,7 @@ main() {
     GIT_REPO=$2
     GIT_BRANCH=$3
 
-    CLOUD9_INSTANCE_ID_PARAMETER_NAME="/workshop/cloud9InstanceId"
+    CLOUD9_INSTANCE_ID_PARAMETER_NAME="/code-server/instance-id"
     CDK_VERSION="2.162.1"
 
     curl https://mise.run | MISE_VERSION="v2024.11.32" sh # https://mise.jdx.dev/getting-started.html#alternate-installation-methods
@@ -50,8 +50,7 @@ main() {
 
     npm install --force --global aws-cdk@$CDK_VERSION
 
-    # TARGET_USER="ec2-user"
-    TARGET_USER="ubuntu"
+    TARGET_USER="ec2-user"
 
     cd standalone-eks-stack || exit
     yarn install

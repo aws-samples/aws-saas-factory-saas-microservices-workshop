@@ -19,6 +19,7 @@ import {
   ResourceContext,
 } from "@aws-quickstart/eks-blueprints";
 import { MyCustomAwsForFluentBitAddOn } from "../lib/fluentbit";
+import { CodeServerConstruct } from "../lib/vscode-resources";
 
 const app = new cdk.App();
 const account = process.env.CDK_DEFAULT_ACCOUNT;
@@ -118,6 +119,8 @@ new Cloud9Resources(blueprint, "Cloud9Resources", {
   cloud9InstanceTypes: cloud9InstanceTypes,
   cloud9ImageId: cloud9ImageId,
 });
+
+new CodeServerConstruct(blueprint, "CodeServerResources", {});
 
 cdk.Aspects.of(blueprint).add(new DestroyPolicySetter());
 cdk.Tags.of(blueprint).add("SaaSMicroservicesWorkshop", "BootstrapResources");

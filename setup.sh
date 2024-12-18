@@ -27,8 +27,7 @@ PATH=/usr/local/bin:$PATH
 rm -rf aws awscliv2.zip
 
 echo "Installing helper tools"
-sudo apt-get update
-sudo apt-get install -y jq gettext bash-completion moreutils
+sudo yum install -y jq gettext bash-completion moreutils
 
 export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 10")
@@ -43,8 +42,8 @@ aws configure set default.region "${AWS_REGION}"
 aws configure get default.region
 aws configure set cli_pager ""
 
-echo "Resizing Cloud9 instance EBS Volume"
-bash ./scripts/resize-cloud9-ebs-vol.sh 40
+# echo "Resizing Cloud9 instance EBS Volume"
+# bash ./scripts/resize-cloud9-ebs-vol.sh 40
 
 for command in kubectl jq envsubst aws; do
   which $command &>/dev/null && echo "$command in path" || echo "$command NOT FOUND"
@@ -60,7 +59,7 @@ cd "$CWD"
 CDK_VERSION="2.162.1"
 sudo npm install --force --global aws-cdk@$CDK_VERSION
 
-INSTANCE_ROLE_NAME=$(aws ssm get-parameter --name "/workshop/cloud9InstanceRoleName" --region "$AWS_REGION" --query 'Parameter.Value' --output text)
-aws sts get-caller-identity --query Arn | grep "$INSTANCE_ROLE_NAME" -q &&
-  echo "IAM role valid. Proceed." ||
-  echo "IAM role NOT valid. Do not proceed with creating the EKS Cluster or you won't be able to authenticate. Ensure you assigned the role to your EC2 instance as detailed in the workshop instructions"
+# INSTANCE_ROLE_NAME=$(aws ssm get-parameter --name "/workshop/cloud9InstanceRoleName" --region "$AWS_REGION" --query 'Parameter.Value' --output text)
+# aws sts get-caller-identity --query Arn | grep "$INSTANCE_ROLE_NAME" -q &&
+#   echo "IAM role valid. Proceed." ||
+#   echo "IAM role NOT valid. Do not proceed with creating the EKS Cluster or you won't be able to authenticate. Ensure you assigned the role to your EC2 instance as detailed in the workshop instructions"
