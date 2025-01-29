@@ -5,14 +5,14 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@aws-cdk/asset-awscli-v1@npm:^2.2.202":
-  version: 2.2.211
-  resolution: "@aws-cdk/asset-awscli-v1@npm:2.2.211"
-  checksum: fbbf6b374768cf3c205d240a66c3a24ef5f72b9ee23a66949f6b497b628c38fd71524ed82f5097297691044bf87c5fcde8e613115b9804dd55a4a4f1a02344d3
+"@aws-cdk/asset-awscli-v1@npm:^2.2.208":
+  version: 2.2.221
+  resolution: "@aws-cdk/asset-awscli-v1@npm:2.2.221"
+  checksum: beb4a2f77bfca90d8c3cda0ba5c2cb8f49f3e30f25e52db56ac3768d0a155d38f932d4368da2760ec3ea6a3a8914779112d4a68966c33fd961d8b36c2feb15f5
   languageName: node
   linkType: hard
 
-"@aws-cdk/asset-kubectl-v20@npm:^2.1.2":
+"@aws-cdk/asset-kubectl-v20@npm:^2.1.3":
   version: 2.1.3
   resolution: "@aws-cdk/asset-kubectl-v20@npm:2.1.3"
   checksum: 3eb0c3144e13b72585b25cd8df97a161fd83a2dab4a286c07462f4ed9c200849da884ae6281762b384eeb3a461f9ac4f105b8508d527dc8ff963abc12e0f597a
@@ -26,13 +26,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-cdk/cloud-assembly-schema@npm:^38.0.0":
-  version: 38.0.1
-  resolution: "@aws-cdk/cloud-assembly-schema@npm:38.0.1"
+"@aws-cdk/cloud-assembly-schema@npm:^39.2.0":
+  version: 39.2.8
+  resolution: "@aws-cdk/cloud-assembly-schema@npm:39.2.8"
   dependencies:
-    jsonschema: ^1.4.1
+    jsonschema: ~1.4.1
     semver: ^7.6.3
-  checksum: 3dc79baac9b0d81201b39f379e7d062cef532f22deb6d57811cd285ddea53d8d36c382476c758abea5cf165f8fd6dd668470052c6a645df350b7a795d04d0d80
+  checksum: 2c08e6278c95de48012526dc64e66140a752a0590f9edf50968414ed434477f4713525df57a96babb3a4ca70cd0015b85e58c004e1dc000400e9a99ac9267e3d
   languageName: node
   linkType: hard
 
@@ -1611,14 +1611,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"aws-cdk-lib@npm:2.162.1":
-  version: 2.162.1
-  resolution: "aws-cdk-lib@npm:2.162.1"
+"aws-cdk-lib@npm:2.177.0":
+  version: 2.177.0
+  resolution: "aws-cdk-lib@npm:2.177.0"
   dependencies:
-    "@aws-cdk/asset-awscli-v1": ^2.2.202
-    "@aws-cdk/asset-kubectl-v20": ^2.1.2
+    "@aws-cdk/asset-awscli-v1": ^2.2.208
+    "@aws-cdk/asset-kubectl-v20": ^2.1.3
     "@aws-cdk/asset-node-proxy-agent-v6": ^2.1.0
-    "@aws-cdk/cloud-assembly-schema": ^38.0.0
+    "@aws-cdk/cloud-assembly-schema": ^39.2.0
     "@balena/dockerignore": ^1.0.2
     case: 1.6.3
     fs-extra: ^11.2.0
@@ -1632,7 +1632,7 @@ __metadata:
     yaml: 1.10.2
   peerDependencies:
     constructs: ^10.0.0
-  checksum: 099a027260212934c4cff01ea24cdc080a9b094868f275d4280542c22b892754cd6ecbb95ce9750f6643b306a115d659447c329a04277e359ac8b7c80898f29e
+  checksum: 10df1226a41ec3e22aa99509fe48769c15be3b671f386885c0fc9015b65437736b73d49d6488b5e3cc1e53797418115478cc07a2f5ed5f6c18f44eb3895c6b0d
   languageName: node
   linkType: hard
 
@@ -2422,7 +2422,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonschema@npm:^1.4.1":
+"jsonschema@npm:^1.4.1, jsonschema@npm:~1.4.1":
   version: 1.4.1
   resolution: "jsonschema@npm:1.4.1"
   checksum: 1ef02a6cd9bc32241ec86bbf1300bdbc3b5f2d8df6eb795517cf7d1cd9909e7beba1e54fdf73990fd66be98a182bda9add9607296b0cb00b1348212988e424b2
@@ -2493,7 +2493,7 @@ __metadata:
     "@aws-quickstart/eks-blueprints": 1.16.2
     "@types/node": ^22.7.5
     aws-cdk: 2.162.1
-    aws-cdk-lib: 2.162.1
+    aws-cdk-lib: 2.177.0
     constructs: ^10.3.0
     source-map-support: ^0.5.21
     ts-node: ^10.9.2
