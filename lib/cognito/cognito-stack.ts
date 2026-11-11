@@ -46,7 +46,25 @@ export class CognitoResources extends Construct {
     const userPoolClient = userPool.addClient("app-client", {
       userPoolClientName: "saas-workshop-client",
       readAttributes: new cognito.ClientAttributes()
-        .withCustomAttributes("custom:tenant_tier", "custom:tenant_id", "custom:role")        
+        .withCustomAttributes("custom:tenant_tier", "custom:tenant_id", "custom:role")
+        .withStandardAttributes({ email: true }),
+      // writeAttributes governs what the END USER may change about themselves, with their
+      // own access token, via the ordinary UpdateUserAttributes API. It must be set
+      // explicitly: an app client created with no writeAttributes at all can write EVERY
+      // mutable attribute, custom ones included. (The CreateUserPoolClient API reference
+      // currently documents that default the other way round.)
+      //
+      // custom:role must never appear here. It is schema-mutable above, it is the claim the
+      // token-vendor turns into an STS session tag and an AWS Verified Permissions role, and
+      // it is therefore an authorization input. If a user could write it, any signed-in user
+      // could call UpdateUserAttributes with their own token, set custom:role to an
+      // administrative value, and obtain that role's access. custom:tenant_id and
+      // custom:tenant_tier are additionally declared mutable: false above.
+      //
+      // Nothing legitimate is lost: scripts/create-users.sh assigns all three custom
+      // attributes through the IAM-authenticated admin-create-user API, which this list does
+      // not constrain.
+      writeAttributes: new cognito.ClientAttributes()
         .withStandardAttributes({ email: true }),
       generateSecret: true,
       preventUserExistenceErrors: true,
